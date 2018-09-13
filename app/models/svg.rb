@@ -1,4 +1,5 @@
 require 'nokogiri'
+require 'tempfile'
 
 class SVG
   attr_accessor :layers, :xml
@@ -30,10 +31,10 @@ class SVG
   end
 
   def build_svg(layer_name)
-    layer = @layers.select { |l| l.name == layer_name }
+    layers = @layers.select { |l| l.name == layer_name }
     raise StandardError.new("More than one layer with the name #{layer_name}") if layer.size > 1
     raise StandardError.new("There is no layer with the name #{layer_name}") if layer.size == 0
-    layer.flatten!
+    layer = layers.first
 
     header = @xml.root.attributes
 
@@ -50,11 +51,17 @@ class SVG
               x: header['x'].to_s, y: header['y'].to_s,
               width: header['width'].to_s, height: header['height'].to_s,
               viewBox: header['viewBox'].to_s) {
+        layer.paths.each do |path|
+          xml.path(d: path.d, stroke: path.color, 'stroke-width': path.width)
+        end
 
       }
 
     end
-    File.open(file_name, 'w') { |f| f.write builder.to_xml }
-    print "Saved to #{file_name}\n"
+
+    file = Tempfile.new(layer_name)
+    file.write builder.to_xml
+    print "Saved to #{file.path}\n"
+    file
   end
 end
