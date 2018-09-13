@@ -3,7 +3,7 @@ class Layer
   def initialize(element)
     @paths = []
     @xml = element
-    @name = element.attributes['id']
+    @name = element.attributes['id'].to_s
     element.traverse do |e|
       if e.name == 'path'
         @paths.push Path.new(e)
