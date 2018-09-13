@@ -4,12 +4,13 @@ require 'tempfile'
 class SVG
   attr_accessor :layers, :xml
 
-  def initialize(file_name)
+  def initialize(path, file_name)
     @paths = []
     @layers = []
     @file_name = file_name
+    @path = path
     elements = []
-    svg = Nokogiri::XML open(file_name)
+    svg = Nokogiri::XML open(path + file_name)
     svg.traverse do |e|
       if e.element?
         elements.push e
@@ -32,8 +33,8 @@ class SVG
 
   def build_svg(layer_name)
     layers = @layers.select { |l| l.name == layer_name }
-    raise StandardError.new("More than one layer with the name #{layer_name}") if layer.size > 1
-    raise StandardError.new("There is no layer with the name #{layer_name}") if layer.size == 0
+    raise StandardError.new("More than one layer with the name #{layer_name}") if layers.size > 1
+    raise StandardError.new("There is no layer with the name #{layer_name}") if layers.size == 0
     layer = layers.first
 
     header = @xml.root.attributes
@@ -52,16 +53,16 @@ class SVG
               width: header['width'].to_s, height: header['height'].to_s,
               viewBox: header['viewBox'].to_s) {
         layer.paths.each do |path|
-          xml.path(d: path.d, stroke: path.color, 'stroke-width': path.width)
+          xml.path(d: path.d, stroke: path.color, 'stroke-width': path.width, 'fill-opacity': path.opacity)
         end
 
       }
 
     end
 
-    file = Tempfile.new(layer_name)
+    file = File.open(Rails.root.join('public', @file_name + '_' + layer_name + '.svg'), 'w')
     file.write builder.to_xml
-    print "Saved to #{file.path}\n"
-    file
+    file.close
+    File.basename file.path
   end
 end

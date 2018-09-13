@@ -1,6 +1,11 @@
 .container
   .row
     .col-md-10
-      = image_tag(@image.name)
+      %img{src: @svg}
     .col-md-2
-      = @image.layers
+      %ul
+        %li
+          = link_to 'Whole image', root_path
+        - @image.layers.each do |layer|
+          %li
+            = link_to layer.name, root_path(layer: layer.name)
