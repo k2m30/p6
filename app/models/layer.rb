@@ -14,12 +14,39 @@ class Layer
         end
       end
     end
-    optimize_paths
   end
 
   def optimize_paths
+    optimized_paths = []
 
+    path = @paths.first
+    until @paths.empty?
+      optimized_paths.push path
+      @paths.delete path
+      closest = find_closest(path)
+      @paths.delete closest
+      path = closest
+    end
+    optimized_paths.push path
+    @paths = optimized_paths
   end
+
+  def find_closest(path)
+    distance = Float::INFINITY
+    point = path.end_point
+    closest = nil
+    @paths.each do |p|
+      next if p == path
+      tmp_distance = [Point.distance(point, p.start_point), Point.distance(point, p.end_point)].min
+      if distance > tmp_distance
+        distance = tmp_distance
+        closest = p
+      end
+    end
+    Point.distance(point, closest.start_point) < Point.distance(point, closest.end_point) ? closest : closest.reverse!
+    closest
+  end
+
 
   def normalize_path(d)
     paths = []

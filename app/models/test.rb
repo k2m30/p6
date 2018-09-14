@@ -12,5 +12,6 @@ p path.d
 path.reverse!
 p path.d
 
-file = svg.build_svg('black_up')
+# file = svg.build_svg('black_up')
+file = svg.build_svg('yellow_(')
 p file.path

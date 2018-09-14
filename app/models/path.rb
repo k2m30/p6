@@ -4,7 +4,7 @@ require_relative 'elements/move_to'
 require_relative 'elements/line'
 
 class Path
-  attr_reader :d, :elements, :xml, :color, :width, :opacity, :start_point, :end_point
+  attr_reader :elements, :xml, :color, :width, :opacity, :linecap
 
   def initialize(xml, str = nil)
     @xml = xml
@@ -15,6 +15,7 @@ class Path
     @color = xml.attributes['stroke']
     @width = xml.attributes['stroke-width'].to_s.to_f
     @opacity = xml.attributes['fill-opacity']
+    @linecap = xml.attributes['stroke-linecap']
   end
 
   def start_point
@@ -54,11 +55,14 @@ class Path
 
   def d
     d = ''
-    @elements.each do |e|
-      d << e.to_s
-    end
+    @elements.each { |e| d << e.to_s }
     d
   end
+
+  def to_s
+    d
+  end
+
 
   def reverse!
     elements = []

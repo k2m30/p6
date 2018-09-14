@@ -20,6 +20,7 @@ class SVG
     raise StandardError.new("More than one layer with the name #{layer_name}") if layers.size > 1
     raise StandardError.new("There is no layer with the name #{layer_name}") if layers.size == 0
     layer = layers.first
+    layer.optimize_paths
 
     header = @xml.root.attributes
 
@@ -39,7 +40,7 @@ class SVG
         last_point = layer.paths.first.start_point
         layer.paths.each do |path|
           xml.path(d: "M#{last_point.x},#{last_point.y} L#{path.start_point.x},#{path.start_point.y}", stroke: '#FF0000', 'stroke-width': (path.width/10).to_i, 'fill-opacity': 0, class: 'move_to')
-          xml.path(d: path.d, stroke: path.color, 'stroke-width': path.width, 'fill-opacity': path.opacity)
+          xml.path(d: path.d, stroke: path.color, 'stroke-width': path.width, 'fill-opacity': path.opacity, 'stroke-linecap': path.linecap)
           last_point = path.end_point
         end
 
