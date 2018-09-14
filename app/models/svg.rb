@@ -9,26 +9,10 @@ class SVG
     @layers = []
     @file_name = file_name
     @path = path
-    elements = []
-    svg = Nokogiri::XML open(path + file_name)
-    svg.traverse do |e|
-      if e.element?
-        elements.push e
-        @layers.push Layer.new(e) if e.name == 'g' and !e.attributes['id'].nil?
-        if e.name == 'svg'
-          p e.name
-        end
-      else
-        next if e.name == 'text'
-        # p e.name
-
-      end
+    @xml = Nokogiri::XML open(path + file_name)
+    @xml.traverse do |e|
+      @layers.push Layer.new(e) if e.element? and e.name == 'g' and !e.attributes['id'].nil?
     end
-    # elements.map do |e|
-    #   @paths.push e.attribute_nodes.select { |a| a.name == 'd' }
-    # end
-    # @paths.flatten!.map!(&:value).map! { |path| Path.parse path }.flatten!
-    @xml = svg
   end
 
   def build_svg(layer_name)
@@ -48,7 +32,7 @@ class SVG
       )
       xml.svg(version: '1.1',
               xmlns: 'http://www.w3.org/2000/svg',
-              'xmlns:xlink' => 'http://www.w3.org/1999/xlink',
+              'xmlns:xlink': 'http://www.w3.org/1999/xlink',
               x: header['x'].to_s, y: header['y'].to_s,
               width: header['width'].to_s, height: header['height'].to_s,
               viewBox: header['viewBox'].to_s) {
