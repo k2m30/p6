@@ -4,7 +4,7 @@ require_relative 'elements/move_to'
 require_relative 'elements/line'
 
 class Path
-  attr_reader :d, :elements, :xml, :color, :width, :opacity
+  attr_reader :d, :elements, :xml, :color, :width, :opacity, :start_point, :end_point
 
   def initialize(xml, d = nil)
     @xml = xml
@@ -14,8 +14,10 @@ class Path
     s = @d[/[a-z]/] or @d[/[ABD-KN-Z]/] #no relative commands supported so far; M, L and C absolute commands only
     raise StandardError.new("Unsupported symbol \"#{s}\" in path \"#{@d}\"") unless s.nil?
     @color = xml.attributes['stroke']
-    @width = xml.attributes['stroke-width']
+    @width = xml.attributes['stroke-width'].to_s.to_f
     @opacity = xml.attributes['fill-opacity']
+    @start_point = @elements.first.start_point
+    @end_point = @elements.last.end_point
   end
 
   def build_elements

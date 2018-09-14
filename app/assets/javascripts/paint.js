@@ -1,10 +1,12 @@
-function paint(name){
+function paint(name) {
     var svgobject = document.getElementById(name); // Находим тег <object>
     if ('contentDocument' in svgobject) {              // У нас действительно там что-то есть?
         var velocity = 2000; // mm/sec
         var delay = 0;
         var paths = document.getElementById(name).contentDocument.querySelectorAll('path');
         var transition = null;
+        var time;
+        var l;
         for (var i = 0; i < paths.length; i++) {
             l = paths[i].getTotalLength();
             paths[i].style.transition = paths[i].style.WebkitTransition = 'none';
@@ -12,7 +14,11 @@ function paint(name){
             paths[i].style.strokeDashoffset = l;
             paths[i].style.markerStart = 'none';
             paths[i].style.markerEnd = 'none';
-            time = l / velocity;
+            if (paths[i].className.baseVal == "move_to") {
+                time = l / velocity / 10;
+            } else {
+                time = l / velocity;
+            }
             transition = 'stroke-dashoffset ' + time + 's ease-in-out ' + delay + 's';
             delay += time;
             paths[i].getBoundingClientRect();
