@@ -14,6 +14,11 @@ class Layer
         end
       end
     end
+    optimize_paths
+  end
+
+  def optimize_paths
+
   end
 
   def normalize_path(d)
