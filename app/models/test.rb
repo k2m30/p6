@@ -1,7 +1,11 @@
 require_relative 'svg'
 require_relative 'layer'
 require_relative 'path'
+require_relative 'elements/cubic_curve'
+require_relative 'elements/point'
+require_relative 'elements/move_to'
+require_relative 'elements/line'
 
-svg = SVG.new('../assets/images/risovaka007_003.svg')
+svg = SVG.new('../../public/','risovaka007_003.svg')
 file = svg.build_svg('black_up')
 p file.path
