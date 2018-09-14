@@ -1,7 +1,7 @@
 function paint(name) {
     var svgobject = document.getElementById(name); // Находим тег <object>
     if ('contentDocument' in svgobject) {              // У нас действительно там что-то есть?
-        var velocity = 2000; // mm/sec
+        var velocity = 10000; // mm/sec
         var delay = 0;
         var paths = document.getElementById(name).contentDocument.querySelectorAll('path');
         var transition = null;

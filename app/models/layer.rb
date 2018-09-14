@@ -28,7 +28,7 @@ class Layer
       path = closest
     end
     optimized_paths.push path
-    @paths = optimized_paths
+    @paths = optimized_paths.compact
   end
 
   def find_closest(path)
