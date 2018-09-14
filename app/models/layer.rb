@@ -1,14 +1,29 @@
 class Layer
   attr_accessor :paths, :name, :xml
+
   def initialize(element)
     @paths = []
     @xml = element
     @name = element.attributes['id'].to_s
     element.traverse do |e|
       if e.name == 'path'
-        @paths.push Path.new(e)
+        d = e.attributes['d']
+        paths = normalize_path(d)
+        paths.each do |d|
+          @paths.push Path.new(e, d)
+        end
       end
     end
+  end
+
+  def normalize_path(d)
+    paths = []
+    begin
+      m = / ?[Mm][^Mm]+/.match d
+      paths.push m[0]
+      d = m.post_match
+    end while d.size > 0
+    paths
   end
 
   def to_s
