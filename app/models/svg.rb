@@ -35,13 +35,13 @@ class SVG
               'xmlns:xlink': 'http://www.w3.org/1999/xlink',
               x: header['x'].to_s, y: header['y'].to_s,
               width: header['width'].to_s, height: header['height'].to_s,
-              viewBox: header['viewBox'].to_s) {
+              viewBox: header['viewBox'].to_s) do
+
         layer.paths.each do |path|
           xml.path(d: path.d, stroke: path.color, 'stroke-width': path.width, 'fill-opacity': path.opacity)
         end
 
-      }
-
+      end
     end
 
     file = File.open(Rails.root.join('public', @file_name + '_' + layer_name + '.svg'), 'w')
