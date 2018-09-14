@@ -6,22 +6,27 @@ require_relative 'elements/line'
 class Path
   attr_reader :d, :elements, :xml, :color, :width, :opacity, :start_point, :end_point
 
-  def initialize(xml, d = nil)
+  def initialize(xml, str = nil)
     @xml = xml
-    @d = d || xml.attributes['d']
     @elements = []
-    build_elements
-    s = @d[/[a-z]/] or @d[/[ABD-KN-Z]/] #no relative commands supported so far; M, L and C absolute commands only
-    raise StandardError.new("Unsupported symbol \"#{s}\" in path \"#{@d}\"") unless s.nil?
+    build_elements(str || xml.attributes['d'])
+    s = d[/[a-z]/] or d[/[ABD-KN-Z]/] #no relative commands supported so far; M, L and C absolute commands only
+    raise StandardError.new("Unsupported symbol \"#{s}\" in path \"#{d}\"") unless s.nil?
     @color = xml.attributes['stroke']
     @width = xml.attributes['stroke-width'].to_s.to_f
     @opacity = xml.attributes['fill-opacity']
-    @start_point = @elements.first.start_point
-    @end_point = @elements.last.end_point
   end
 
-  def build_elements
-    d = @d.dup
+  def start_point
+    @elements.first.start_point
+  end
+
+  def end_point
+    @elements.last.end_point
+  end
+
+  def build_elements(str)
+    d = str.dup
     elements = []
     begin
       m = / ?[MLCZz][^MLCZz]*/.match d
@@ -41,33 +46,27 @@ class Path
         when 'L'
           @elements.push Line.new(e, current_point)
         else
-          raise StandardError.new("Unsupported command \"#{e.first}\" in path \"#{@d}\"")
+          raise StandardError.new("Unsupported command \"#{e.first}\" in path \"#{d}\"")
       end
       current_point = @elements.last.end_point
     end
-    rebuild
   end
 
-  def rebuild
-    @d = ''
+  def d
+    d = ''
     @elements.each do |e|
-      @d << e.to_s
+      d << e.to_s
     end
+    d
   end
 
   def reverse!
     elements = []
-    elements.push MoveTo.new("M#{@end_point.x},#{@end_point.y} ", @end_point)
+    elements.push MoveTo.new("M#{end_point.x},#{end_point.y} ", end_point)
     until @elements.empty?
       elements.push @elements.pop.reverse!
     end
     elements.pop
     @elements = elements
-
-    tmp = @start_point
-    @start_point = @end_point
-    @end_point = tmp
-
-    rebuild
   end
 end
