@@ -1,11 +1,12 @@
-.container
-  .row
-    .col-md-10
-      %img{src: @svg}
-    .col-md-2
-      %ul
+.row
+  .col-md-10
+    %object{data: @svg, type: 'image/svg+xml', id: 'svg'}
+  .col-md-2
+    %ul
+      %li
+        = link_to 'Whole image', root_path
+      - @image.layers.each do |layer|
         %li
-          = link_to 'Whole image', root_path
-        - @image.layers.each do |layer|
-          %li
-            = link_to layer.name, root_path(layer: layer.name)
+          = link_to layer.name, root_path(layer: layer.name)
+    %button{class: 'btn btn-info', onclick: "paint('svg')"}
+      Simulate
