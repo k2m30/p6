@@ -2,9 +2,9 @@ class Point
   attr_accessor :x, :y
 
   def initialize(x, y)
-    @x=x
-    @y=y
     raise StandardError.new("Wrong inputs #{x}, #{y}") if x.nil? or y.nil?
+    @x=x.to_f
+    @y=y.to_f
   end
 
   def to_s

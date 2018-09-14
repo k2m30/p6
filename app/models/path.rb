@@ -45,10 +45,29 @@ class Path
       end
       current_point = @elements.last.end_point
     end
+    rebuild
+  end
 
+  def rebuild
     @d = ''
     @elements.each do |e|
       @d << e.to_s
     end
+  end
+
+  def reverse!
+    elements = []
+    elements.push MoveTo.new("M#{@end_point.x},#{@end_point.y} ", @end_point)
+    until @elements.empty?
+      elements.push @elements.pop.reverse!
+    end
+    elements.pop
+    @elements = elements
+
+    tmp = @start_point
+    @start_point = @end_point
+    @end_point = tmp
+
+    rebuild
   end
 end

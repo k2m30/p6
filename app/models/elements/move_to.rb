@@ -9,4 +9,8 @@ class MoveTo < Element
     "#{@command_code}#{@end_point} "
   end
 
+  def reverse!
+    self
+  end
+
 end

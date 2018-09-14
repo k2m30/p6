@@ -8,4 +8,12 @@ class Line < Element
   def to_s
     "#{@command_code}#{@end_point} "
   end
+
+  def reverse!
+    tmp = @start_point
+    @start_point = @end_point
+    @end_point = tmp
+    self
+  end
+
 end
