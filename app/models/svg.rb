@@ -38,9 +38,9 @@ class SVG
               width: header['width'].to_s, height: header['height'].to_s,
               viewBox: header['viewBox'].to_s) do
         last_point = layer.paths.first.start_point
-        layer.paths.each do |path|
+        layer.paths.each_with_index do |path, i|
           xml.path(d: "M#{last_point.x},#{last_point.y} L#{path.start_point.x},#{path.start_point.y}", stroke: '#FF0000', 'stroke-width': (path.width/10).to_i, 'fill-opacity': 0, class: 'move_to')
-          xml.path(d: path.d, stroke: path.color, 'stroke-width': path.width, 'fill-opacity': path.opacity, 'stroke-linecap': path.linecap)
+          xml.path(d: path.d, stroke: path.color, 'stroke-width': path.width, 'fill-opacity': path.opacity, 'stroke-linecap': path.linecap, id: "path_#{i}")
           last_point = path.end_point
         end
 
