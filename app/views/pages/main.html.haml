@@ -5,13 +5,26 @@
       =@image.name
     %object{data: @svg, type: 'image/svg+xml', id: 'svg'}
   .col-md-3
-    %h5 Layers
-    .btn-group.btn-group-vertical(role="group" aria-label="Layers")
-      = link_to 'Whole image', root_path, class: layer_id.nil? ? 'btn btn-dark' :'btn btn-secondary'
-      - @image.layers.each do |layer|
-        - btn_class = (layer_id.present? and layer_id == layer.name) ? 'btn btn-dark' : 'btn btn-secondary'
-        = link_to layer.name, root_path(layer: layer.name), class: btn_class
+    .row
+      %h5
+        = layer_id || ''
+      .btn-group.btn-block.btn-group-vertical(role="group" aria-label="Layers")
+        = link_to 'Whole image', root_path, class: layer_id.nil? ? 'btn btn-dark btn-sm btn-block' :'btn btn-secondary btn-sm btn-block'
+        .btn-group(role="group")
+          %button.btn.btn-secondary.btn-sm.dropdown-toggle#ibtnGroupDrop(type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")
+            Layers
+          .dropdown-menu(aria-labelledby="btnGroupDrop")
+            - @image.layers.each do |layer|
+              - current = (layer_id.present? and layer_id == layer.name) ? ' font-weight-bold' : ''
+              = link_to layer.name, root_path(layer: layer.name), class: 'dropdown-item btn btn-sm' + current
 
-      %hr
-      %button{class: 'btn btn-info', onclick: "paint('svg')"}
-        Simulate
+        %hr
+        %button{class: 'btn btn-info', onclick: "paint('svg')"}
+          Simulate
+        %button{class: 'btn btn-info', onclick: "paint('svg')"}
+          Settings
+        = link_to 'Settings', nil, class: 'btn btn-sm'
+    .row
+    = render('status')
+    .row
+    = render('joystick')
