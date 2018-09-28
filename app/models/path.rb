@@ -53,6 +53,10 @@ class Path
     end
   end
 
+  def split(size)
+    @elements.map{|e| e.split(size)}
+  end
+
   def d
     d = ''
     @elements.each { |e| d << e.to_s }

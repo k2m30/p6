@@ -3,9 +3,13 @@ class Layer
 
   def initialize(element)
     @paths = []
-    @xml = element
-    @name = element.attributes['id'].to_s
-    element.traverse do |e|
+    @xml = if element.is_a?(Nokogiri::XML::Element)
+             element
+           else
+             Nokogiri::XML(element).elements.first
+           end
+    @name = @xml.attributes['id'].to_s
+    @xml.traverse do |e|
       if e.name == 'path'
         d = e.attributes['d']
         paths = normalize_path(d)
@@ -14,6 +18,17 @@ class Layer
         end
       end
     end
+  end
+
+  def self.build(layer_raw)
+    redis = Redis.new
+    layer = Layer.new(redis.get(layer_raw))
+
+    splitted = []
+    layer.paths.each do |path|
+      splitted << path.split(Config.max_segment_length)
+    end
+    redis.set :splitted, splitted
   end
 
   def optimize_paths

@@ -13,4 +13,8 @@ class MoveTo < Element
     self
   end
 
+  def split(_)
+    self
+  end
+
 end

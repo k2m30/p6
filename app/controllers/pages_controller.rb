@@ -9,4 +9,12 @@ class PagesController < ApplicationController
       @svg = @image.svg.build_svg(layer)
     end
   end
+
+  def build
+    layer = params[:layer]
+    unless layer.nil?
+      Layer.build(layer)
+    end
+    render plain: Redis.new.get(:splitted)
+  end
 end
