@@ -64,7 +64,7 @@ class Path
   end
 
   def to_s
-    d
+    "<path d=\"#{d}\" fill-opacity=\"0\" stroke=\"#{@color}\" stroke-width=\"#{@width}\" stroke-linecap=\"#{@linecap}\" class=\"d\"/>"
   end
 
 
