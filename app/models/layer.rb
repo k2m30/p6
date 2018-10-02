@@ -1,13 +1,12 @@
 class Layer
   attr_accessor :paths, :name, :xml, :splitted_paths, :color
 
-  def initialize(element)
-    @xml = if element.is_a?(Nokogiri::XML::Element)
-             element
-           else
-             Nokogiri::XML(element).elements.first
-           end
+  def initialize(element, lazy = true)
+    @xml = Nokogiri::XML(element).elements.first
     @name = @xml.attributes['id'].to_s
+
+    r = Redis.new.get(@name)
+    @xml = Nokogiri::XML(r).elements.first if r and lazy
 
     @paths = []
     @splitted_paths = []
@@ -29,7 +28,7 @@ class Layer
 
     @color ||= @paths.first&.color || @xml.attributes['color']
     @width ||= @paths.first&.width || @xml.attributes['width']
-    p @paths.size
+    p [@name, @paths.size]
     optimize_paths
     to_redis
   end
@@ -60,12 +59,14 @@ class Layer
     optimized_paths = []
 
     path = @paths.first
+    p @paths.size
     until @paths.empty?
       optimized_paths.push path
       @paths.delete path
       closest = find_closest(path)
       @paths.delete closest
       path = closest
+      p @paths.size
     end
     optimized_paths.push path
     @paths = optimized_paths.compact
