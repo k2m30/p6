@@ -12,7 +12,7 @@ class Layer
     @paths = []
     @splitted_paths = []
     @xml.traverse do |e|
-      if e.name == 'path'
+      if e.name == 'path' and e.attributes['class'].to_s != 'move_to'
         d = e.attributes['d']
         paths = normalize_path(d)
         paths.each do |d|
@@ -22,13 +22,14 @@ class Layer
         d = e.attributes['d']
         paths = normalize_path(d)
         paths.each do |d|
-          # @splitted_paths.push Path.new(e, d)
+          @splitted_paths.push Path.new(e, d)
         end
       end
     end
 
     @color ||= @paths.first&.color || @xml.attributes['color']
     @width ||= @paths.first&.width || @xml.attributes['width']
+    p @paths.size
     optimize_paths
     to_redis
   end
@@ -139,6 +140,7 @@ EOL
     file.close
     File.basename file.path
   end
+
   def inspect
     @name
   end

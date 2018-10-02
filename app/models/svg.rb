@@ -16,11 +16,7 @@ class SVG
     @xml.traverse do |e|
       if e.element? and e.name == 'g' and !e.attributes['id'].nil?
         name = e.attributes['id'].to_s
-        @layers[name] = if @redis.get(name).nil?
-                          Layer.new(e)
-                        else
-                          Layer.from_redis(name)
-                        end
+        @layers[name] = Layer.new(e)
       end
     end
   end
