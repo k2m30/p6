@@ -1,5 +1,5 @@
 class Layer
-  attr_accessor :paths, :name, :xml, :splitted_paths
+  attr_accessor :paths, :name, :xml, :splitted_paths, :color
 
   def initialize(element)
     @xml = if element.is_a?(Nokogiri::XML::Element)
@@ -10,6 +10,7 @@ class Layer
     @name = @xml.attributes['id'].to_s
 
     @paths = []
+    @splitted_paths = []
     @xml.traverse do |e|
       if e.name == 'path'
         d = e.attributes['d']
@@ -17,11 +18,17 @@ class Layer
         paths.each do |d|
           @paths.push Path.new(e, d)
         end
+      elsif e.name == 'spath'
+        d = e.attributes['d']
+        paths = normalize_path(d)
+        paths.each do |d|
+          # @splitted_paths.push Path.new(e, d)
+        end
       end
     end
 
-    @color = @paths.first&.color
-    @width = @paths.first&.width
+    @color ||= @paths.first&.color || @xml.attributes['color']
+    @width ||= @paths.first&.width || @xml.attributes['width']
     optimize_paths
     to_redis
   end
@@ -39,11 +46,13 @@ class Layer
 
   def self.build(layer_raw)
     layer = from_redis layer_raw
-    splitted = []
+    layer.splitted_paths = []
     layer.paths.each do |path|
-      splitted << path.split(Config.max_segment_length)
+      layer.splitted_paths << path.split(Config.max_segment_length)
     end
-    redis.set :splitted, splitted
+    # redis.set :splitted, layer.splitted_paths
+    layer.to_redis
+    layer
   end
 
   def optimize_paths
@@ -93,10 +102,22 @@ class Layer
       xml.g(id: @name, color: @color, width: @width) do
         break if @paths.empty?
         xml.style do
-          xml.text ".d {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}, stroke-linecap: round}"
+          xml.text ".d {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round}\n"
+          xml.text ".move_to {stroke: #FF0000; fill-opacity: 0; stroke-width: #{(@width.to_s.to_f / 10).to_i}}\n"
+          xml.text ".s {stroke: #{@color}; fill-opacity: \"0.5\"; stroke-width: #{@width}; stroke-linecap: round}\n"
         end
+
+        last_point = @paths.first.start_point
         @paths.each_with_index do |path, i|
+          xml.path(d: "M#{last_point.x},#{last_point.y} L#{path.start_point.x},#{path.start_point.y}", class: 'move_to')
           xml.path(d: path.d, id: "path_#{i}", class: 'd')
+          last_point = path.end_point
+        end
+
+        xml.g(id: :splitted, color: @color, width: @width) do
+          @splitted_paths.each_with_index do |spath, i|
+            xml.spath(d: spath.d, id: "spath_#{i}", class: 's')
+          end
         end
       end
     end
@@ -104,48 +125,20 @@ class Layer
   end
 
   def to_svg(header)
-    builder = Nokogiri::XML::Builder.new do |xml|
-      #header and styles
-      xml.doc.create_internal_subset(
-          'svg',
-          '-//W3C//DTD SVG 1.1//EN',
-          'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'
-      )
-      xml.svg(version: '1.1',
-              xmlns: 'http://www.w3.org/2000/svg',
-              'xmlns:xlink': 'http://www.w3.org/1999/xlink',
-              x: header['x']&.to_s,
-              y: header['y']&.to_s,
-              width: '100%',
-              height: '100%',
-              viewBox: header['viewBox']&.to_s,
-              preserveAspectRatio: 'xMinYMin meet',
-              id: @name) do
-
-        xml.style do
-          xml.text ".move_to {stroke: #FF0000; fill-opacity: 0; stroke-width: #{(@width / 10).to_i}}\n"
-          xml.text ".d {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round}\n"
-        end
-        last_point = @paths.first.start_point
-        @paths.each_with_index do |path, i|
-          xml.path(d: "M#{last_point.x},#{last_point.y} L#{path.start_point.x},#{path.start_point.y}", class: 'move_to')
-          xml.path(d: path.d, id: "path_#{i}", class: 'd')
-          last_point = path.end_point
-        end
-      end
-    end
-
-    xml = builder.to_xml
-    Redis.new.set @name, xml
-
-    name = Rails.root.join('public', @name + '.svg')
-    file = File.open(name, 'w')
-    file.write xml
-    file.close
-    File.basename file.path
-    xml
+    <<EOL
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="#{header['x']&.to_s}" y="#{header['y']&.to_s}" width="100%" height="100%" viewBox="#{header['viewBox']&.to_s}" preserveAspectRatio="xMinYMin meet" id="#{@name}">
+    #{to_xml}
+    </svg>
+EOL
   end
 
+  def write_svg(header)
+    name = Rails.root.join('public', @name + '.svg')
+    file = File.open(name, 'w')
+    file.write to_svg(header)
+    file.close
+    File.basename file.path
+  end
   def inspect
     @name
   end

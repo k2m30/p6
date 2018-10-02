@@ -13,7 +13,7 @@ class Path
     s = d[/[a-z]/] or d[/[ABD-KN-Z]/] #no relative commands supported so far; M, L and C absolute commands only
     raise StandardError.new("Unsupported symbol \"#{s}\" in path \"#{d}\"") unless s.nil?
     @color = xml.attributes['stroke']
-    @width = xml.attributes['stroke-width'].to_s.to_f
+    @width = xml.attributes['stroke-width']
     @opacity = xml.attributes['fill-opacity']
     @linecap = xml.attributes['stroke-linecap']
   end
@@ -54,7 +54,9 @@ class Path
   end
 
   def split(size)
-    @elements.map{|e| e.split(size)}
+    xml = @xml.deep_dup
+    xml.attributes['d'].value = @elements.map{|e| e.split(size)}.flatten.map(&:to_s).join
+    Path.new(xml)
   end
 
   def d
