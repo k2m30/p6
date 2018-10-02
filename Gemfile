@@ -66,3 +66,10 @@ gem 'haml-rails'
 gem 'bootstrap'
 gem 'jquery-rails'
 gem 'redis'
+gem 'rack-mini-profiler'
+# For memory profiling
+gem 'memory_profiler'
+
+# For call-stack profiling flamegraphs
+gem 'flamegraph'
+gem 'stackprof'

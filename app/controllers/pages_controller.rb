@@ -1,7 +1,7 @@
 class PagesController < ApplicationController
   def main
-    # @image = Image.new('flying.svg')
-    @image = SVG.new('risovaka007_003.svg')
+    @image = SVG.new('flying.svg')
+    # @image = SVG.new('risovaka007_003.svg')
     @layer = if params[:layer].nil?
                @image.xml.to_xml
              else
@@ -12,8 +12,8 @@ class PagesController < ApplicationController
   def build
     layer_name = params[:layer]
     unless layer_name.nil?
-      layer = Layer.build(layer_name)
+      Layer.build(layer_name)
     end
-    render plain: layer.to_xml
+    redirect_to root_url(layer: layer_name)
   end
 end

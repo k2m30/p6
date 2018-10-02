@@ -22,11 +22,12 @@
               = link_to layer_name, root_path(layer: layer_name), class: 'dropdown-item btn btn-sm' + current
 
         %hr
-        %button{class: 'btn btn-info', onclick: "paint()"}
-          Simulate
-        %button{class: 'btn btn-info', onclick: "paint()"}
-          Settings
-        = link_to 'Settings', nil, class: 'btn btn-sm'
+        - unless layer_id.nil?
+          = link_to 'Build', build_path(layer: layer_id), class: 'btn btn-info'
+          = link_to 'Simulate', 'javascript:void(0)', class: 'btn btn-info', onclick: 'paint()'
+        %hr
+        = link_to 'Settings', nil, class: 'btn btn-light'
+        = link_to 'Calibration', nil, class: 'btn btn-secondary'
     .row
     = render('status')
     .row

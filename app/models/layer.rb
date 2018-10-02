@@ -2,35 +2,43 @@ class Layer
   attr_accessor :paths, :name, :xml, :splitted_paths, :color
 
   def initialize(element, lazy = true)
-    @xml = Nokogiri::XML(element).elements.first
-    @name = @xml.attributes['id'].to_s
-
-    r = Redis.new.get(@name)
-    @xml = Nokogiri::XML(r).elements.first if r and lazy
-
+    r = nil
+    Rack::MiniProfiler.step('Layer init') do
+      @xml = Nokogiri::XML(element).elements.first
+      @name = @xml.attributes['id'].to_s
+      r = Redis.new.get(@name)
+      @xml = Nokogiri::XML(r).elements.first if r and lazy
+    end
     @paths = []
     @splitted_paths = []
-    @xml.traverse do |e|
-      if e.name == 'path' and e.attributes['class'].to_s != 'move_to'
-        d = e.attributes['d']
-        paths = normalize_path(d)
-        paths.each do |d|
-          @paths.push Path.new(e, d)
-        end
-      elsif e.name == 'spath'
-        d = e.attributes['d']
-        paths = normalize_path(d)
-        paths.each do |d|
-          @splitted_paths.push Path.new(e, d)
+    Rack::MiniProfiler.step('Create paths') do
+      @xml.traverse do |e|
+        if e.name == 'path' and e.attributes['class'].to_s != 'move_to'
+          d = e.attributes['d']
+          paths = normalize_path(d)
+
+          paths.each do |d|
+            @paths.push Path.new(e, d)
+          end
+
+        elsif e.name == 'spath'
+          d = e.attributes['d']
+          paths = normalize_path(d)
+          paths.each do |d|
+            @splitted_paths.push Path.new(e, d)
+          end
         end
       end
     end
-
     @color ||= @paths.first&.color || @xml.attributes['color']
     @width ||= @paths.first&.width || @xml.attributes['width']
     p [@name, @paths.size]
-    optimize_paths
-    to_redis
+    Rack::MiniProfiler.step("Optimize paths of #{@paths.size} elements") do
+      optimize_paths unless r
+    end
+    Rack::MiniProfiler.step('Put to redis') do
+      to_redis
+    end
   end
 
   def to_redis
@@ -59,14 +67,12 @@ class Layer
     optimized_paths = []
 
     path = @paths.first
-    p @paths.size
     until @paths.empty?
       optimized_paths.push path
       @paths.delete path
       closest = find_closest(path)
       @paths.delete closest
       path = closest
-      p @paths.size
     end
     optimized_paths.push path
     @paths = optimized_paths.compact
