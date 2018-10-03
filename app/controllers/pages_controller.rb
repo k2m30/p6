@@ -5,7 +5,7 @@ class PagesController < ApplicationController
     @layer = if params[:layer].nil?
                @image.xml.to_xml
              else
-               @image.layers[params[:layer]].to_svg(@image.header)
+               @image.get_layer(params[:layer]).to_svg(@image.header)
              end
   end
 

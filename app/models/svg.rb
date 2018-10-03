@@ -13,11 +13,19 @@ class SVG
     @xml.root.attributes['height'].value = '100%'
     @header = @xml.root.attributes
     @redis.set(:header, @header)
+  end
+
+  def get_layer(layer_name)
     @xml.traverse do |e|
       if e.element? and e.name == 'g' and !e.attributes['id'].nil?
-        name = e.attributes['id'].to_s
-        @layers[name] = Layer.new(e.to_s)
+        element_name = e.attributes['id'].to_s
+        if layer_name == element_name
+          @layers[layer_name] = Layer.new(e.to_s)
+        else
+          @layers[element_name] ||= nil
+        end
       end
     end
+    @layers[layer_name]
   end
 end
