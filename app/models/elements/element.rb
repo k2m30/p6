@@ -11,10 +11,10 @@ class Element
     Point.new(m[:x], m[:y])
   end
 
-  def inverse(width)
+  def inverse(width, dm, dy)
     inverse = self.deep_dup
-    inverse.start_point = inverse.start_point.inverse(width)
-    inverse.end_point = inverse.end_point.inverse(width)
+    inverse.start_point = inverse.start_point.inverse(width, dm, dy)
+    inverse.end_point = inverse.end_point.inverse(width, dm, dy)
     inverse
   end
 end

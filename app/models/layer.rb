@@ -61,8 +61,10 @@ class Layer
     end
     layer.tpaths = []
     width = Config.canvas_size_x
+    dm = Config.dm
+    dy = Config.dy
     layer.splitted_paths.each do |spath|
-      layer.tpaths << TPath.new(spath, width)
+      layer.tpaths << TPath.new(spath, width, dm, dy)
     end
 
     layer.to_redis

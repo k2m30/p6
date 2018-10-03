@@ -11,9 +11,9 @@ class Point
     "#{@x},#{@y}"
   end
 
-  def inverse(width)
-    lx = Math.sqrt(x*x + y*y)
-    ly = Math.sqrt((width-x)*(width-x) + y*y)
+  def inverse(width, dm, dy)
+    lx = Math.sqrt((x-dm/2)**2 +        (y-dy)**2)
+    ly = Math.sqrt((width-x-dm/2)**2 +  (y-dy)**2)
     Point.new lx.round(2), ly.round(2)
   end
 

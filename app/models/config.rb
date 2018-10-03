@@ -1,6 +1,6 @@
 class Config
   class << self
-    %w(linear_velocity ff_velocity max_segment_length initial_x initial_y max_spray_length canvas_size_x canvas_size_y).each do |method|
+    %w(linear_velocity ff_velocity max_segment_length initial_x initial_y max_spray_length canvas_size_x canvas_size_y dm dy).each do |method|
       define_method :"#{method}=" do |value|
         Redis.new.set method, value
       end
