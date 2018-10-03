@@ -1,9 +1,9 @@
 class TPath
-  def initialize(path)
+  def initialize(path, width)
     @tpath = path.deep_dup
     @elements = []
     @tpath.elements.each do |element|
-      @elements << element.inverse
+      @elements << element.inverse(width)
     end
   end
 

@@ -22,11 +22,11 @@ class Layer
         end
       end
       @xml.css('spath').each do |e|
-        @splitted_paths.push Path.new(e, d)
+        @splitted_paths.push Path.new(e, e.attributes['d'])
       end
 
       @xml.css('tpath').each do |e|
-        @tpaths.push Path.new(e, d)
+        @tpaths.push Path.new(e, e.attributes['d'])
       end
     end
 
@@ -55,12 +55,14 @@ class Layer
   def self.build(layer_raw)
     layer = from_redis layer_raw
     layer.splitted_paths = []
+    dl = Config.max_segment_length
     layer.paths.each do |path|
-      layer.splitted_paths << path.split(Config.max_segment_length)
+      layer.splitted_paths << path.split(dl)
     end
     layer.tpaths = []
+    width = Config.canvas_size_x
     layer.splitted_paths.each do |spath|
-      layer.tpaths << TPath.new(spath)
+      layer.tpaths << TPath.new(spath, width)
     end
 
     layer.to_redis

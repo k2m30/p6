@@ -18,7 +18,7 @@ class SVG
 
   def get_layer_names
     @xml.css('g').each do |e|
-      if e.element? and e.name == 'g' and !e.attributes['id'].nil?
+      unless e.attributes['id'].nil?
         @layers[e.attributes['id'].to_s] ||= nil
       end
     end
@@ -26,11 +26,9 @@ class SVG
 
   def get_layer(layer_name)
     @xml.css('g').each do |e|
-      if e.element? and e.name == 'g' and !e.attributes['id'].nil?
-        element_name = e.attributes['id'].to_s
-        if layer_name == element_name
-          @layers[layer_name] = Layer.new(e.to_s)
-        end
+      element_name = e.attributes['id'].to_s
+      unless element_name.nil?
+        @layers[layer_name] = Layer.new(e.to_s) if layer_name == element_name
       end
     end
     @layers[layer_name]

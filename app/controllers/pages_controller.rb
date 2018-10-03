@@ -1,7 +1,7 @@
 class PagesController < ApplicationController
   def main
-    @image = SVG.new('flying.svg')
-    # @image = SVG.new('risovaka007_003.svg')
+    # @image = SVG.new('flying.svg')
+    @image = SVG.new('risovaka007_003.svg')
     @layer = if params[:layer].nil?
                @image.xml.to_xml
              else

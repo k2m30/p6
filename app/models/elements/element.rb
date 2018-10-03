@@ -11,9 +11,8 @@ class Element
     Point.new(m[:x], m[:y])
   end
 
-  def inverse
+  def inverse(width)
     inverse = self.deep_dup
-    width = Config.canvas_size_x
     inverse.start_point = inverse.start_point.inverse(width)
     inverse.end_point = inverse.end_point.inverse(width)
     inverse
