@@ -11,15 +11,9 @@ class Point
     "#{@x},#{@y}"
   end
 
-  def to_triangle(width)
-    x = self.x
-    y = self.y
+  def inverse(width)
     lx = Math.sqrt(x*x + y*y)
-
-    x = self.x
-    y = self.y
     ly = Math.sqrt((width-x)*(width-x) + y*y)
-
     Point.new lx.round(2), ly.round(2)
   end
 

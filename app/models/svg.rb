@@ -13,16 +13,23 @@ class SVG
     @xml.root.attributes['height'].value = '100%'
     @header = @xml.root.attributes
     @redis.set(:header, @header)
+    get_layer_names
+  end
+
+  def get_layer_names
+    @xml.css('g').each do |e|
+      if e.element? and e.name == 'g' and !e.attributes['id'].nil?
+        @layers[e.attributes['id'].to_s] ||= nil
+      end
+    end
   end
 
   def get_layer(layer_name)
-    @xml.traverse do |e|
+    @xml.css('g').each do |e|
       if e.element? and e.name == 'g' and !e.attributes['id'].nil?
         element_name = e.attributes['id'].to_s
         if layer_name == element_name
           @layers[layer_name] = Layer.new(e.to_s)
-        else
-          @layers[element_name] ||= nil
         end
       end
     end

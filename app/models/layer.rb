@@ -1,5 +1,5 @@
 class Layer
-  attr_accessor :paths, :name, :xml, :splitted_paths, :color
+  attr_accessor :paths, :name, :xml, :splitted_paths, :tpaths, :color
 
   def initialize(element, lazy = true)
     r = nil
@@ -11,25 +11,25 @@ class Layer
     end
     @paths = []
     @splitted_paths = []
+    @tpaths = []
     Rack::MiniProfiler.step('Create paths') do
-      @xml.traverse do |e|
-        if e.name == 'path' and e.attributes['class'].to_s != 'move_to'
-          d = e.attributes['d']
-          paths = normalize_path(d)
-
+      @xml.css('path').each do |e|
+        if e.attributes['class'].to_s != 'move_to'
+          paths = normalize_path(e.attributes['d'])
           paths.each do |d|
             @paths.push Path.new(e, d)
           end
-
-        elsif e.name == 'spath'
-          d = e.attributes['d']
-          paths = normalize_path(d)
-          paths.each do |d|
-            @splitted_paths.push Path.new(e, d)
-          end
         end
       end
+      @xml.css('spath').each do |e|
+        @splitted_paths.push Path.new(e, d)
+      end
+
+      @xml.css('tpath').each do |e|
+        @tpaths.push Path.new(e, d)
+      end
     end
+
     @color ||= @paths.first&.color || @xml.attributes['color']
     @width ||= @paths.first&.width || @xml.attributes['width']
     p [@name, @paths.size]
@@ -58,7 +58,11 @@ class Layer
     layer.paths.each do |path|
       layer.splitted_paths << path.split(Config.max_segment_length)
     end
-    # redis.set :splitted, layer.splitted_paths
+    layer.tpaths = []
+    layer.splitted_paths.each do |spath|
+      layer.tpaths << TPath.new(spath)
+    end
+
     layer.to_redis
     layer
   end
@@ -127,6 +131,12 @@ class Layer
             xml.spath(d: spath.d, id: "spath_#{i}", class: 's')
           end
         end
+
+        xml.g(id: :tpath, color: @color, width: @width) do
+          @tpaths.each_with_index do |tpath, i|
+            xml.tpath(d: tpath.d, id: "tpath_#{i}", class: 't')
+          end
+        end
       end
     end
     builder.to_xml
@@ -151,4 +161,5 @@ EOL
   def inspect
     @name
   end
+
 end
