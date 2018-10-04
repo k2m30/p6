@@ -59,7 +59,8 @@ class Layer
     layer.paths.each do |path|
       layer.splitted_paths << path.split(dl)
     end
-    initial_path = Path.new [MoveTo.new("M#{Config.initial_x},#{Config.initial_y}", Point.new(Config.initial_x,Config.initial_y))]
+    initial_point = Point.new(Config.initial_x,Config.initial_y)
+    initial_path = Path.new [MoveTo.new([initial_point])]
     layer.tpaths = [initial_path]
     width = Config.canvas_size_x
     dm = Config.dm

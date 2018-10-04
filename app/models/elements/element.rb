@@ -1,14 +1,19 @@
 class Element
   attr_accessor :start_point, :end_point
   attr_reader :command_code
-  def initialize(d, start_point = nil)
-    @start_point = start_point
-    @end_point = get_end_point(d)
+  def initialize(points)
+    raise StandardError.new('Empty points for element') if points.empty?
+    @start_point = points.first
+    @end_point = points.last
   end
 
-  def get_end_point(d)
+  def self.get_end_point(d)
     m = /(?<x>[\d.-]+) ?, ?(?<y>[\d.-]+) ?$/.match d
     Point.new(m[:x], m[:y])
+  end
+
+  def self.from_str(start_point, d )
+    new([start_point, get_end_point(d)])
   end
 
   def inverse(width, dm, dy)
@@ -20,5 +25,9 @@ class Element
 
   def to_s
     "#{@command_code}#{@end_point}"
+  end
+
+  def inspect
+    to_s
   end
 end

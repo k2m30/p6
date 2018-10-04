@@ -42,18 +42,18 @@ class Path
     end while d.size > 0
     m = / ?(?<command>\w) ?(?<x>[\d.-]+) ?, ?(?<y>[\d.-]+)/.match str_elements.first
     current_point = Point.new(m[:x], m[:y])
-    str_elements.each do |e|
-      case e[0]
+    str_elements.each do |d|
+      case d[0]
         when 'M'
-          elements.push MoveTo.new(e, current_point)
+          elements.push MoveTo.from_str(current_point, d )
         when 'Z', 'z'
-          elements.push Line.new(str_elements.first, current_point)
+          elements.push Line.from_str(current_point, str_elements.first)
         when 'C'
-          elements.push CubicCurve.new(e, current_point)
+          elements.push CubicCurve.from_str(current_point, d)
         when 'L'
-          elements.push Line.new(e, current_point)
+          elements.push Line.from_str(current_point, d)
         else
-          raise StandardError.new("Unsupported command \"#{e.first}\" in path \"#{d}\"")
+          raise StandardError.new("Unsupported command \"#{d.first}\" in path \"#{d}\"")
       end
       current_point = elements.last.end_point
     end
@@ -71,13 +71,13 @@ class Path
   end
 
   def to_s
-    "<path d=\"#{d}\" fill-opacity=\"0\" stroke=\"#{@color}\" stroke-width=\"#{@width}\" stroke-linecap=\"#{@linecap}\" class=\"d\"/>"
+    d
   end
 
 
   def reverse!
     elements = []
-    elements.push MoveTo.new("M#{end_point.x},#{end_point.y} ", end_point)
+    elements.push MoveTo.new([end_point])
     until @elements.empty?
       elements.push @elements.pop.reverse!
     end

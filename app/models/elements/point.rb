@@ -11,6 +11,10 @@ class Point
     "#{@x},#{@y}"
   end
 
+  def inspect
+    to_s
+  end
+
   def inverse(width, dm, dy)
     lx = Math.sqrt((x-dm/2)**2 +        (y-dy)**2)
     ly = Math.sqrt((width-x-dm/2)**2 +  (y-dy)**2)

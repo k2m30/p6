@@ -2,13 +2,19 @@ require_relative 'element'
 class CubicCurve < Element
   attr_reader :control_point_1, :control_point_2
 
-  def initialize(d, start_point = nil)
+  def initialize(points)
     super
     @command_code = 'C'
-    @control_point_1, @control_point_2 = get_control_points(d)
+    @control_point_1 = points[1]
+    @control_point_2 = points[2]
   end
 
-  def get_control_points(d)
+  def self.from_str(start_point, d)
+    control_point_1, control_point_2 = get_control_points(d)
+    new([start_point, control_point_1, control_point_2, get_end_point(d)])
+  end
+
+  def self.get_control_points(d)
     m = / ?\w(?<x1>[\d.-]+) ?, ?(?<y1>[\d.-]+) (?<x2>[\d.-]+) ?, ?(?<y2>[\d.-]+)/.match d
     return Point.new(m[:x1], m[:y1]), Point.new(m[:x2], m[:y2])
   end
@@ -52,7 +58,7 @@ class CubicCurve < Element
     #if curve is too small - just change it to line
     if (length(x0, y0, x1, y1) < size) && (length(x1, y1, x2, y2) < size) &&
         (length(x2, y2, x3, y3) < size) && (length(x0, y0, x3, y3) < size)
-      return [Line.new("L#{x3.round(2)},#{y3.round(2)}")]
+      return [Line.new([@start_point, @end_point])]
     end
 
     #### detecting proper differentiation value
@@ -86,7 +92,7 @@ class CubicCurve < Element
     (n - 1).times do
       x = (1 - t) * (1 - t) * (1 - t) * x0 + 3 * t * (1 - t) * (1 - t) * x1 + 3 * t * t * (1 - t) * x2 + t * t * t * x3
       y = (1 - t) * (1 - t) * (1 - t) * y0 + 3 * t * (1 - t) * (1 - t) * y1 + 3 * t * t * (1 - t) * y2 + t * t * t * y3
-      dl = Line.new("L#{x.round(2)},#{y.round(2)}", sp)
+      dl = Line.new([sp, Point.new(x.round(2), y.round(2))])
       result << dl
       sp = dl.end_point
       t += dt
@@ -94,7 +100,7 @@ class CubicCurve < Element
     t = 1
     x = (1 - t) * (1 - t) * (1 - t) * x0 + 3 * t * (1 - t) * (1 - t) * x1 + 3 * t * t * (1 - t) * x2 + t * t * t * x3
     y = (1 - t) * (1 - t) * (1 - t) * y0 + 3 * t * (1 - t) * (1 - t) * y1 + 3 * t * t * (1 - t) * y2 + t * t * t * y3
-    result << Line.new("L#{x.round(2)},#{y.round(2)}", sp)
+    result << dl = Line.new([sp, Point.new(x.round(2), y.round(2))])
     result
   end
 
