@@ -15,23 +15,23 @@ class Layer
     Rack::MiniProfiler.step('Create paths') do
       @xml.css('path').each do |e|
         if e.attributes['class'].to_s != 'move_to'
-          paths = normalize_path(e.attributes['d'])
-          paths.each do |d|
-            @paths.push Path.new(e, d)
+          paths_array = Path.normalize_d(e.attributes['d'])
+          paths_array.each do |d|
+            @paths.push Path.from_str(d)
           end
         end
       end
       @xml.css('spath').each do |e|
-        @splitted_paths.push Path.new(e, e.attributes['d'])
+        @splitted_paths.push Path.from_str(e.attributes['d'])
       end
 
       @xml.css('tpath').each do |e|
-        @tpaths.push Path.new(e, e.attributes['d'])
+        @tpaths.push Path.from_str(e.attributes['d'])
       end
     end
 
-    @color ||= @paths.first&.color || @xml.attributes['color']
-    @width ||= @paths.first&.width || @xml.attributes['width']
+    @color = @xml.at_css('path')&.attributes&.dig('stroke')  || @xml.attributes['color']
+    @width = @xml.at_css('path')&.attributes&.dig('stroke-width') || @xml.attributes['width']
     p [@name, @paths.size]
     Rack::MiniProfiler.step("Optimize paths of #{@paths.size} elements") do
       optimize_paths unless r
@@ -59,7 +59,8 @@ class Layer
     layer.paths.each do |path|
       layer.splitted_paths << path.split(dl)
     end
-    layer.tpaths = [MoveTo.new("M#{Config.initial_x},#{Config.initial_y}", Point.new(Config.initial_x,Config.initial_y))]
+    initial_path = Path.new [MoveTo.new("M#{Config.initial_x},#{Config.initial_y}", Point.new(Config.initial_x,Config.initial_y))]
+    layer.tpaths = [initial_path]
     width = Config.canvas_size_x
     dm = Config.dm
     dy = Config.dy
@@ -102,16 +103,6 @@ class Layer
     closest
   end
 
-
-  def normalize_path(d)
-    paths = []
-    begin
-      m = / ?[Mm][^Mm]+/.match d
-      paths.push m[0]
-      d = m.post_match
-    end while d.size > 0
-    paths
-  end
 
   def to_xml
     builder = Nokogiri::XML::Builder.new do |xml|

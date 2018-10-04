@@ -17,4 +17,8 @@ class Element
     inverse.end_point = inverse.end_point.inverse(width, dm, dy)
     inverse
   end
+
+  def to_s
+    "#{@command_code}#{@end_point}"
+  end
 end
