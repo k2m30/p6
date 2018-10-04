@@ -1,5 +1,5 @@
 class Layer
-  attr_accessor :paths, :name, :xml, :splitted_paths, :tpaths, :color
+  attr_accessor :paths, :name, :xml, :splitted_paths, :tpaths, :color, :pvts
 
   def initialize(element, lazy = true)
     r = nil
@@ -59,15 +59,21 @@ class Layer
     layer.paths.each do |path|
       layer.splitted_paths << path.split(dl)
     end
-    initial_point = Point.new(Config.initial_x,Config.initial_y)
-    initial_path = Path.new [MoveTo.new([initial_point])]
-    layer.tpaths = [initial_path]
+    # initial_point = Point.new(Config.initial_x,Config.initial_y)
+    # initial_path = Path.new [MoveTo.new([initial_point])]
+    # layer.tpaths = [initial_path]
+    layer.tpaths = []
+    layer.pvts = []
     width = Config.canvas_size_x
     dm = Config.dm
     dy = Config.dy
     layer.splitted_paths.each do |spath|
-      layer.tpaths << TPath.new(spath, width, dm, dy)
+      tpath = TPath.new(spath, width, dm, dy)
+      layer.tpaths << tpath
+      # layer.pvts << PVT.new(spath, tpath)
     end
+
+    # layer.pvts = PVT.add_move_to_between_paths(layer.pvts)
 
     layer.to_redis
     layer

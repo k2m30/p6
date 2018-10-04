@@ -31,9 +31,4 @@ class Line < Element
     end
     result
   end
-
-  def length
-    Math.sqrt((@start_point.x - @end_point.x) ** 2 + (@start_point.y - @end_point.y) ** 2)
-  end
-
 end

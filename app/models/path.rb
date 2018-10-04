@@ -44,16 +44,16 @@ class Path
     current_point = Point.new(m[:x], m[:y])
     str_elements.each do |d|
       case d[0]
-        when 'M'
-          elements.push MoveTo.from_str(current_point, d )
-        when 'Z', 'z'
-          elements.push Line.from_str(current_point, str_elements.first)
-        when 'C'
-          elements.push CubicCurve.from_str(current_point, d)
-        when 'L'
-          elements.push Line.from_str(current_point, d)
-        else
-          raise StandardError.new("Unsupported command \"#{d.first}\" in path \"#{d}\"")
+      when 'M'
+        elements.push MoveTo.from_str(current_point, d)
+      when 'Z', 'z'
+        elements.push Line.from_str(current_point, str_elements.first)
+      when 'C'
+        elements.push CubicCurve.from_str(current_point, d)
+      when 'L'
+        elements.push Line.from_str(current_point, d)
+      else
+        raise StandardError.new("Unsupported command \"#{d.first}\" in path \"#{d}\"")
       end
       current_point = elements.last.end_point
     end
@@ -61,17 +61,59 @@ class Path
   end
 
   def split(size)
-    Path.new(@elements.map{|e| e.split(size)}.flatten)
+    Path.new(@elements.map {|e| e.split(size)}.flatten)
+  end
+
+  #at the end point
+  def get_time(index, v, a)
+    l = length
+    l_current = length(index)
+
+    t1 = v / a
+    l1 = a * t1 ** 2 / 2
+
+    l2 = l - 2 * l1
+    t2 = t1 + l2 / v
+
+    l3 = l1
+    t3 = t1
+
+    t = t1 + t2 + t3
+    raise StandardError.new('Edge case') if l1 + l2 + l3 != l or l_current > l
+
+    if l_current <= l1
+      Math.sqrt(2 * l_current / a)
+    elsif l_current > l1 and l_current <= l2
+      t1 + (l_current - l1) / v
+    elsif l_current > l2
+      t2 + Math.sqrt(2 * (l_current - l2) / a)
+    end
+
   end
 
   def d
     d = ''
-    @elements.each { |e| d << e.to_s }
+    @elements.each {|e| d << e.to_s}
     d
+  end
+
+  def size
+    @elements.size
   end
 
   def to_s
     d
+  end
+
+  def length(i = nil)
+    return @length if i.nil? and !@length.nil?
+    i ||= @elements.size
+    length = 0
+    @elements[0..i].each do |e|
+      length += e.length
+    end
+    @length = length if i == @elements.size
+    length
   end
 
 

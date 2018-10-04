@@ -24,10 +24,16 @@ class Element
   end
 
   def to_s
-    "#{@command_code}#{@end_point}"
+    "#{@command_code} #{@end_point}"
   end
 
   def inspect
     to_s
   end
+
+  #will not work for Curves
+  def length
+    @length ||= Math.sqrt((@start_point.x - @end_point.x) ** 2 + (@start_point.y - @end_point.y) ** 2)
+  end
+
 end

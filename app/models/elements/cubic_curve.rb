@@ -56,8 +56,8 @@ class CubicCurve < Element
     y3 = @end_point.y
 
     #if curve is too small - just change it to line
-    if (length(x0, y0, x1, y1) < size) && (length(x1, y1, x2, y2) < size) &&
-        (length(x2, y2, x3, y3) < size) && (length(x0, y0, x3, y3) < size)
+    if (Point.distance(@start_point, @control_point_1) < size) && (Point.distance(@control_point_1, @control_point_2) < size) &&
+        (Point.distance(@control_point_2, @end_point) < size) && (Point.distance(@start_point, @end_point) < size)
       return [Line.new([@start_point, @end_point])]
     end
 
@@ -107,7 +107,7 @@ class CubicCurve < Element
   private
 
   def length(x1, y1, x2, y2)
-    Math.sqrt((x2-x1)**2 + (y2-y1)**2)
+    raise NotImplementedError.new('Curves length not implemented')
   end
 
 end
