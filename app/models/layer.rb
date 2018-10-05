@@ -30,7 +30,7 @@ class Layer
       end
     end
 
-    @color = @xml.at_css('path')&.attributes&.dig('stroke')  || @xml.attributes['color']
+    @color = @xml.at_css('path')&.attributes&.dig('stroke') || @xml.attributes['color']
     @width = @xml.at_css('path')&.attributes&.dig('stroke-width') || @xml.attributes['width']
     p [@name, @paths.size]
     Rack::MiniProfiler.step("Optimize paths of #{@paths.size} elements") do
@@ -58,7 +58,7 @@ class Layer
     width = Config.canvas_size_x
     dm = Config.dm
     dy = Config.dy
-    layer.paths.first.elements.first.start_point = Point.new(Config.initial_x,Config.initial_y).to_decart(width, dm, dy)
+    layer.paths.first.elements.first.start_point = Point.new(Config.initial_x, Config.initial_y).to_decart(width, dm, dy)
 
     layer.splitted_paths = []
     dl = Config.max_segment_length
