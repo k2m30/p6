@@ -1,8 +1,3 @@
-require_relative 'elements/cubic_curve'
-require_relative 'elements/point'
-require_relative 'elements/move_to'
-require_relative 'elements/line'
-
 class Path
   attr_reader :elements, :xml, :color, :width, :opacity, :linecap
 

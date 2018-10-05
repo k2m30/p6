@@ -12,6 +12,6 @@ l = Layer.from_redis 'yellow_('
 t = Time.now
 s = l.splitted_paths.last
 
-s.elements.size.times {|i| [s.get_time(i, 200.0, 400.0)]}
+s.elements.size.times {|i| p [s.get_time(i, 200.0, 400.0)]}
 
 p Time.now - t

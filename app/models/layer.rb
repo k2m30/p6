@@ -54,19 +54,24 @@ class Layer
 
   def self.build(layer_raw)
     layer = from_redis layer_raw
-    layer.splitted_paths = []
-    dl = Config.max_segment_length
-    layer.paths.each do |path|
-      layer.splitted_paths << path.split(dl)
-    end
-    # initial_point = Point.new(Config.initial_x,Config.initial_y)
-    # initial_path = Path.new [MoveTo.new([initial_point])]
-    # layer.tpaths = [initial_path]
-    layer.tpaths = []
-    layer.pvts = []
+
     width = Config.canvas_size_x
     dm = Config.dm
     dy = Config.dy
+    layer.paths.first.elements.first.start_point = Point.new(Config.initial_x,Config.initial_y).to_decart(width, dm, dy)
+
+    layer.splitted_paths = []
+    dl = Config.max_segment_length
+
+    layer.paths.each_cons(2) do |path_current, path_next|
+      path_next.elements.first.start_point = path_current.elements.last.end_point
+    end
+
+    layer.paths.each do |path|
+      layer.splitted_paths << path.split(dl)
+    end
+
+    layer.tpaths = []
     layer.splitted_paths.each do |spath|
       tpath = TPath.new(spath, width, dm, dy)
       layer.tpaths << tpath
