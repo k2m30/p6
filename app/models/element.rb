@@ -24,7 +24,7 @@ class Element
   end
 
   def to_s
-    "#{@command_code} #{@end_point}"
+    "#{@command_code}#{@end_point} "
   end
 
   def inspect

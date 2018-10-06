@@ -5,10 +5,6 @@ class Line < Element
     super
   end
 
-  def to_s
-    "#{@command_code}#{@end_point} "
-  end
-
   def reverse!
     tmp = @start_point
     @start_point = @end_point

@@ -1,4 +1,6 @@
 class TPath
+  attr_accessor :elements
+
   def initialize(path, width, dm, dy)
     @tpath = path.deep_dup
     @elements = []

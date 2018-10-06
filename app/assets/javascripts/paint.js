@@ -1,6 +1,5 @@
-function paint() {
+function paint(velocity) { // mm/sec
 
-    var velocity = 10000; // mm/sec
     var delay = 0;
     var paths = document.querySelectorAll('#svg path');
     var transition = null;

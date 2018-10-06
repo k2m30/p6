@@ -1,5 +1,5 @@
 class Layer
-  attr_accessor :paths, :name, :xml, :splitted_paths, :tpaths, :color, :pvts
+  attr_accessor :paths, :name, :xml, :splitted_paths, :tpaths, :color, :trajectory
 
   def initialize(element, lazy = true)
     r = nil
@@ -14,19 +14,17 @@ class Layer
     @tpaths = []
     Rack::MiniProfiler.step('Create paths') do
       @xml.css('path').each do |e|
-        if e.attributes['class'].to_s != 'move_to'
+        case e.attributes['class'].to_s
+        when 'd', ''
           paths_array = Path.normalize_d(e.attributes['d'])
           paths_array.each do |d|
             @paths.push Path.from_str(d)
           end
+        when 's'
+          @splitted_paths.push Path.from_str(e.attributes['d'])
+        when 't'
+          @tpaths.push Path.from_str(e.attributes['d'])
         end
-      end
-      @xml.css('spath').each do |e|
-        @splitted_paths.push Path.from_str(e.attributes['d'])
-      end
-
-      @xml.css('tpath').each do |e|
-        @tpaths.push Path.from_str(e.attributes['d'])
       end
     end
 
@@ -43,7 +41,8 @@ class Layer
 
   def to_redis
     redis = Redis.new
-    redis.set(@name, to_xml)
+    xml = to_xml
+    redis.set(@name, xml)
   end
 
   def self.from_redis(name)
@@ -53,6 +52,7 @@ class Layer
 
 
   def self.build(layer_raw)
+    p 'build started'
     layer = from_redis layer_raw
 
     width = Config.canvas_size_x
@@ -78,9 +78,10 @@ class Layer
       # layer.pvts << PVT.new(spath, tpath)
     end
 
-    # layer.pvts = PVT.add_move_to_between_paths(layer.pvts)
+    # layer.trajectory = Trajectory.new(layer)
 
     layer.to_redis
+    p 'build finished'
     layer
   end
 
@@ -117,13 +118,15 @@ class Layer
 
 
   def to_xml
+    p 'to_xml started'
     builder = Nokogiri::XML::Builder.new do |xml|
       xml.g(id: @name, color: @color, width: @width) do
         break if @paths.empty?
         xml.style do
-          xml.text ".d {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round}\n"
+          xml.text ".d {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 1.0}\n"
           xml.text ".move_to {stroke: #FF0000; fill-opacity: 0; stroke-width: #{(@width.to_s.to_f / 10).to_i}}\n"
-          xml.text ".s {stroke: #{@color}; fill-opacity: \"0.5\"; stroke-width: #{@width}; stroke-linecap: round}\n"
+          xml.text ".s {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 0.0} \n"
+          xml.text ".t {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 0.0} \n"
         end
 
         last_point = @paths.first.start_point
@@ -135,17 +138,18 @@ class Layer
 
         xml.g(id: :splitted, color: @color, width: @width) do
           @splitted_paths.each_with_index do |spath, i|
-            xml.spath(d: spath.d, id: "spath_#{i}", class: 's')
+            xml.path(d: spath.d, id: "spath_#{i}", class: 's')
           end
         end
 
         xml.g(id: :tpath, color: @color, width: @width) do
           @tpaths.each_with_index do |tpath, i|
-            xml.tpath(d: tpath.d, id: "tpath_#{i}", class: 't')
+            xml.path(d: tpath.d, id: "tpath_#{i}", class: 't')
           end
         end
       end
     end
+    p 'to_xml finished'
     builder.to_xml
   end
 

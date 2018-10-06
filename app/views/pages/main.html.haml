@@ -24,7 +24,7 @@
         %hr
         - unless layer_id.nil?
           = link_to 'Build', build_path(layer: layer_id), class: 'btn btn-info'
-          = link_to 'Simulate', 'javascript:void(0)', class: 'btn btn-info', onclick: 'paint()'
+          = link_to 'Simulate', 'javascript:void(0)', class: 'btn btn-info', onclick: "paint(#{@velocity})"
         %hr
         = link_to 'Settings', nil, class: 'btn btn-light'
         = link_to 'Calibration', nil, class: 'btn btn-secondary'

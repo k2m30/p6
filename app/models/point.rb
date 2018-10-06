@@ -22,7 +22,7 @@ class Point
   end
 
   def to_decart(width, dm, dy)
-    mx = (@x ** 2 - @y ** 2 + (width - dm) ** 2) / 2 /(width - dm)
+    mx = (@x ** 2 - @y ** 2 + (width - dm) ** 2) / 2 / (width - dm)
     xx = mx + dm / 2
     yy = Math.sqrt(@x ** 2 - mx ** 2) + dy
 
