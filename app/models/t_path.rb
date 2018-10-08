@@ -24,7 +24,7 @@ class TPath
   end
 
   def to_s
-    "<path d=\"#{d}\" fill-opacity=\"0\" stroke=\"#{@color}\" stroke-width=\"#{@width}\" stroke-linecap=\"#{@linecap}\" class=\"d\"/>"
+    d
   end
 
 end

@@ -68,7 +68,7 @@ class Path
     l1 = a * t1 ** 2 / 2
 
     l2 = l - 2 * l1
-    t2 = t1 + l2 / v
+    t2 = l2 / v
 
     l3 = l1
     t3 = t1
@@ -78,10 +78,10 @@ class Path
 
     if l_current <= l1
       Math.sqrt(2 * l_current / a)
-    elsif l_current > l1 and l_current <= l2
+    elsif l_current > l1 and l_current <= (l1 + l2)
       t1 + (l_current - l1) / v
-    elsif l_current > l2
-      t2 + Math.sqrt(2 * (l_current - l2) / a)
+    elsif l_current > (l1 + l2)
+      t1 + t2 + Math.sqrt(2 * (l_current - (l1 + l2)) / a)
     end
 
   end
@@ -105,7 +105,7 @@ class Path
     i ||= @elements.size
     length = 0
     @elements[0..i].each do |e|
-      length += e.length
+      length += e.length unless e.is_a? MoveTo
     end
     @length = length if i == @elements.size
     length
