@@ -6,55 +6,65 @@ class Trajectory
     @left_motor_points = []
     @right_motor_points = []
     build
-    p ['']
   end
 
-  def build(start_from = 0)
-    size = @layer.splitted_paths.size
-    raise StandardError.new('paths sizes don' 't match') unless size == @layer.tpaths.size
-    v = Config.linear_velocity
-    v_idling = Config.idling_velocity
-    a = Config.linear_acceleration
+  def build
+    spath = @layer.splitted_paths.first
+    tpath = @layer.tpaths.first
 
-    @t_points = []
-    @left_p_points = []
-    @right_p_points = []
-    time = 0
+    linear_velocity = Config.linear_velocity
+    idling_velocity = Config.idling_velocity
+    linear_acceleration = Config.linear_acceleration
+    pulley_diameter = Config.motor_pulley_diameter
 
-    (start_from..size).to_a.each do |i|
-      tpath = @layer.tpaths[i]
-      spath = @layer.splitted_paths[i]
+    time_points = spath.get_time_points(linear_velocity, linear_acceleration)
+    v_average_points_x = []
+    v_average_points_y = []
 
-      spath.elements.size.times do |j|
-        velocity = spath.elements[j].is_a?(MoveTo) ? v_idling : v
-        @t_points.push spath.get_time(j, velocity, a)
-      end
+    tpath.elements.each_cons(2) do |curr_e, next_e|
+      i = tpath.elements.index(curr_e)
+      j = tpath.elements.index(next_e)
+      dt = time_points[j] - time_points[i]
+      dpx = next_e.end_point.x - curr_e.end_point.x
+      dpy = next_e.end_point.y - curr_e.end_point.y
+      v_average_x = dpx / dt
+      v_average_y = dpy / dt
+      v_average_points_x << v_average_x
+      v_average_points_y << v_average_y
+      p [curr_e, next_e, dpx, dpy, v_average_x, v_average_y, dt]
+    end
+    puts spath
+    puts tpath
+    puts ['llllll']
 
-      j = 0
-      tpath.elements.each_cons(2) do |current_element, next_element|
-        dp_left_current = current_element.end_point.x - current_element.start_point.x
-        dp_right_current = current_element.end_point.y - current_element.start_point.y
+    velocity_points_x = [0, 0]
+    velocity_points_y = [0, 0]
 
-        dp_left_next = next_element.end_point.x - next_element.start_point.x
-        dp_right_next = next_element.end_point.y - next_element.start_point.y
-
-        t_current = @t_points[j]
-        t_next = @t_points[j + 1]
-
-        velocity_left = (dp_left_current / t_current + dp_left_next / t_next) / 2
-        velocity_right = (dp_right_current / t_current + dp_right_next / t_next) / 2
-
-        @left_motor_points.push PVT.new(current_element.end_point.x, velocity_left, @t_points[j] + time)
-        @right_motor_points.push PVT.new(current_element.end_point.y, velocity_right, @t_points[j] + time)
-        j += 1
-      end
-
+    v_average_points_x.each_cons(2) do |curr_v, next_v|
+      velocity_points_x.push ((curr_v + next_v) / 2).round(2)
     end
 
-  end
+    v_average_points_y.each_cons(2) do |curr_v, next_v|
+      velocity_points_y.push ((curr_v + next_v) / 2).round(2)
+    end
 
-  def self.add_move_to_between_paths(pvts)
-    # code here
+    velocity_points_x.push 0
+    velocity_points_y.push 0
+
+    initial_position_x = tpath.elements.first.start_point.x
+    initial_position_y = tpath.elements.first.start_point.y
+# add move_to
+    time = spath.get_idling_time(linear_acceleration, idling_velocity)
+    time_points.map! {|e| e + time}
+    time_points.insert(0, 0)
+
+    position_points_x = [initial_position_x] + tpath.elements.map(&:end_point).map(&:x)
+    position_points_y = [initial_position_y] + tpath.elements.map(&:end_point).map(&:y)
+
+    time_points.each_with_index do |time, i|
+      @left_motor_points.push PVT.new(position_points_x[i], velocity_points_x[i], time)
+      @right_motor_points.push PVT.new(position_points_y[i], velocity_points_y[i], time)
+    end
   end
 end
 

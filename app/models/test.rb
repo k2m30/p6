@@ -37,7 +37,9 @@ def build(layer)
     v_average_points_y << v_average_y
     p [curr_e, next_e, dpx, dpy, v_average_x, v_average_y, dt]
   end
+  puts spath
   puts tpath
+  puts ['llllll']
 
   velocity_points_x = [0, 0]
   velocity_points_y = [0, 0]
@@ -53,8 +55,8 @@ def build(layer)
   velocity_points_x.push 0
   velocity_points_y.push 0
 
-  initial_position_x = spath.elements.first.start_point.x
-  initial_position_y = spath.elements.first.start_point.y
+  initial_position_x = tpath.elements.first.start_point.x
+  initial_position_y = tpath.elements.first.start_point.y
 # add move_to
   time = spath.get_idling_time(linear_acceleration, idling_velocity)
   time_points.map!{|e| e + time}
@@ -74,6 +76,7 @@ def build(layer)
 end
 
 layer = Layer.from_redis('Layer_1')
-result = build layer
-p result
+a, b = build layer
+p a
+p b
 

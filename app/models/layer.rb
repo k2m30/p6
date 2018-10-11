@@ -78,7 +78,7 @@ class Layer
       # layer.pvts << PVT.new(spath, tpath)
     end
 
-    # layer.trajectory = Trajectory.new(layer)
+    layer.trajectory = Trajectory.new(layer)
 
     layer.to_redis
     p 'build finished'
