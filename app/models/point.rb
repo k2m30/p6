@@ -2,7 +2,7 @@ class Point
   attr_accessor :x, :y
 
   def initialize(x, y)
-    raise StandardError.new("Wrong inputs #{x}, #{y}") if x.nil? or y.nil?
+    raise "Wrong inputs #{x}, #{y}" if x.nil? or y.nil?
     @x = x.to_f
     @y = y.to_f
   end

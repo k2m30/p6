@@ -1,5 +1,5 @@
 class Layer
-  attr_accessor :paths, :name, :xml, :splitted_paths, :tpaths, :color, :trajectory
+  attr_accessor :paths, :name, :xml, :splitted_paths, :tpaths, :color, :trajectories
 
   def initialize(element, lazy = true)
     r = nil
@@ -11,6 +11,7 @@ class Layer
     end
     @paths = []
     @splitted_paths = []
+    @trajectories = []
     @tpaths = []
     Rack::MiniProfiler.step('Create paths') do
       @xml.css('path').each do |e|
@@ -24,7 +25,14 @@ class Layer
           @splitted_paths.push Path.from_str(e.attributes['d'])
         when 't'
           @tpaths.push Path.from_str(e.attributes['d'])
+        when 'move_to'
+        else
+          fail 'Unrecognized class'
         end
+      end
+
+      @xml.css('trajectory').each do |e|
+        @trajectories.push Trajectory.from_str(e.attributes['left'], e.attributes['right'])
       end
     end
 
@@ -72,13 +80,14 @@ class Layer
     end
 
     layer.tpaths = []
+    layer.trajectories = []
     layer.splitted_paths.each do |spath|
       tpath = TPath.new(spath, width, dm, dy)
-      layer.tpaths << tpath
-      # layer.pvts << PVT.new(spath, tpath)
+      layer.tpaths.push tpath
+      layer.trajectories.push Trajectory.build(spath, tpath)
     end
 
-    layer.trajectory = Trajectory.new(layer)
+    fail if layer.paths.size != layer.splitted_paths.size or layer.tpaths.size != layer.trajectories.size or layer.splitted_paths.size != layer.tpaths.size
 
     layer.to_redis
     p 'build finished'
@@ -124,7 +133,7 @@ class Layer
         break if @paths.empty?
         xml.style do
           xml.text ".d {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 1.0}\n"
-          xml.text ".move_to {stroke: #FF0000; fill-opacity: 0; stroke-width: #{(@width.to_s.to_f / 10).to_i}}\n"
+          xml.text ".move_to {stroke: #FF0000; fill-opacity: 0; stroke-width: #{(@width.to_s.to_f / 5.0).to_i}}\n"
           xml.text ".s {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 0.0} \n"
           xml.text ".t {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 0.0} \n"
         end
@@ -145,6 +154,12 @@ class Layer
         xml.g(id: :tpath, color: @color, width: @width) do
           @tpaths.each_with_index do |tpath, i|
             xml.path(d: tpath.d, id: "tpath_#{i}", class: 't')
+          end
+        end
+
+        xml.g(id: :trajectories) do
+          @trajectories.each_with_index do |trajectory, i|
+            xml.trajectory(id: "trajectory_#{i}", left: trajectory.left, right: trajectory.right)
           end
         end
       end
