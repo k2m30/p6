@@ -1,5 +1,7 @@
 require 'redis'
 require 'rails'
+require 'rack-mini-profiler'
+require_relative 'config'
 require_relative 'svg'
 require_relative 'layer'
 require_relative 'path'
@@ -8,53 +10,70 @@ require_relative 'point'
 require_relative 'move_to'
 require_relative 'line'
 require_relative 't_path'
+require_relative 'trajectory'
 
-start_point = Point.new(400.0, 100.0)
-end_point = Point.new(400.0, 600.0)
+def build(layer)
+  spath = layer.splitted_paths.first
+  tpath = layer.tpaths.first
 
-width = 800.0
-dm = 100.0
-dy = 50.0
-dl = 50.0
+  linear_velocity = Config.linear_velocity
+  idling_velocity = Config.idling_velocity
+  linear_acceleration = Config.linear_acceleration
+  pulley_diameter = Config.motor_pulley_diameter
 
-pulley_diameter = 200.0
-max_velocity = 100.0
-a = 50.0
+  time_points = spath.get_time_points(linear_velocity, linear_acceleration)
+  v_average_points_x = []
+  v_average_points_y = []
 
-initial_point = Point.new(500.0, 500.0).to_decart(width, dm, dy)
+  tpath.elements.each_cons(2) do |curr_e, next_e|
+    i = tpath.elements.index(curr_e)
+    j = tpath.elements.index(next_e)
+    dt = time_points[j] - time_points[i]
+    dpx = next_e.end_point.x - curr_e.end_point.x
+    dpy = next_e.end_point.y - curr_e.end_point.y
+    v_average_x = dpx / dt
+    v_average_y = dpy / dt
+    v_average_points_x << v_average_x
+    v_average_points_y << v_average_y
+    p [curr_e, next_e, dpx, dpy, v_average_x, v_average_y, dt]
+  end
+  puts tpath
 
-move = MoveTo.new([initial_point, start_point])
-line = Line.new([start_point, end_point])
-path = Path.new([move, line])
-spath = path.split(dl)
+  velocity_points_x = [0, 0]
+  velocity_points_y = [0, 0]
 
+  v_average_points_x.each_cons(2) do |curr_v, next_v|
+    velocity_points_x.push ((curr_v + next_v) / 2).round(2)
+  end
 
-time_points = []
-v_average_points = []
-spath.elements.size.times do |i|
-  time_points.push spath.get_time(i, max_velocity, a)
+  v_average_points_y.each_cons(2) do |curr_v, next_v|
+    velocity_points_y.push ((curr_v + next_v) / 2).round(2)
+  end
+
+  velocity_points_x.push 0
+  velocity_points_y.push 0
+
+  initial_position_x = spath.elements.first.start_point.x
+  initial_position_y = spath.elements.first.start_point.y
+# add move_to
+  time = spath.get_idling_time(linear_acceleration, idling_velocity)
+  time_points.map!{|e| e + time}
+  time_points.insert(0, 0)
+
+  position_points_x = [initial_position_x] + tpath.elements.map(&:end_point).map(&:x)
+  position_points_y = [initial_position_y] + tpath.elements.map(&:end_point).map(&:y)
+
+  @left_motor_points = []
+  @right_motor_points = []
+
+  time_points.each_index do |i|
+    @left_motor_points.push PVT.new(position_points_x[i], velocity_points_x[i], time_points[i])
+    @right_motor_points.push PVT.new(position_points_y[i], velocity_points_y[i], time_points[i])
+  end
+  return @left_motor_points, @right_motor_points
 end
-tpath = TPath.new(spath, width, dm, dy)
-tpath.elements.each_cons(2) do |curr_e, next_e|
-  i = tpath.elements.index(curr_e)
-  j = tpath.elements.index(next_e)
-  dt = time_points[j] - time_points[i]
-  dp = next_e.end_point.x - curr_e.end_point.x
-  v_average = dp / dt
-  v_average_points << v_average
-  p [curr_e, next_e, dp, dt, v_average]
-end
-puts tpath
 
-velocity_points = [0]
-v_average_points.each_cons(2) do |curr_v, next_v|
-  velocity_points.push ((curr_v + next_v) / 2).round(2)
-end
-velocity_points.push 0
+layer = Layer.from_redis('Layer_1')
+result = build layer
+p result
 
-p v_average_points
-p 'Results:'
-p tpath.elements.map(&:end_point).map(&:x)
-p velocity_points
-p time_points
-p [tpath.elements.map(&:end_point).map(&:x).size, velocity_points.size, time_points.size]

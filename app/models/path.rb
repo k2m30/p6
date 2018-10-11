@@ -59,31 +59,46 @@ class Path
     Path.new(@elements.map {|e| e.split(size)}.flatten)
   end
 
-  #at the end point
-  def get_time(index, v, a)
+  def get_time_points(v, a)
+    time_points = [0]
     l = length
-    l_current = length(index)
+    l_current = 0
 
+    @elements.each do |element|
+      next if element.is_a? MoveTo
+
+      l_current += element.length
+      t1 = v / a
+      l1 = a * t1 ** 2 / 2
+
+      l2 = l - 2 * l1
+      t2 = l2 / v
+
+
+      raise StandardError.new('Edge case') if 2 * l1 + l2 != l or l_current > l
+
+      t = if l_current <= l1
+            Math.sqrt(2 * l_current / a)
+          elsif l_current > l1 and l_current <= (l1 + l2)
+            t1 + (l_current - l1) / v
+          elsif l_current > (l1 + l2)
+            t1 + t2 + Math.sqrt(2 * (l_current - (l1 + l2)) / a)
+          end
+      time_points.push t
+    end
+    time_points
+  end
+
+  def get_idling_time(a, v)
+    l = @elements.first.length
     t1 = v / a
     l1 = a * t1 ** 2 / 2
 
     l2 = l - 2 * l1
     t2 = l2 / v
 
-    l3 = l1
-    t3 = t1
-
-    t = t1 + t2 + t3
-    raise StandardError.new('Edge case') if l1 + l2 + l3 != l or l_current > l
-
-    if l_current <= l1
-      Math.sqrt(2 * l_current / a)
-    elsif l_current > l1 and l_current <= (l1 + l2)
-      t1 + (l_current - l1) / v
-    elsif l_current > (l1 + l2)
-      t1 + t2 + Math.sqrt(2 * (l_current - (l1 + l2)) / a)
-    end
-
+    raise StandardError.new('Edge case') if 2 * l1 + l2 != l
+    2 * t1 + t2
   end
 
   def d
@@ -100,15 +115,13 @@ class Path
     d
   end
 
-  def length(i = nil)
-    return @length if i.nil? and !@length.nil?
-    i ||= @elements.size
-    length = 0
-    @elements[0..i].each do |e|
-      length += e.length unless e.is_a? MoveTo
+  def length
+    return @length unless @length.nil?
+    @length = 0
+    @elements.each do |e|
+      @length += e.length unless e.is_a? MoveTo
     end
-    @length = length if i == @elements.size
-    length
+    @length
   end
 
 

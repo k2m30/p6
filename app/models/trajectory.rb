@@ -66,4 +66,12 @@ class PVT
     @v = v
     @t = t
   end
+
+  def to_s
+    "[#{@p}, #{@v}, #{@t}] "
+  end
+
+  def inspect
+    to_s
+  end
 end
