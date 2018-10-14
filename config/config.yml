@@ -1,3 +1,4 @@
+---
 linear_velocity:
   value: 100.0
   description: линейная скорость окраски, мм/с, g01
@@ -25,7 +26,6 @@ initial_x:
 initial_y:
   value: 500.0
   description: начальная длина правого ремня, мм
-#
 crop_x:
   value: 0
   description: левый верхний угол для обрезки
@@ -47,7 +47,6 @@ move_y:
 max_spray_length:
   value: 87000.0
   description: длина окраски одним баллончиком краски, мм
-
 canvas_size_x:
   value: 800.0
   description: ширина холста
@@ -60,7 +59,6 @@ dm:
 dy:
   value: 50.0
   description: насколько сопло ниже линии моторов
-
 simulation_velocity:
   value: 500.0
   description: скорость симуляции, mm/sec
