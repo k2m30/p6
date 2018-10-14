@@ -60,20 +60,27 @@ class Path
   end
 
   def get_time_points(v, a)
-    time_points = [0]
+    time_points = [0.0]
     l = length
-    l_current = 0
+    l_current = 0.0
+
+    t1 = v / a
+    l1 = a * t1 ** 2 / 2
+
+    l2 = l - 2 * l1
+    t2 = l2 / v
+
+    if l2 <= 0
+      t1 = Math.sqrt(l / a)
+      l1 = l / 2.0
+      t2 = 0.0
+      l2 = 0.0
+    end
 
     @elements.each do |element|
       next if element.is_a? MoveTo
 
       l_current += element.length
-      t1 = v / a
-      l1 = a * t1 ** 2 / 2
-
-      l2 = l - 2 * l1
-      t2 = l2 / v
-
 
       raise StandardError.new('Edge case') if 2 * l1 + l2 != l or l_current > l
 
@@ -86,6 +93,7 @@ class Path
           end
       time_points.push t
     end
+
     time_points
   end
 
@@ -97,6 +105,9 @@ class Path
     l2 = l - 2 * l1
     t2 = l2 / v
 
+    if l2 < 0
+      return Math.sqrt(l / (2 * a))
+    end
     raise StandardError.new('Edge case') if 2 * l1 + l2 != l
     2 * t1 + t2
   end
@@ -134,4 +145,5 @@ class Path
     elements.pop
     @elements = elements
   end
+
 end

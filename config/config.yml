@@ -23,4 +23,4 @@ canvas_size_y : 1000.0 # высота холста
 dm: 100.0 #расстояние между моторами
 dy: 50.0 #насколько сопло ниже линии моторов
 
-simulation_velocity: 200.0 #mm/sec
+simulation_velocity: 500.0 #mm/sec
