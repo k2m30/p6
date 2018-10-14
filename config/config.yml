@@ -1,26 +1,66 @@
-linear_velocity : 100.0 # линейная скорость окраски, мм/с, g01
-idling_velocity : 200.0 # линейная скорость холостого хода, мм/с, g00
-linear_acceleration : 50.0 # линейной ускорение мм/c2
-max_angular_velocity : 180.0 # максимальная угловая скорость моторов, •/сек
-max_angular_acceleration : 250.0 # максимальное угловое ускорение моторов, •/сек2
-max_segment_length : 50.0 # точность апроксимации, мм
-motor_pulley_diameter : 200.0 #диаметр шкива
-initial_x : 500.0 # начальная длина левого ремня, мм
-initial_y : 500.0 # начальная длина правого ремня, мм
+linear_velocity:
+  value: 100.0
+  description: линейная скорость окраски, мм/с, g01
+idling_velocity:
+  value: 200.0
+  description: линейная скорость холостого хода, мм/с, g00
+linear_acceleration:
+  value: 50.0
+  description: линейной ускорение мм/c2
+max_angular_velocity:
+  value: 180.0
+  description: максимальная угловая скорость моторов, •/сек
+max_angular_acceleration:
+  value: 250.0
+  description: максимальное угловое ускорение моторов, •/сек2
+max_segment_length:
+  value: 50.0
+  description: точность апроксимации, мм
+motor_pulley_diameter:
+  value: 200.0
+  description: диаметр шкива
+initial_x:
+  value: 500.0
+  description: начальная длина левого ремня, мм
+initial_y:
+  value: 500.0
+  description: начальная длина правого ремня, мм
 #
-#crop_x : 0 # левый верхний угол для обрезки
-#crop_y : 0 # левый верхний угол для обрезки
-#crop_w : 0 # ширина прямоугольника обрезки
-#crop_h : 2450 # высота прямоугольника обрезки
-##
-#move_x : 148 # смещение рисунка, если надо
-#move_y : 100 # смещение рисунка, если надо
-#
-#max_spray_length : 87000.0 # длина окраски одним баллончиком краски, мм
-#
-canvas_size_x : 800.0 # ширина холста
-canvas_size_y : 1000.0 # высота холста
-dm: 100.0 #расстояние между моторами
-dy: 50.0 #насколько сопло ниже линии моторов
+crop_x:
+  value: 0
+  description: левый верхний угол для обрезки
+crop_y:
+  value: 0
+  description: левый верхний угол для обрезки
+crop_w:
+  value: 0
+  description: ширина прямоугольника обрезки
+crop_h:
+  value: 2450
+  description: высота прямоугольника обрезки
+move_x:
+  value: 148
+  description: смещение рисунка, если надо
+move_y:
+  value: 100
+  description: смещение рисунка, если надо
+max_spray_length:
+  value: 87000.0
+  description: длина окраски одним баллончиком краски, мм
 
-simulation_velocity: 500.0 #mm/sec
+canvas_size_x:
+  value: 800.0
+  description: ширина холста
+canvas_size_y:
+  value: 1000.0
+  description: высота холста
+dm:
+  value: 100.0
+  description: расстояние между моторами
+dy:
+  value: 50.0
+  description: насколько сопло ниже линии моторов
+
+simulation_velocity:
+  value: 500.0
+  description: скорость симуляции, mm/sec
