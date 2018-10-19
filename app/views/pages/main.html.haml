@@ -10,15 +10,26 @@
   .col-md-3
     .row
       %h5
-        = layer_id || ''
+        - layer_id ||= ''
+        = layer_id
       .btn-group.btn-block.btn-group-vertical(role="group" aria-label="Layers")
-        = link_to 'Whole image', root_path, class: layer_id.nil? ? 'btn btn-dark btn-sm btn-block' :'btn btn-secondary btn-sm btn-block'
+        .btn-group(role="group")
+          %button.btn.btn-secondary.btn-sm.dropdown-toggle#images(type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")
+            = 'Image: ' + @image.name
+          .dropdown-menu(aria-labelledby="images")
+            - @images.each do |image_name|
+              - current = (image_name == @image.name) ? ' font-weight-bold' : ''
+              = link_to image_name, image_path(image: image_name), class: 'dropdown-item btn btn-sm' + current
+
+
         .btn-group(role="group")
           %button.btn.btn-secondary.btn-sm.dropdown-toggle#ibtnGroupDrop(type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")
-            Layers
+            = 'Layer: ' + layer_id
           .dropdown-menu(aria-labelledby="btnGroupDrop")
+            = link_to 'Whole image', root_path, class: 'dropdown-item btn btn-sm'
+            %hr
             - @image.layers.keys.each do |layer_name|
-              - current = (layer_id.present? and layer_id == layer_name) ? ' font-weight-bold' : ''
+              - current = (layer_id == layer_name) ? ' font-weight-bold' : ''
               = link_to layer_name, root_path(layer: layer_name), class: 'dropdown-item btn btn-sm' + current
 
         %hr

@@ -14,7 +14,7 @@ class Config
           value = YAML::load_file(file_name)[method]['value']
           Redis.new.set method, value
         end
-        value.to_f
+        Float(value) rescue value
       end
     end
   end
