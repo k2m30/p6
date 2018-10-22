@@ -72,7 +72,10 @@ class Layer
     dy = Config.dy
     initial_point = Point.new(Config.initial_x, Config.initial_y).to_decart(width, dm, dy)
     layer.paths.first.elements.first.start_point = initial_point
-    layer.paths << Path.new([MoveTo.new([layer.paths.last.end_point, initial_point])])
+
+    unless layer.paths.first.start_point == layer.paths.last.end_point
+      layer.paths << Path.new([MoveTo.new([layer.paths.last.end_point, initial_point])])
+    end
 
     layer.splitted_paths = []
     dl = Config.max_segment_length
@@ -87,10 +90,14 @@ class Layer
 
     layer.tpaths = []
     layer.trajectories = []
+    time_offset = 0
+
     layer.splitted_paths.each do |spath|
       tpath = Path.make_tpath(spath, width, dm, dy)
       layer.tpaths.push tpath
-      layer.trajectories.push Trajectory.build(spath, tpath)
+      trajectory = Trajectory.build(spath, tpath, time_offset)
+      time_offset = trajectory.time
+      layer.trajectories.push trajectory
     end
 
     fail if layer.paths.size != layer.splitted_paths.size or layer.tpaths.size != layer.trajectories.size or layer.splitted_paths.size != layer.tpaths.size

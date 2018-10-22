@@ -14,7 +14,7 @@ class Trajectory
 
     linear_velocity = Config.linear_velocity
     idling_velocity = Config.idling_velocity
-    p linear_velocity
+
     linear_acceleration = Config.linear_acceleration
     pulley_radius = Config.motor_pulley_diameter / 2.0
 
@@ -66,8 +66,8 @@ class Trajectory
     left_motor_points = []
     right_motor_points = []
     time_points.each_with_index do |time, i|
-      left_motor_points.push PVT.new(position_points_x[i], velocity_points_x[i] / pulley_radius, time)
-      right_motor_points.push PVT.new(position_points_y[i], velocity_points_y[i] / pulley_radius, time)
+      left_motor_points.push PVT.new(position_points_x[i], velocity_points_x[i] / pulley_radius, time + time_offset)
+      right_motor_points.push PVT.new(position_points_y[i], velocity_points_y[i] / pulley_radius, time + time_offset)
     end
 
     Trajectory.new left_motor_points, right_motor_points

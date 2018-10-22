@@ -63,5 +63,5 @@ simulation_velocity:
   value: 500.0
   description: скорость симуляции, mm/sec
 image_name:
-  value: risovaka007_003.svg
+  value: calibrate.svg
   description: имя файла
