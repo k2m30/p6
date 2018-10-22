@@ -28,7 +28,7 @@ class SVG
     @xml.css('g').each do |e|
       element_name = e.attributes['id'].to_s
       unless element_name.nil?
-        @layers[layer_name] = Layer.new(e.to_s) if layer_name == element_name
+        @layers[layer_name] = Layer.from_xml(e) if layer_name == element_name
       end
     end
     @layers[layer_name]

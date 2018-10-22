@@ -9,11 +9,12 @@ class Trajectory
     @right_motor_points = right_motor_points
   end
 
-  def self.build(spath, tpath)
+  def self.build(spath, tpath, time_offset = 0)
     fail if spath.elements.size != tpath.elements.size
 
     linear_velocity = Config.linear_velocity
     idling_velocity = Config.idling_velocity
+    p linear_velocity
     linear_acceleration = Config.linear_acceleration
     pulley_radius = Config.motor_pulley_diameter / 2.0
 
@@ -31,11 +32,11 @@ class Trajectory
       v_average_y = dpy / dt
       v_average_points_x << v_average_x
       v_average_points_y << v_average_y
-      p [curr_e, next_e, dpx, dpy, v_average_x, v_average_y, dt]
+      # p [curr_e, next_e, dpx, dpy, v_average_x, v_average_y, dt]
     end
-    puts spath
-    puts tpath
-    puts ['llllll']
+    # puts spath
+    # puts tpath
+    # puts ['llllll']
 
     velocity_points_x = [0, 0]
     velocity_points_y = [0, 0]
@@ -73,23 +74,22 @@ class Trajectory
   end
 
   def left
-    @left_motor_points.each do |point|
-      point.to_s
-    end
+    @left_motor_points.each {|point| point.to_s}
   end
 
   def right
-    @right_motor_points.each do |point|
-      point.to_s
-    end
+    @right_motor_points.each {|point| point.to_s}
   end
 
-  def self.from_str(left, right)
+  def time
+    @left_motor_points.last.t
+  end
+
+  def self.from_json(json)
     left_motor_points = []
     right_motor_points = []
-    JSON.parse(left).each {|e| left_motor_points.push PVT.from_array(e)}
-    JSON.parse(right).each {|e| right_motor_points.push PVT.from_array(e)}
-
+    json['left_motor_points'].each {|e| left_motor_points.push PVT.new(e['p'], e['v'], e['t'])}
+    json['right_motor_points'].each {|e| right_motor_points.push PVT.new(e['p'], e['v'], e['t'])}
     Trajectory.new(left_motor_points, right_motor_points)
   end
 end
@@ -98,7 +98,7 @@ class PVT
   attr_accessor :p, :v, :t
 
   def initialize(p, v, t)
-    fail unless [p, v, t].all?{|e| e.is_a? Float}
+    fail unless [p, v, t].all? {|e| e.is_a? Float}
     @p = p
     @v = v
     @t = t
@@ -112,7 +112,4 @@ class PVT
     to_s
   end
 
-  def self.from_array(array)
-    PVT.new(array[0], array[1], array[2])
-  end
 end

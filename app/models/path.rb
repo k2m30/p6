@@ -1,5 +1,5 @@
 class Path
-  attr_reader :elements, :xml, :color, :width, :opacity, :linecap
+  attr_reader :elements
 
   def initialize(elements)
     @elements = elements
@@ -22,6 +22,10 @@ class Path
       d = m.post_match
     end while d.size > 0
     paths
+  end
+
+  def self.from_json(json)
+    new(json['elements'].map {|e| Element.from_json e})
   end
 
   def self.from_str(d)
@@ -57,6 +61,15 @@ class Path
 
   def split(size)
     Path.new(@elements.map {|e| e.split(size)}.flatten)
+  end
+
+  def self.make_tpath(path, width, dm, dy)
+    tpath = path.deep_dup
+    elements = []
+    tpath.elements.each do |element|
+      elements << element.inverse(width, dm, dy)
+    end
+    new(elements)
   end
 
   def get_time_points(v, a)

@@ -1,14 +1,21 @@
 class Layer
   attr_accessor :paths, :name, :xml, :splitted_paths, :tpaths, :color, :trajectories
 
-  def initialize(element, lazy = true)
-    r = nil
-    Rack::MiniProfiler.step('Layer init') do
-      @xml = Nokogiri::XML(element).elements.first
-      @name = @xml.attributes['id'].to_s
-      r = Redis.new.get(@name)
-      @xml = Nokogiri::XML(r).elements.first if r and lazy
-    end
+  def initialize(name, paths, splitted_paths, tpaths, trajectories, color, width)
+    @name = name
+    @paths = paths
+    @splitted_paths = splitted_paths
+    @tpaths = tpaths
+    @trajectories = trajectories
+    @color = color
+    @width = width
+    to_redis unless Redis.new.get @name
+  end
+
+  def self.from_xml(element)
+    @xml = element
+    @name = @xml.attributes['id'].value
+
     @paths = []
     @splitted_paths = []
     @trajectories = []
@@ -21,52 +28,51 @@ class Layer
           paths_array.each do |d|
             @paths.push Path.from_str(d)
           end
-        when 's'
-          @splitted_paths.push Path.from_str(e.attributes['d'])
-        when 't'
-          @tpaths.push Path.from_str(e.attributes['d'])
-        when 'move_to'
         else
           fail 'Unrecognized class'
         end
       end
-
-      @xml.css('trajectory').each do |e|
-        @trajectories.push Trajectory.from_str(e.attributes['left'], e.attributes['right'])
-      end
     end
 
-    @color = @xml.at_css('path')&.attributes&.dig('stroke') || @xml.attributes['color']
-    @width = @xml.at_css('path')&.attributes&.dig('stroke-width') || @xml.attributes['width']
+    @color = @xml.at_css('path')&.attributes&.dig('stroke')&.value || @xml.attributes['color']&.value
+    @width = @xml.at_css('path')&.attributes&.dig('stroke-width')&.value || @xml.attributes['width']&.value
     p [@name, @paths.size]
-    Rack::MiniProfiler.step("Optimize paths of #{@paths.size} elements") do
-      optimize_paths unless r
-    end
-    Rack::MiniProfiler.step('Put to redis') do
-      to_redis
-    end
+    new(@name, @paths, @splitted_paths, @tpaths, @trajectories, @color, @width)
   end
 
   def to_redis
     redis = Redis.new
-    xml = to_xml
-    redis.set(@name, xml)
+    json = to_json
+    redis.set(@name, json)
   end
 
   def self.from_redis(name)
     redis = Redis.new
-    Layer.new(redis.get(name))
+    Layer.from_json(JSON.parse(redis.get(name)))
   end
 
+  def self.from_json(json)
+    @name = json['name']
+    @paths = json['paths'].map {|path| Path.from_json(path)}
+    @splitted_paths = json['splitted_paths'].map {|path| Path.from_json(path)}
+    @tpaths = json['tpaths'].map {|path| Path.from_json(path)}
+    @trajectories = json['trajectories'].map {|trajectory| Trajectory.from_json(trajectory)}
+    @color = json['color']
+    @width = json['width']
+    new(@name, @paths, @splitted_paths, @tpaths, @trajectories, @color, @width)
+  end
 
   def self.build(layer_raw)
     p 'build started'
     layer = from_redis layer_raw
+    layer.optimize_paths
 
     width = Config.canvas_size_x
     dm = Config.dm
     dy = Config.dy
-    layer.paths.first.elements.first.start_point = Point.new(Config.initial_x, Config.initial_y).to_decart(width, dm, dy)
+    initial_point = Point.new(Config.initial_x, Config.initial_y).to_decart(width, dm, dy)
+    layer.paths.first.elements.first.start_point = initial_point
+    layer.paths << Path.new([MoveTo.new([layer.paths.last.end_point, initial_point])])
 
     layer.splitted_paths = []
     dl = Config.max_segment_length
@@ -82,7 +88,7 @@ class Layer
     layer.tpaths = []
     layer.trajectories = []
     layer.splitted_paths.each do |spath|
-      tpath = TPath.new(spath, width, dm, dy)
+      tpath = Path.make_tpath(spath, width, dm, dy)
       layer.tpaths.push tpath
       layer.trajectories.push Trajectory.build(spath, tpath)
     end
@@ -92,6 +98,13 @@ class Layer
     layer.to_redis
     p 'build finished'
     layer
+  end
+
+  def build_trajectories
+    @trajectories = []
+    @splitted_paths.zip @tpaths do |spath, tpath|
+      @trajectories.push Trajectory.build(spath, tpath)
+    end
   end
 
   def optimize_paths
@@ -138,11 +151,9 @@ class Layer
           xml.text ".t {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 0.0} \n"
         end
 
-        last_point = @paths.first.start_point
         @paths.each_with_index do |path, i|
-          xml.path(d: "M#{last_point.x},#{last_point.y} L#{path.start_point.x},#{path.start_point.y}", class: 'move_to')
+          xml.path(d: "M#{path.start_point.x},#{path.start_point.y} L#{path.elements.first.end_point.x},#{path.elements.first.end_point.y}", class: 'move_to')
           xml.path(d: path.d, id: "path_#{i}", class: 'd')
-          last_point = path.end_point
         end
 
         xml.g(id: :splitted, color: @color, width: @width) do

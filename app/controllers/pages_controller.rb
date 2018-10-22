@@ -4,11 +4,13 @@ class PagesController < ApplicationController
     path = Rails.root.join('public')
     @image = SVG.new(Config.image_name, path)
     @images = Dir.glob(path.join('*.svg')).map {|f| File.basename f}
-    # @image = SVG.new('calibrate.svg')
-    @layer = if params[:layer].nil?
+    name = params[:layer]
+    @layer = if name.nil?
                @image.xml.to_xml
+             elsif Redis.new.get(name)
+               Layer.from_redis(name).to_svg(@image.header)
              else
-               @image.get_layer(params[:layer]).to_svg(@image.header)
+               @image.get_layer(name).to_svg(@image.header)
              end
     @velocity = Config.simulation_velocity
   end
