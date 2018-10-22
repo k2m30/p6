@@ -1,7 +1,7 @@
 class Trajectory
-  attr_accessor :left_motor_points, :right_motor_points
+  attr_accessor :left_motor_points, :right_motor_points, :id
 
-  def initialize(left_motor_points, right_motor_points)
+  def initialize(left_motor_points, right_motor_points, id = nil)
     fail unless left_motor_points.is_a? Array and right_motor_points.is_a? Array
     fail if left_motor_points.size != right_motor_points.size
 
@@ -90,7 +90,7 @@ class Trajectory
     right_motor_points = []
     json['left_motor_points'].each {|e| left_motor_points.push PVT.new(e['p'], e['v'], e['t'])}
     json['right_motor_points'].each {|e| right_motor_points.push PVT.new(e['p'], e['v'], e['t'])}
-    Trajectory.new(left_motor_points, right_motor_points)
+    Trajectory.new(left_motor_points, right_motor_points, json['id'])
   end
 end
 
