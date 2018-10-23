@@ -1,6 +1,6 @@
 ---
 linear_velocity:
-  value: 380.0
+  value: 160.0
   description: линейная скорость окраски, мм/с, g01
 idling_velocity:
   value: 400.0

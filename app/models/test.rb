@@ -9,7 +9,6 @@ require_relative 'cubic_curve'
 require_relative 'point'
 require_relative 'move_to'
 require_relative 'line'
-require_relative 't_path'
 require_relative 'trajectory'
 
 def build(layer)
@@ -59,7 +58,7 @@ def build(layer)
   initial_position_y = tpath.elements.first.start_point.y
 # add move_to
   time = spath.get_idling_time(linear_acceleration, idling_velocity)
-  time_points.map!{|e| e + time}
+  time_points.map! {|e| e + time}
   time_points.insert(0, 0)
 
   position_points_x = [initial_position_x] + tpath.elements.map(&:end_point).map(&:x)
@@ -74,9 +73,3 @@ def build(layer)
   end
   return @left_motor_points, @right_motor_points
 end
-
-layer = Layer.from_redis('Layer_1')
-a, b = build layer
-p a
-p b
-
