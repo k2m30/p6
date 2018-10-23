@@ -1,3 +1,5 @@
+- velocity = Config.linear_velocity
+- acceleration = Config.linear_acceleration
 %dl.row
   %dt.col-sm-4
     Position
@@ -6,4 +8,17 @@
   %dt.col-sm-4
     Speed
   %dd.col-sm-8
-    200 mm/s
+    %span#speed
+      = velocity.round
+    mm/s
+  %dt.col-sm-12
+    =range_field_tag 'speed_range', velocity, class: 'custom-range', in: 0..500, step: 10, onchange: "onVelocityChange('#{layer_id}')"
+  %hr
+  %dt.col-sm-4
+    Acceleration
+  %dd.col-sm-8
+    %span#acceleration
+      = acceleration.round
+    mm/s^2
+  %dt.col-sm-12
+    =range_field_tag 'acceleration_range', acceleration, class: 'custom-range', in: 0..500, step: 10, onchange: "onAccelerationChange('#{layer_id}')"

@@ -47,24 +47,29 @@ class Layer
   end
 
   def self.from_redis(name)
-    redis = Redis.new
-    Layer.from_json(JSON.parse(redis.get(name)))
+    Rack::MiniProfiler.step('from redis') do
+      redis = Redis.new
+      Layer.from_json(JSON.parse(redis.get(name)))
+    end
   end
 
   def self.from_json(json)
-    @name = json['name']
-    @paths = json['paths'].map {|path| Path.from_json(path)}
-    @splitted_paths = json['splitted_paths'].map {|path| Path.from_json(path)}
-    @tpaths = json['tpaths'].map {|path| Path.from_json(path)}
-    @trajectories = json['trajectories'].map {|trajectory| Trajectory.from_json(trajectory)}
-    @color = json['color']
-    @width = json['width']
-    new(@name, @paths, @splitted_paths, @tpaths, @trajectories, @color, @width)
+    Rack::MiniProfiler.step('from json') do
+      @name = json['name']
+      @paths = json['paths'].map {|path| Path.from_json(path)}
+      @splitted_paths = json['splitted_paths'].map {|path| Path.from_json(path)}
+      @tpaths = json['tpaths'].map {|path| Path.from_json(path)}
+      # @trajectories = json['trajectories'].map {|trajectory| Trajectory.from_json(trajectory)}
+      @color = json['color']
+      @width = json['width']
+      new(@name, @paths, @splitted_paths, @tpaths, @trajectories, @color, @width)
+    end
   end
 
   def self.build(layer_raw)
     p 'build started'
     layer = from_redis layer_raw
+    return layer if layer.paths.empty?
     layer.optimize_paths
 
     width = Config.canvas_size_x
@@ -102,16 +107,18 @@ class Layer
   end
 
   def build_trajectories
-    @trajectories = []
-    @splitted_paths.zip @tpaths do |spath, tpath|
-      @trajectories.push Trajectory.build(spath, tpath, @trajectories&.last&.time || 0)
+    Rack::MiniProfiler.step('build trajectories') do
+      @trajectories = []
+      @splitted_paths.zip @tpaths do |spath, tpath|
+        @trajectories.push Trajectory.build(spath, tpath, @trajectories&.last&.time || 0)
+      end
+      redis = Redis.new
+      @trajectories.each_with_index do |t, i|
+        t.id = i
+        redis.set t.id, t.to_json
+      end
+      redis.del @trajectories.size
     end
-    redis = Redis.new
-    @trajectories.each_with_index do |t, i|
-      t.id = i
-      redis.set t.id, t.to_json
-    end
-    redis.del @trajectories.size
   end
 
   def optimize_paths
@@ -174,7 +181,7 @@ class Layer
             xml.path(d: tpath.d, id: "tpath_#{i}", class: 't')
           end
         end
-
+        @trajectories ||= []
         xml.g(id: :trajectories) do
           @trajectories.each_with_index do |trajectory, i|
             xml.trajectory(id: "trajectory_#{i}", left: trajectory.left, right: trajectory.right)
