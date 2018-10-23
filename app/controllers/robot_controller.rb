@@ -3,13 +3,13 @@ class RobotController < ApplicationController
 
   def velocity
     Config.linear_velocity = params[:velocity].to_f unless params[:velocity].nil?
-    Layer.from_redis(params[:layer]).build_trajectories unless params[:layer].nil?
+    Layer.from_redis(params[:layer]).build_trajectories unless params[:layer].blank?
     head(:ok)
   end
 
   def acceleration
     Config.linear_acceleration = params[:acceleration].to_f unless params[:acceleration].nil?
-    Layer.from_redis(params[:layer]).build_trajectories unless params[:layer].nil?
+    Layer.from_redis(params[:layer]).build_trajectories unless params[:layer].blank?
     head(:ok)
   end
 
