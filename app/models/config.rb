@@ -17,5 +17,19 @@ class Config
         Float(value) rescue value
       end
     end
+
+    def cleanup
+      redis = Redis.new
+      self.version.to_i.downto 0 do |i|
+        j = 0
+        begin
+          value = redis.get "#{i.to_f}_#{j}"
+          redis.del "#{i.to_f}_#{j}"
+          j += 1
+        end until value.nil?
+      end
+
+      self.version = 0.0
+    end
   end
 end

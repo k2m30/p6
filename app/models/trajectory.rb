@@ -112,4 +112,8 @@ class PVT
     to_s
   end
 
+  def self.from_json(json)
+    new(json['p'], json['v'], json['t'])
+  end
+
 end

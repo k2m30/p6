@@ -97,6 +97,7 @@ class Layer
       layer.tpaths.push Path.make_tpath(spath, width, dm, dy)
     end
 
+    Config.cleanup
     layer.build_trajectories
 
     fail if layer.paths.size != layer.splitted_paths.size or layer.tpaths.size != layer.trajectories.size or layer.splitted_paths.size != layer.tpaths.size
@@ -109,15 +110,17 @@ class Layer
   def build_trajectories
     Rack::MiniProfiler.step('build trajectories') do
       @trajectories = []
+      Config.version += 1
       @splitted_paths.zip @tpaths do |spath, tpath|
         @trajectories.push Trajectory.build(spath, tpath, @trajectories&.last&.time || 0)
       end
       redis = Redis.new
+      prefix = Config.version
       @trajectories.each_with_index do |t, i|
         t.id = i
-        redis.set t.id, t.to_json
+        redis.set "#{prefix}_#{t.id}", t.to_json
       end
-      redis.del @trajectories.size
+      redis.del "#{prefix}_#{@trajectories.size}"
     end
   end
 
