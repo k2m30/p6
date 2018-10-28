@@ -20,12 +20,13 @@ class Loop
     @zero_time = Time.now # Process.clock_gettime(Process::CLOCK_MONOTONIC)
     run
   ensure
+    turn_off_painting
     @redis.del 'running'
   end
 
   def initialize_motor(id)
-    @servo_interface ||= Servo.init_interface
-    Servo.init_servo(id)
+    @servo_interface ||= RRInterface.new('/dev/cu.usbmodem301')
+    RRServoMotor.new(@servo_interface, id)
   end
 
   def run
@@ -59,10 +60,10 @@ class Loop
       next_left_point = PVT.from_json path['left_motor_points'][@trajectory_point_index]
       next_right_point = PVT.from_json path['right_motor_points'][@trajectory_point_index]
 
-      result_left = @left_motor.add_point(next_left_point)
-      result_right = @right_motor.add_point(next_right_point)
-
-      unless result_left.zero? and result_right.zero?
+      begin
+        @left_motor.add_point(next_left_point)
+        @right_motor.add_point(next_right_point)
+      rescue => e
         soft_stop
         fail 'Cannot send point'
       end
@@ -76,11 +77,10 @@ class Loop
         @point_index += 1
       end
     end until @last_sent_point['t'] - Time.now < queue_size
+  end
 
-
-    def check_queue_size
-      @last_sent_point.nil? ? 0.0 : @last_sent_point['t'] - (Time.now - @zero_time)
-    end
+  def check_queue_size
+    @last_sent_point.nil? ? 0.0 : @last_sent_point['t'] - (Time.now - @zero_time)
   end
 
   def soft_stop
