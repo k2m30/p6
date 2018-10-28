@@ -30,6 +30,8 @@ class Loop
   end
 
   def run
+    loop{break unless @redis.get('runnong').nil? }
+
     loop do
       if @redis.get('running').nil?
         soft_stop
