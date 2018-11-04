@@ -79,9 +79,9 @@ class RRServoMotor
       begin
         current_position = position
         set_point = position_set_point
-        # twist = self.twist
+        current = self.current
         velocity = self.velocity
-        data << [current_position, Time.now.to_f - start_time, set_point, current_position - set_point, velocity]
+        data << [current_position, Time.now.to_f - start_time, set_point, current_position - set_point, velocity, current]
       end
     end
 
@@ -111,6 +111,10 @@ class RRServoMotor
 
   def velocity
     read_param RRServoModule::APP_PARAM_VELOCITY
+  end
+
+  def current
+    read_param RRServoModule::APP_PARAM_CURRENT_INPUT
   end
 
   def temperature
