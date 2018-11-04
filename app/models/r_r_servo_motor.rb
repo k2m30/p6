@@ -11,6 +11,16 @@ class RRServoMotor
     @id = servo_id
   end
 
+  def deinitialize
+    ret_code = RRServoModule.rr_deinit_servo(@servo_handle)
+    check_errors(ret_code)
+  end
+
+  def add_point(point)
+    fail unless point.is_a? PVT
+    add_motion_point(point.p, point.v, point.t)
+  end
+
   def set_state_operational
     ret_code = RRServoModule.rr_servo_set_state_operational(@servo_handle)
     check_errors(ret_code)
@@ -18,7 +28,7 @@ class RRServoMotor
 
   def check_errors(ret_code)
     unless ret_code == RRServoModule::RET_OK
-      raise "Reading parameters error from motor #{@id}: #{RRServoMotor.get_error_value(ret_code)}"
+      raise "Error from motor #{@id}: #{RRServoMotor.get_error_value(ret_code)}"
     end
   end
 

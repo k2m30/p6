@@ -1,4 +1,9 @@
 require 'redis'
+require 'json'
+require_relative 'config'
+require_relative 'p_v_t'
+require_relative 'r_r_interface'
+require_relative 'r_r_servo_motor'
 
 class Loop
   MIN_QUEUE_SIZE = 3.0 #sec
@@ -23,6 +28,9 @@ class Loop
   ensure
     turn_off_painting
     @redis.del 'running'
+    # @left_motor.deinitialize
+    # @right_motor.deinitialize
+    @servo_interface.deinitialize
   end
 
   def initialize_motor(id)
@@ -67,6 +75,8 @@ class Loop
         @left_motor.add_point(next_left_point)
         @right_motor.add_point(next_right_point)
       rescue => e
+        puts e.message
+        puts e.backtrace
         soft_stop
         fail 'Cannot send point'
       end
@@ -96,3 +106,5 @@ class Loop
     # code here
   end
 end
+
+Loop.new
