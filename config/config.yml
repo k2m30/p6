@@ -51,7 +51,7 @@ canvas_size_x:
   value: 800.0
   description: ширина холста
 canvas_size_y:
-  value: 1000.0
+  value: 800.0
   description: высота холста
 dm:
   value: 100.0
@@ -63,8 +63,8 @@ simulation_velocity:
   value: 500.0
   description: скорость симуляции, mm/sec
 image_name:
-  value: risovaka007_003.svg
+  value: calibrate.svg
   description: имя файла
 version:
-  value: 2.0
+  value: 1.0
   description: версия данных в кэше

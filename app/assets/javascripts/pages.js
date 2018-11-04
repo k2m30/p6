@@ -9,3 +9,15 @@ function onAccelerationChange(layer) {
     $('#acceleration').text(value);
     $.post('acceleration', {acceleration: value, layer: layer});
 }
+
+function onRun() {
+    $('#run').toggle();
+    $('#stop').toggle();
+    $.post('run', {});
+}
+
+function onStop() {
+    $('#run').toggle();
+    $('#stop').toggle();
+    $.post('stop', {});
+}

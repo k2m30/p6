@@ -3,15 +3,16 @@ require 'redis'
 class Loop
   MIN_QUEUE_SIZE = 3.0 #sec
   QUEUE_SIZE = 10.0 #sec
-  LEFT_MOTOR_ID = 0x20
-  RIGHT_MOTOR_ID = 0x21
+  LEFT_MOTOR_ID = 19
+  RIGHT_MOTOR_ID = 32
+
+  NO_POINTS_IN_QUEUE_LEFT = 0
 
   def initialize
     @redis = Redis.new
 
     fail 'Already running' unless @redis.get('running').nil?
 
-    @redis.set 'running', true
     @point_index = 0
     @trajectory_point_index = 0
     @last_sent_point = nil
@@ -30,7 +31,7 @@ class Loop
   end
 
   def run
-    loop{break unless @redis.get('runnong').nil? }
+    loop{break unless @redis.get('running').nil? }
 
     loop do
       if @redis.get('running').nil?
@@ -39,7 +40,7 @@ class Loop
       end
 
       if check_queue_size <= MIN_QUEUE_SIZE
-        return if add_points(QUEUE_SIZE) == 0
+        return if add_points(QUEUE_SIZE) == NO_POINTS_IN_QUEUE_LEFT
       end
       sleep 1.0
     end
@@ -89,5 +90,9 @@ class Loop
     turn_off_painting # it's better to check for the 'running' key inside the painting loop
     @left_motor.soft_stop
     @right_motor.soft_stop
+  end
+
+  def turn_off_painting
+    # code here
   end
 end

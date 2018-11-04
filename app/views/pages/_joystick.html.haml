@@ -1,8 +1,10 @@
 .row
   .col-sm-6
-    = link_to 'Prev', nil, class: 'btn btn-warning btn-block'
+    = link_to 'Prev', 'javascript:void(0)', class: 'btn btn-warning btn-block'
   .col-sm-6
-    = link_to 'Next and paint', nil, class: 'btn btn-warning btn-block'
+    = link_to 'Next and paint', 'javascript:void(0)', class: 'btn btn-warning btn-block'
 .row
   .col-sm-12
-    = link_to 'Run', nil, class: 'btn btn-danger btn-block'
+    - running = Redis.new.get('running')
+    = link_to 'Run', 'javascript:void(0)', class: 'btn btn-danger btn-block', id: 'run', onclick: 'onRun()', style: "#{running ? 'display: none;' : ''}"
+    = link_to 'Stop', 'javascript:void(0)', class: 'btn btn-danger btn-block', id: 'stop', onclick: 'onStop()', style: "#{running ? '' : 'display: none;'}"

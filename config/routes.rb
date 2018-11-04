@@ -5,5 +5,7 @@ Rails.application.routes.draw do
   get 'position', to: 'robot#position'
   post 'velocity', to: 'robot#velocity'
   post 'acceleration', to: 'robot#acceleration'
+  post 'run', to: 'robot#run'
+  post 'stop', to: 'robot#stop'
 end
 

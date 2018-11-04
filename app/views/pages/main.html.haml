@@ -34,7 +34,7 @@
 
         %hr
         - unless layer_id.nil?
-          = link_to 'Build', build_path(layer: layer_id), class: 'btn btn-info'
+          = link_to 'Build', build_path(layer: layer_id), class: 'btn btn-info', style: "#{layer_id.empty? ? 'display: none;' : ''}"
           = link_to 'Simulate', 'javascript:void(0)', class: 'btn btn-info', onclick: "paint(#{@velocity})"
         %hr
         = link_to 'Settings', nil, class: 'btn btn-light'

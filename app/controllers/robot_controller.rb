@@ -1,5 +1,5 @@
 class RobotController < ApplicationController
-  skip_before_action :verify_authenticity_token, only: [:velocity, :position, :acceleration]
+  skip_before_action :verify_authenticity_token, only: [:velocity, :position, :acceleration, :stop, :run]
 
   def velocity
     Config.linear_velocity = params[:velocity].to_f unless params[:velocity].nil?
@@ -14,5 +14,15 @@ class RobotController < ApplicationController
   end
 
   def position
+  end
+
+  def run
+    Redis.new.set 'running', true
+    head(:ok)
+  end
+
+  def stop
+    Redis.new.del'running'
+    head(:ok)
   end
 end

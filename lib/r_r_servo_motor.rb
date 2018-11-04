@@ -7,7 +7,25 @@ class RRServoMotor
   def initialize(interface, servo_id = 123)
     @interface = interface
     @servo_handle = RRServoModule.rr_init_servo(@interface.handle, servo_id)
+    set_state_operational unless state == RRServoModule::RR_NMT_OPERATIONAL
     @id = servo_id
+  end
+
+  def set_state_operational
+    ret_code = RRServoModule.rr_servo_set_state_operational(@servo_handle)
+    check_errors(ret_code)
+  end
+
+  def check_errors(ret_code)
+    unless ret_code == RRServoModule::RET_OK
+      raise "Reading parameters error from motor #{@id}: #{RRServoMotor.get_error_value(ret_code)}"
+    end
+  end
+
+  def soft_stop(time = 3000)
+    clear_points_queue
+    delta = velocity > 0 ? 90 : -90
+    add_motion_point(position + delta, 0, time)
   end
 
   def go_to(position:, velocity: 80, acceleration: 86.479, time: 0)
@@ -41,6 +59,19 @@ class RRServoMotor
     end
   end
 
+  def position=(pos)
+    velocity = 180.0, current = 7.0
+    # RRServoModule.rr_set_position_with_limits(@servo_handle, pos, velocity, current)
+    RRServoModule.rr_set_position(@servo_handle, pos)
+  end
+
+  def state
+    value_ptr = Fiddle::Pointer.malloc(Fiddle::SIZEOF_INT)
+    ret_code = RRServoModule.rr_servo_get_state(@servo_handle, value_ptr)
+    check_errors(ret_code)
+    value_ptr[0, Fiddle::SIZEOF_INT].unpack('C').first
+  end
+
   def twist
     read_param RRServoModule::APP_PARAM_TORQUE
   end
@@ -65,7 +96,8 @@ class RRServoMotor
   def read_param(param)
     value_ptr = Fiddle::Pointer.malloc(Fiddle::SIZEOF_FLOAT)
     ret_code = RRServoModule.rr_read_parameter(@servo_handle, param, value_ptr)
-    raise "Reading parameters error from motor #{@id}: #{RR_Servo.get_error_value(ret_code)}" unless ret_code == RRServoModule::RET_OK
+    check_errors(ret_code)
+
     value_ptr[0, Fiddle::SIZEOF_FLOAT].unpack('e').first
   end
 
@@ -75,12 +107,12 @@ class RRServoMotor
 
   def clear_points_queue
     ret_code = RRServoModule.rr_clear_points_all(@servo_handle)
-    raise "Reading parameters error from motor #{@id}: #{RR_Servo.get_error_value(ret_code)}" unless ret_code == RRServoModule::RET_OK
+    check_errors(ret_code)
   end
 
   def add_motion_point(point, velocity, time)
     ret_code = RRServoModule.rr_add_motion_point(@servo_handle, point, velocity, time)
-    raise "Reading parameters error from motor #{@id}: #{RR_Servo.get_error_value(ret_code)}" unless ret_code == RRServoModule::RET_OK
+    check_errors(ret_code)
   end
 
   def self.get_error_value(ret_code)
