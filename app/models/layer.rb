@@ -112,7 +112,7 @@ class Layer
       @trajectories = []
       Config.version += 1
       @splitted_paths.zip @tpaths do |spath, tpath|
-        @trajectories.push Trajectory.build(spath, tpath, @trajectories&.last&.time || 0)
+        @trajectories.push Trajectory.build(spath, tpath)
       end
       redis = Redis.new
       prefix = Config.version

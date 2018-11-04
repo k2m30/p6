@@ -9,7 +9,7 @@ class Trajectory
     @right_motor_points = right_motor_points
   end
 
-  def self.build(spath, tpath, time_offset = 0)
+  def self.build(spath, tpath)
     fail if spath.elements.size != tpath.elements.size
 
     linear_velocity = Config.linear_velocity
@@ -56,18 +56,25 @@ class Trajectory
     initial_position_y = tpath.elements.first.start_point.y
 
     # first add move_to command
-    time = spath.get_idling_time(linear_acceleration, idling_velocity)
-    time_points.map! {|e| e + time}
-    time_points.insert(0.0, 0.0)
+    idling_time = spath.get_idling_time(linear_acceleration, idling_velocity)
+    time_points.map! {|e| e + idling_time}
+    time_points.insert(0, 0.0)
+
+    time_deltas = [0.0]
+    time_points.each_cons(2) do |t1, t2|
+      time_deltas.push t2-t1
+    end
+
+    fail 'Wrong time calculations' unless time_deltas.size == time_points.size and time_points.last == time_deltas.sum
 
     position_points_x = [initial_position_x] + tpath.elements.map(&:end_point).map(&:x)
     position_points_y = [initial_position_y] + tpath.elements.map(&:end_point).map(&:y)
 
     left_motor_points = []
     right_motor_points = []
-    time_points.each_with_index do |time, i|
-      left_motor_points.push PVT.new(position_points_x[i], velocity_points_x[i] / pulley_radius, time + time_offset)
-      right_motor_points.push PVT.new(position_points_y[i], velocity_points_y[i] / pulley_radius, time + time_offset)
+    time_deltas.each_with_index do |time, i|
+      left_motor_points.push PVT.new(360.0 * position_points_x[i] / (Math::PI * 2 * pulley_radius), 360.0 * velocity_points_x[i] / (Math::PI * 2 * pulley_radius), time)
+      right_motor_points.push PVT.new(360.0 * position_points_y[i] / (Math::PI * 2 * pulley_radius), 360.0 * velocity_points_y[i] / (Math::PI * 2 * pulley_radius), time)
     end
 
     Trajectory.new left_motor_points, right_motor_points
