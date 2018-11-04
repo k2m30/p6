@@ -17,8 +17,34 @@ class RRServoMotor
   end
 
   def add_point(point)
-    fail unless point.is_a? PVT
+    fail 'Point is not of PVT type' unless point.is_a? PVT
     add_motion_point(point.p, point.v, point.t)
+  end
+
+  def go_to(pos:, max_velocity: 180.0, acceleration: 250.0, start_immediately: false)
+    current_position = position
+    l = pos - current_position
+    sign = l <=> 0
+    sign = 1 if sign.zero?
+
+    t1 = max_velocity / acceleration
+    l1 = acceleration * t1 ** 2 / 2
+
+    l2 = l.abs - 2 * l1
+    t2 = l2 / max_velocity
+
+    if l2 <= 0
+      t1 = Math.sqrt(l.abs / acceleration)
+      add_motion_point(current_position + sign * l / 2, t1 * acceleration * sign, t1 * 1000)
+      add_motion_point(pos, 0, t1 * 2 * 1000)
+      t2 = 0
+    else
+      add_motion_point(current_position + sign * l1, max_velocity * sign, t1 * 1000)
+      add_motion_point(current_position + sign * (l1 + l2), max_velocity * sign, (t1 + t2) * 1000)
+      add_motion_point(pos, 0, (t1 + t2 + t1) * 1000)
+    end
+    @interface.start_motion if start_immediately
+    t1 + t2 + t1
   end
 
   def set_state_operational
@@ -38,20 +64,6 @@ class RRServoMotor
     add_motion_point(position + delta, 0, time)
   end
 
-  def go_to(position:, velocity: 80, acceleration: 86.479, time: 0)
-    delta_position = (self.position - position).abs
-    if time.zero?
-      t1 = velocity / acceleration
-      t2 = (delta_position - acceleration * t1 ** 2) / velocity
-      t2 = 0 if t2 < 0
-      time = t1 + t2
-      time = (time * 1000).to_i * 2
-    end
-    clear_points_queue
-    add_motion_point(position, 0, time)
-    @interface.start_motion
-  end
-
   def log_pvt(file_name, log_time)
     data = []
     start_time = Time.now.to_f
@@ -67,12 +79,6 @@ class RRServoMotor
     CSV.open(file_name, 'wb') do |csv|
       data.each {|row| csv << row}
     end
-  end
-
-  def position=(pos)
-    velocity = 180.0, current = 7.0
-    # RRServoModule.rr_set_position_with_limits(@servo_handle, pos, velocity, current)
-    RRServoModule.rr_set_position(@servo_handle, pos)
   end
 
   def state
@@ -131,5 +137,9 @@ class RRServoMotor
 
   def self.ret_codes
     RRServoModule.constants.select {|e| e.to_s.include?('RET')}
+  end
+
+  def wait_for_motion_is_finished
+    loop {break if velocity.zero?}
   end
 end

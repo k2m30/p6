@@ -23,6 +23,7 @@ class Loop
     @last_sent_point = nil
     @left_motor = initialize_motor(LEFT_MOTOR_ID)
     @right_motor = initialize_motor(RIGHT_MOTOR_ID)
+    move_to_initial_point
     @zero_time = Time.now # Process.clock_gettime(Process::CLOCK_MONOTONIC)
     run
   ensure
@@ -31,6 +32,21 @@ class Loop
     # @left_motor.deinitialize
     # @right_motor.deinitialize
     @servo_interface.deinitialize
+  end
+
+  def move_to_initial_point
+    left_point = 360.0 * Config.initial_x / (Math::PI * Config.motor_pulley_diameter)
+    right_point = 360.0 * Config.initial_y / (Math::PI * Config.motor_pulley_diameter)
+
+    time_left = @left_motor.get_time(left_point, Config.max_angular_velocity, Config.max_angular_acceleration)
+    time_right = @right_motor.get_time(right_point, Config.max_angular_velocity, Config.max_angular_acceleration)
+
+    time = [time_left, time_right].max
+
+    @left_motor.add_motion_point(left_point, 0 , time)
+    @right_motor.add_motion_point(right_point, 0 , time)
+    @servo_interface.start_motion
+
   end
 
   def initialize_motor(id)
@@ -107,4 +123,4 @@ class Loop
   end
 end
 
-Loop.new
+# Loop.new
