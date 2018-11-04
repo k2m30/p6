@@ -13,6 +13,8 @@
 !/log/.keep
 !/tmp/.keep
 public/*.svg
+*.csv
+*.html
 
 /node_modules
 /yarn-error.log

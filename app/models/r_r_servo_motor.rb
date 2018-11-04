@@ -35,13 +35,21 @@ class RRServoMotor
 
     if l2 <= 0
       t1 = Math.sqrt(l.abs / acceleration)
-      add_motion_point(current_position + sign * l / 2, t1 * acceleration * sign, t1 * 1000)
+      add_motion_point(current_position + sign * l.abs / 2, t1 * acceleration * sign, t1 * 1000)
       add_motion_point(pos, 0, t1 * 2 * 1000)
       t2 = 0
     else
+      p [position, velocity.round(2), 0.0]
+
       add_motion_point(current_position + sign * l1, max_velocity * sign, t1 * 1000)
-      add_motion_point(current_position + sign * (l1 + l2), max_velocity * sign, (t1 + t2) * 1000)
-      add_motion_point(pos, 0, (t1 + t2 + t1) * 1000)
+      p [current_position + sign * l1, max_velocity * sign, t1 * 1000]
+
+      add_motion_point(current_position + sign * (l1 + l2), max_velocity * sign, t2 * 1000)
+      p [current_position + sign * (l1 + l2), max_velocity * sign, t2 * 1000]
+
+      add_motion_point(pos, 0, t1 * 1000)
+      p [pos, 0, t1 * 1000]
+
     end
     @interface.start_motion if start_immediately
     t1 + t2 + t1
@@ -64,15 +72,16 @@ class RRServoMotor
     add_motion_point(position + delta, 0, time)
   end
 
-  def log_pvt(file_name, log_time)
+  def log_pvt(file_name = './data.csv', log_time)
     data = []
     start_time = Time.now.to_f
     while Time.now.to_f - start_time <= log_time
       begin
         current_position = position
         set_point = position_set_point
-        twist = self.twist
-        data << [current_position, Time.now.to_f - start_time, set_point, current_position - set_point, twist]
+        # twist = self.twist
+        velocity = self.velocity
+        data << [current_position, Time.now.to_f - start_time, set_point, current_position - set_point, velocity]
       end
     end
 
@@ -140,6 +149,6 @@ class RRServoMotor
   end
 
   def wait_for_motion_is_finished
-    loop {break if velocity.zero?}
+    loop {break if velocity.round(2).zero?}
   end
 end
