@@ -168,9 +168,11 @@ class Layer
           xml.text ".t {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 1.0} \n"
         end
 
-        @paths.each_with_index do |path, i|
-          xml.path(d: "M#{path.start_point.x},#{path.start_point.y} L#{path.elements.first.end_point.x},#{path.elements.first.end_point.y}", class: 'move_to')
-          xml.path(d: path.d, id: "path_#{i}", class: 'd')
+        xml.g(id: :main, color: @color, width: @width) do
+          @paths.each_with_index do |path, i|
+            xml.path(d: "M#{path.start_point.x},#{path.start_point.y} L#{path.elements.first.end_point.x},#{path.elements.first.end_point.y}", class: 'move_to')
+            xml.path(d: path.d, id: "path_#{i}", class: 'd')
+          end
         end
 
         xml.g(id: :splitted, color: @color, width: @width, style: 'display: none;') do
