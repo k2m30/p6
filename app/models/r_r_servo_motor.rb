@@ -21,6 +21,13 @@ class RRServoMotor
     add_motion_point(point.p, point.v, point.t)
   end
 
+  def queue_size
+    value_ptr = Fiddle::Pointer.malloc(Fiddle::SIZEOF_INT)
+    ret_code = RRServoModule.rr_get_points_size(@servo_handle, value_ptr)
+    check_errors(ret_code)
+    value_ptr[0, Fiddle::SIZEOF_INT].unpack('C').first
+  end
+
   def go_to(pos:, max_velocity: 180.0, acceleration: 250.0, start_immediately: false)
     current_position = position
     l = pos - current_position
@@ -66,10 +73,9 @@ class RRServoMotor
     end
   end
 
-  def soft_stop(time = 3000)
+  def soft_stop
     clear_points_queue
-    delta = velocity > 0 ? 90 : -90
-    add_motion_point(position + delta, 0, time)
+    self.velocity = 0.0
   end
 
   def log_pvt(file_name = './data.csv', log_time)
@@ -111,6 +117,11 @@ class RRServoMotor
 
   def velocity
     read_param RRServoModule::APP_PARAM_VELOCITY
+  end
+
+  def velocity=(v)
+    ret_code = RRServoModule.rr_set_velocity(@servo_handle, v)
+    check_errors(ret_code)
   end
 
   def current

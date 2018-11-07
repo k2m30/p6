@@ -1,7 +1,7 @@
 require 'redis'
 require 'json'
 require_relative 'config'
-require_relative 'p_v_t'
+require_relative 'pvt'
 require_relative 'r_r_interface'
 require_relative 'r_r_servo_motor'
 
@@ -19,11 +19,12 @@ class Loop
     fail 'Already running' unless @redis.get('running').nil?
 
     @point_index = 0
-    @trajectory_point_index = 0
-    @last_sent_point = nil
+    @trajectory_point_index = 1
+
     @left_motor = initialize_motor(LEFT_MOTOR_ID)
     @right_motor = initialize_motor(RIGHT_MOTOR_ID)
-    move_to_initial_point
+    @left_motor.clear_points_queue
+    @right_motor.clear_points_queue
     @zero_time = Time.now # Process.clock_gettime(Process::CLOCK_MONOTONIC)
     run
   ensure
@@ -35,16 +36,16 @@ class Loop
   end
 
   def move_to_initial_point
+    @left_motor.queue_size
     left_point = 360.0 * Config.initial_x / (Math::PI * Config.motor_pulley_diameter)
     right_point = 360.0 * Config.initial_y / (Math::PI * Config.motor_pulley_diameter)
 
-    time_left = @left_motor.get_time(left_point, Config.max_angular_velocity, Config.max_angular_acceleration)
-    time_right = @right_motor.get_time(right_point, Config.max_angular_velocity, Config.max_angular_acceleration)
+    @left_motor.go_to(pos: left_point, max_velocity: Config.max_angular_velocity, acceleration: Config.max_angular_acceleration)
+    @right_motor.go_to(pos: right_point, max_velocity: Config.max_angular_velocity, acceleration: Config.max_angular_acceleration)
 
-    time = [time_left, time_right].max
+    @left_motor.add_motion_point(left_point, 0, 1000)
+    @right_motor.add_motion_point(right_point, 0, 1000)
 
-    @left_motor.add_motion_point(left_point, 0 , time)
-    @right_motor.add_motion_point(right_point, 0 , time)
     @servo_interface.start_motion
 
   end
@@ -55,61 +56,61 @@ class Loop
   end
 
   def run
-    loop{break unless @redis.get('running').nil? }
-
+    data = []
     loop do
-      if @redis.get('running').nil?
-        soft_stop
-        fail 'Stopped outside'
-      end
+      loop {break unless @redis.get('running').nil?}
 
-      if check_queue_size <= MIN_QUEUE_SIZE
-        return if add_points(QUEUE_SIZE) == NO_POINTS_IN_QUEUE_LEFT
+      move_to_initial_point
+
+      loop do
+        if @redis.get('running').nil?
+          soft_stop
+          fail 'Stopped outside'
+        end
+        queue_size = @left_motor.queue_size
+        break if queue_size.zero?
+
+        if queue_size <= MIN_QUEUE_SIZE
+          add_points(QUEUE_SIZE)
+        end
+        data << [@left_motor.position, @right_motor.position, Time.now - @zero_time]
       end
-      sleep 1.0
+      puts 'Done. Stopped'
+      @redis.del 'running'
+      @redis.set(:log, data)
+      puts 'Waiting for next paint task'
     end
   end
 
   def add_points(queue_size)
     begin
-      path = JSON.parse(@redis.get("#{Config.version}_#{@point_index}"))
+      path = @redis.get("#{Config.version}_#{@point_index}")
 
-      if path.nil?
-        puts 'All trajectories sent to motors, waiting for completion'
-        begin
-          sleep 1
-        end while Time.now - (@zero_time + @last_sent_point['t']) < 0
-        @redis.del 'running'
-        puts 'Done'
-        return 0
-      end
+      return if path.nil?
 
+      path = JSON.parse path
       next_left_point = PVT.from_json path['left_motor_points'][@trajectory_point_index]
+      next_left_point.t *= 1000
       next_right_point = PVT.from_json path['right_motor_points'][@trajectory_point_index]
+      next_right_point.t *= 1000
 
-      begin
-        @left_motor.add_point(next_left_point)
-        @right_motor.add_point(next_right_point)
-      rescue => e
-        puts e.message
-        puts e.backtrace
-        soft_stop
-        fail 'Cannot send point'
-      end
 
-      @last_sent_point = next_left_point
+      @left_motor.add_point(next_left_point)
+      @right_motor.add_point(next_right_point)
 
-      if @trajectory_point_index <= path['size'] - 1
+      if @trajectory_point_index < path['left_motor_points'].size - 1
         @trajectory_point_index += 1
       else
-        @trajectory_point_index = 0
+        @trajectory_point_index = 1
         @point_index += 1
       end
-    end until @last_sent_point['t'] - Time.now < queue_size
-  end
 
-  def check_queue_size
-    @last_sent_point.nil? ? 0.0 : @last_sent_point['t'] - (Time.now - @zero_time)
+    rescue => e
+      puts e.message
+      puts e.backtrace
+      soft_stop
+      fail 'Cannot send point'
+    end until @left_motor.queue_size > queue_size
   end
 
   def soft_stop

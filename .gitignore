@@ -15,7 +15,7 @@
 public/*.svg
 *.csv
 *.html
-
+app/models/*.svg
 /node_modules
 /yarn-error.log
 
