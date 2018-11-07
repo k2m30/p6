@@ -164,8 +164,8 @@ class Layer
         xml.style do
           xml.text ".d {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 1.0}\n"
           xml.text ".move_to {stroke: #FF0000; fill-opacity: 0; stroke-width: #{(@width.to_s.to_f / 5.0).to_i}}\n"
-          xml.text ".s {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 0.0} \n"
-          xml.text ".t {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 0.0} \n"
+          xml.text ".s {stroke: #{@color}; fill-opacity: 0; stroke-width: #{(@width.to_s.to_f / 5.0).to_i}; stroke-linecap: round; opacity: 1.0} \n"
+          xml.text ".t {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 1.0} \n"
         end
 
         @paths.each_with_index do |path, i|
@@ -173,13 +173,13 @@ class Layer
           xml.path(d: path.d, id: "path_#{i}", class: 'd')
         end
 
-        xml.g(id: :splitted, color: @color, width: @width) do
+        xml.g(id: :splitted, color: @color, width: @width, style: 'display: none;') do
           @splitted_paths.each_with_index do |spath, i|
             xml.path(d: spath.d, id: "spath_#{i}", class: 's')
           end
         end
 
-        xml.g(id: :tpath, color: @color, width: @width) do
+        xml.g(id: :tpath, color: @color, width: @width, style: 'display: none;') do
           @tpaths.each_with_index do |tpath, i|
             xml.path(d: tpath.d, id: "tpath_#{i}", class: 't')
           end

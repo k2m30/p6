@@ -20,12 +20,12 @@ class Loop
 
     @point_index = 0
     @trajectory_point_index = 1
+    @zero_time = Time.now # Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
     @left_motor = initialize_motor(LEFT_MOTOR_ID)
     @right_motor = initialize_motor(RIGHT_MOTOR_ID)
     @left_motor.clear_points_queue
     @right_motor.clear_points_queue
-    @zero_time = Time.now # Process.clock_gettime(Process::CLOCK_MONOTONIC)
     run
   ensure
     turn_off_painting
@@ -36,7 +36,8 @@ class Loop
   end
 
   def move_to_initial_point
-    @left_motor.queue_size
+    @left_motor.clear_points_queue
+    @right_motor.clear_points_queue
     left_point = 360.0 * Config.initial_x / (Math::PI * Config.motor_pulley_diameter)
     right_point = 360.0 * Config.initial_y / (Math::PI * Config.motor_pulley_diameter)
 
@@ -74,8 +75,13 @@ class Loop
           add_points(QUEUE_SIZE)
         end
         data << [@left_motor.position, @right_motor.position, Time.now - @zero_time]
+        p [@left_motor.current, @right_motor.current]
       end
       puts 'Done. Stopped'
+      @point_index = 0
+      @trajectory_point_index = 1
+      @zero_time = Time.now # Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
       @redis.del 'running'
       @redis.set(:log, data)
       puts 'Waiting for next paint task'
@@ -124,4 +130,4 @@ class Loop
   end
 end
 
-# Loop.new
+Loop.new
