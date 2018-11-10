@@ -99,4 +99,68 @@ class Trajectory
     json['right_motor_points'].each {|e| right_motor_points.push PVT.new(e['p'], e['v'], e['t'])}
     Trajectory.new(left_motor_points, right_motor_points, json['id'])
   end
+
+  def self.plot_path(n, file_name)
+    # require 'gnuplot'
+
+    v = Config.version
+    trajectory = JSON.parse Redis.new.get("#{v}_#{n}")
+
+    Gnuplot.open do |gp|
+
+      # left motor
+      Gnuplot::Plot.new(gp) do |plot|
+        plot.ylabel ''
+        plot.xlabel 'time, s'
+
+        # plot.terminal 'canvas size 1200,800 mousing lw 0.7'
+        plot.terminal 'svg size 1200,800 '
+        plot.output file_name.to_s
+        plot.multiplot 'layout 2,1'
+
+        x = []
+        time_deltas = trajectory['left_motor_points'].map {|e| e['t']}
+        time_deltas.size.times {|i| x << time_deltas[0..i].sum}
+        y = trajectory['left_motor_points'].map {|e| e['v']}
+        z = trajectory['left_motor_points'].map {|e| e['p']}
+        plot.xrange "[0:#{x.last.ceil}]"
+
+        plot.data = [
+            Gnuplot::DataSet.new([x, y]) {|ds|
+              ds.with = 'linespoints'
+              ds.title = 'Velocity'
+            },
+
+            Gnuplot::DataSet.new([x, z]) {|ds|
+              ds.with = 'linespoints'
+              ds.title = 'Positions'
+            }
+        ]
+
+      end
+
+      # right motor
+      Gnuplot::Plot.new(gp) do |plot|
+        t = []
+        time_deltas = trajectory['right_motor_points'].map {|e| e['t']}
+        time_deltas.size.times {|i| t << time_deltas[0..i].sum}
+        velocity = trajectory['right_motor_points'].map {|e| e['v']}
+        position = trajectory['right_motor_points'].map {|e| e['p']}
+        plot.xrange "[0:#{t.last.ceil}]"
+
+        plot.data = [
+            Gnuplot::DataSet.new([t, velocity]) {|ds|
+              ds.with = 'linespoints'
+              ds.title = 'Velocity'
+            },
+
+            Gnuplot::DataSet.new([t, position]) {|ds|
+              ds.with = 'linespoints'
+              ds.title = 'Positions'
+            }
+        ]
+
+      end
+    end
+  end
 end

@@ -28,13 +28,11 @@ def do_it
     end
   end
 
-  svg = <<EOL
+  svg = <<SVG
 <svg viewBox="0 0 #{Config.canvas_size_x.to_i} #{Config.canvas_size_y.to_i}" xmlns="http://www.w3.org/2000/svg">
-  <!-- polyline is an open shape -->
-  <polyline stroke="black" fill="none"
-   points="#{points_str}" />
+  <polyline stroke="black" fill="none" points="#{points_str}" />
 </svg>
-EOL
+SVG
 
   File.new('./result.svg', 'w').write(svg)
   puts svg

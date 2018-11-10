@@ -161,10 +161,17 @@ class Layer
     builder = Nokogiri::XML::Builder.new do |xml|
       xml.g(id: @name, color: @color, width: @width) do
         break if @paths.empty?
+        @width = @width.to_s.to_f
+        xml.marker(id: 'arrow-end', markerWidth: @width, markerHeight: @width, refX: @width*1.5,refY: @width / 2, markerUnits: 'userSpaceOnUse', orient: 'auto') do
+          xml.polyline(points: "0,0 #{@width},#{@width / 2} 0,#{@width} #{@width / 4},#{@width / 2} 0,0", 'stroke-width': 1, stroke: 'darkred', fill: 'red')
+        end
+
+        xml.circle(cx: Config.start_point.x, cy: Config.start_point.y, r: @width, fill: 'green', opacity: 0.5)
+
         xml.style do
           xml.text ".d {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 1.0}\n"
-          xml.text ".move_to {stroke: #FF0000; fill-opacity: 0; stroke-width: #{(@width.to_s.to_f / 5.0).to_i}}\n"
-          xml.text ".s {stroke: #{@color}; fill-opacity: 0; stroke-width: #{(@width.to_s.to_f / 5.0).to_i}; stroke-linecap: round; opacity: 1.0} \n"
+          xml.text ".move_to {stroke: darkred; fill-opacity: 0; marker-end: url(#arrow-end); stroke-width: #{(@width / 5.0).to_i}}\n"
+          xml.text ".s {stroke: #{@color}; fill-opacity: 0; stroke-width: #{(@width / 5.0).to_i}; stroke-linecap: round; opacity: 1.0} \n"
           xml.text ".t {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 1.0} \n"
         end
 

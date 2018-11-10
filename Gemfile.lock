@@ -86,6 +86,7 @@ GEM
     flamegraph (0.9.5)
     globalid (0.4.1)
       activesupport (>= 4.2.0)
+    gnuplot (2.6.2)
     haml (5.0.4)
       temple (>= 0.8.0)
       tilt
@@ -235,6 +236,7 @@ DEPENDENCIES
   chromedriver-helper
   coffee-rails (~> 4.2)
   flamegraph
+  gnuplot
   haml
   haml-rails
   jbuilder (~> 2.5)

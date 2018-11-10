@@ -27,4 +27,10 @@ class PagesController < ApplicationController
     Config.image_name = params[:image] || 'calibrate.svg'
     redirect_to root_url
   end
+
+  def trajectory
+    file_name = Rails.root.join('tmp', 'trajectory.html')
+    Trajectory.plot_path params[:i], file_name
+    render file: file_name, layout: nil
+  end
 end

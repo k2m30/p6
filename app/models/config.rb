@@ -1,4 +1,5 @@
 require 'yaml'
+require 'point'
 
 class Config
   class << self
@@ -190,7 +191,11 @@ class Config
     #################################################
 
     def file_name
-      Rails.root&.join('config', 'config.yml') || '/Users/user/projects/p6/config/config.yml'
+      Rails.root.join('config', 'config.yml') rescue '/Users/user/projects/p6/config/config.yml'
+    end
+
+    def start_point
+      Point.new(initial_x, initial_y).to_decart(canvas_size_x, dm, dy)
     end
 
     def build_names

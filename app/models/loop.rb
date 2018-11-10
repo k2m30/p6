@@ -6,8 +6,8 @@ require_relative 'r_r_interface'
 require_relative 'r_r_servo_motor'
 
 class Loop
-  MIN_QUEUE_SIZE = 3.0 #sec
-  QUEUE_SIZE = 10.0 #sec
+  MIN_QUEUE_SIZE = 3
+  QUEUE_SIZE = 10
   LEFT_MOTOR_ID = 19
   RIGHT_MOTOR_ID = 32
 
