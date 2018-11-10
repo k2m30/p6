@@ -198,6 +198,14 @@ class Config
       Point.new(initial_x, initial_y).to_decart(canvas_size_x, dm, dy)
     end
 
+    def keys
+      YAML.load(File.open(file_name)).keep_if{|k,v| v['hidden'].nil?}.keys
+    end
+
+    def description(name)
+      YAML::load_file(file_name)[name]['description']
+    end
+
     def build_names
       YAML.load(File.open(file_name)).keys.each do |method|
         # define_method :"#{method}=" do |value|
@@ -215,6 +223,7 @@ class Config
     end
 
     def set_value(name, value)
+      value = Float(value) rescue value.to_f rescue value
       Redis.new.set name, value
       hash = YAML.load_file(file_name)
       hash[name]['value'] = value

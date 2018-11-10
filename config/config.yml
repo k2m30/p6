@@ -21,32 +21,39 @@ motor_pulley_diameter:
   value: 200.0
   description: диаметр шкива
 initial_x:
-  value: 500.0
+  value: 400.0
   description: начальная длина левого ремня, мм
 initial_y:
-  value: 500.0
+  value: 601.0
   description: начальная длина правого ремня, мм
 crop_x:
   value: 0
   description: левый верхний угол для обрезки
+  hidden: true
 crop_y:
   value: 0
   description: левый верхний угол для обрезки
+  hidden: true
 crop_w:
   value: 0
   description: ширина прямоугольника обрезки
+  hidden: true
 crop_h:
   value: 2450
   description: высота прямоугольника обрезки
+  hidden: true
 move_x:
-  value: 148
+  value: 0.0
   description: смещение рисунка, если надо
+  hidden: true
 move_y:
-  value: 100
+  value: 0.0
   description: смещение рисунка, если надо
+  hidden: true
 max_spray_length:
   value: 87000.0
   description: длина окраски одним баллончиком краски, мм
+  hidden: true
 canvas_size_x:
   value: 800.0
   description: ширина холста
@@ -60,11 +67,13 @@ dy:
   value: 50.0
   description: насколько сопло ниже линии моторов
 simulation_velocity:
-  value: 500.0
+  value: 500.1
   description: скорость симуляции, mm/sec
 image_name:
   value: calibrate.svg
   description: имя файла
+  hidden: true
 version:
-  value: 1.0
+  value: 0.0
   description: версия данных в кэше
+  hidden: true

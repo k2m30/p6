@@ -5,6 +5,9 @@ Rails.application.routes.draw do
   get 'position', to: 'robot#position'
   get 'trajectory', to: 'pages#trajectory'
 
+  get 'settings', to: 'settings#index'
+  post 'update_config', to: 'settings#update'
+
   post 'velocity', to: 'robot#velocity'
   post 'acceleration', to: 'robot#acceleration'
   post 'run', to: 'robot#run'

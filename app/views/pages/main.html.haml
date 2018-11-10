@@ -37,7 +37,7 @@
           = link_to 'Build', build_path(layer: layer_id), class: 'btn btn-info', style: "#{layer_id.empty? ? 'display: none;' : ''}"
           = link_to 'Simulate', 'javascript:void(0)', class: 'btn btn-info', onclick: "paint(#{@velocity})"
         %hr
-        = link_to 'Settings', nil, class: 'btn btn-light'
+        = link_to 'Settings', settings_path, class: 'btn btn-light', target: '_blank'
         = link_to 'Calibration', nil, class: 'btn btn-secondary'
     .row
     = render partial: 'status', locals: {layer_id: layer_id}
