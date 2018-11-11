@@ -223,7 +223,7 @@ class Config
     end
 
     def set_value(name, value)
-      value = Float(value) rescue value.to_f rescue value
+      value = Float(value) rescue value
       Redis.new.set name, value
       hash = YAML.load_file(file_name)
       hash[name]['value'] = value
