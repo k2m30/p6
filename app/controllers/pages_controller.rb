@@ -30,7 +30,7 @@ class PagesController < ApplicationController
 
   def trajectory
     file_name = Rails.root.join('tmp', 'trajectory.html')
-    Trajectory.plot_path params[:i], file_name
+    Trajectory.plot_path params[:id], file_name
     render file: file_name, layout: nil
   end
 end

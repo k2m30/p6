@@ -73,4 +73,4 @@ gem 'memory_profiler'
 # For call-stack profiling flamegraphs
 gem 'flamegraph'
 gem 'stackprof'
-gem 'gnuplot'
+gem 'numo-gnuplot'

@@ -1,12 +1,12 @@
 ---
 linear_velocity:
-  value: 380.0
+  value: 360.0
   description: линейная скорость окраски, мм/с, g01
 idling_velocity:
   value: 400.0
   description: линейная скорость холостого хода, мм/с, g00
 linear_acceleration:
-  value: 100.0
+  value: 160.0
   description: линейной ускорение мм/c2
 max_angular_velocity:
   value: 181
@@ -74,6 +74,6 @@ image_name:
   description: имя файла
   hidden: true
 version:
-  value: 0.0
+  value: 2.0
   description: версия данных в кэше
   hidden: true

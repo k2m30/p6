@@ -62,7 +62,7 @@ class Trajectory
 
     time_deltas = [0.0]
     time_points.each_cons(2) do |t1, t2|
-      time_deltas.push t2-t1
+      time_deltas.push t2 - t1
     end
 
     fail 'Wrong time calculations' unless time_deltas.size == time_points.size and time_points.last == time_deltas.sum
@@ -101,66 +101,67 @@ class Trajectory
   end
 
   def self.plot_path(n, file_name)
-    # require 'gnuplot'
-
     v = Config.version
     trajectory = JSON.parse Redis.new.get("#{v}_#{n}")
+    file_name = "#{file_name.to_s}"
+    x = 20.times.map {|i| i * 0.5}
+    y = x.map {|i| i * Math.sin(i)}
 
-    Gnuplot.open do |gp|
+    Numo.gnuplot do
+      reset
+      unset :multiplot
+      set title: "trajectory #{n}, left motor"
+      set ylabel: ''
+      set autoscale: :fix
+      set xlabel: 'time, s'
 
-      # left motor
-      Gnuplot::Plot.new(gp) do |plot|
-        plot.ylabel ''
-        plot.xlabel 'time, s'
+      set terminal: ['svg', 'size 1200,1600']
+      set output: file_name
+      set multiplot: 'layout 3,1'
 
-        # plot.terminal 'canvas size 1200,800 mousing lw 0.7'
-        plot.terminal 'svg size 1200,800 '
-        plot.output file_name.to_s
-        plot.multiplot 'layout 2,1'
+      # left
+      t = []
+      time_deltas = trajectory['left_motor_points'].map {|e| e['t']}
+      time_deltas.size.times {|i| t << time_deltas[0..i].sum}
+      velocity = trajectory['left_motor_points'].map {|e| e['v'].round(2)}
+      position = trajectory['left_motor_points'].map {|e| e['p'].round(2)}
 
-        x = []
-        time_deltas = trajectory['left_motor_points'].map {|e| e['t']}
-        time_deltas.size.times {|i| x << time_deltas[0..i].sum}
-        y = trajectory['left_motor_points'].map {|e| e['v']}
-        z = trajectory['left_motor_points'].map {|e| e['p']}
-        plot.xrange "[0:#{x.last.ceil}]"
+      set xrange: "[0:#{t.last.ceil}]"
+      # set yrange: "[#{velocity.min.floor}:#{velocity.max.ceil}]"
 
-        plot.data = [
-            Gnuplot::DataSet.new([x, y]) {|ds|
-              ds.with = 'linespoints'
-              ds.title = 'Velocity'
-            },
+      plot [t, position, with: 'lp', title: 'Left Motor position'], [t, velocity, with: 'lp', title: 'Left Motor Velocity']
 
-            Gnuplot::DataSet.new([x, z]) {|ds|
-              ds.with = 'linespoints'
-              ds.title = 'Positions'
-            }
-        ]
+      #right
+      set title: "trajectory #{n}, right motor"
+      t = []
+      time_deltas = trajectory['right_motor_points'].map {|e| e['t']}
+      time_deltas.size.times {|i| t << time_deltas[0..i].sum}
+      velocity = trajectory['right_motor_points'].map {|e| e['v']}
+      position = trajectory['right_motor_points'].map {|e| e['p']}
 
+      plot [t, position, with: 'lp', title: 'Right Motor position'], [t, velocity, with: 'lp', title: 'Right Motor Velocity']
+
+
+      # figure
+      position_left = trajectory['left_motor_points'].map {|e| e['p']}
+      position_right = trajectory['right_motor_points'].map {|e| e['p']}
+
+      x = []
+      y = []
+      position_left.size.times do |i|
+        xx = position_left[i] * Math::PI * Config.motor_pulley_diameter / 360.0
+        yy = position_right[i] * Math::PI * Config.motor_pulley_diameter / 360.0
+        point = Point.new(xx, yy).to_decart(Config.canvas_size_x, Config.dm, Config.dy)
+        x << point.x
+        y << Config.canvas_size_y - point.y
       end
+      set xrange: "[0:#{Config.canvas_size_x}]"
+      set yrange: "[0:#{Config.canvas_size_y}]"
+      set size: :square
+      set title: "trajectory #{n}, figure"
+      unset :xlabel
 
-      # right motor
-      Gnuplot::Plot.new(gp) do |plot|
-        t = []
-        time_deltas = trajectory['right_motor_points'].map {|e| e['t']}
-        time_deltas.size.times {|i| t << time_deltas[0..i].sum}
-        velocity = trajectory['right_motor_points'].map {|e| e['v']}
-        position = trajectory['right_motor_points'].map {|e| e['p']}
-        plot.xrange "[0:#{t.last.ceil}]"
-
-        plot.data = [
-            Gnuplot::DataSet.new([t, velocity]) {|ds|
-              ds.with = 'linespoints'
-              ds.title = 'Velocity'
-            },
-
-            Gnuplot::DataSet.new([t, position]) {|ds|
-              ds.with = 'linespoints'
-              ds.title = 'Positions'
-            }
-        ]
-
-      end
+      plot x, y, w: 'lp'#, smooth: 'csplines'
     end
   end
 end
