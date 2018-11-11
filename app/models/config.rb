@@ -1,5 +1,5 @@
 require 'yaml'
-require 'point'
+require_relative 'point'
 
 class Config
   class << self

@@ -104,8 +104,6 @@ class Trajectory
     v = Config.version
     trajectory = JSON.parse Redis.new.get("#{v}_#{n}")
     file_name = "#{file_name.to_s}"
-    x = 20.times.map {|i| i * 0.5}
-    y = x.map {|i| i * Math.sin(i)}
 
     Numo.gnuplot do
       reset
