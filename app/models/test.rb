@@ -89,48 +89,64 @@ def do_it
 
 end
 
-@actual_points_left = []
-@actual_points_right = []
+def make_graph
+  x = []
+  y = []
+  diameter = Config.motor_pulley_diameter
+  width = Config.canvas_size_x
+  dm = Config.dm
+  dy = Config.dy
+  canvas_size_y = Config.canvas_size_y
 
-do_it
+  @actual_points_left.size.times do |i|
+    xx = @actual_points_left[i] * Math::PI * diameter / 360.0
+    yy = @actual_points_right[i] * Math::PI * diameter / 360.0
+    point = Point.new(xx, yy).to_decart(width, dm, dy)
+    x << point.x
+    y << canvas_size_y - point.y
+  end
 
-x = []
-y = []
-diameter = Config.motor_pulley_diameter
-width = Config.canvas_size_x
-dm = Config.dm
-dy = Config.dy
-canvas_size_y = Config.canvas_size_y
 
-@actual_points_left.size.times do |i|
-  xx = @actual_points_left[i] * Math::PI * diameter / 360.0
-  yy = @actual_points_right[i] * Math::PI * diameter / 360.0
-  point = Point.new(xx, yy).to_decart(width, dm, dy)
-  x << point.x
-  y << canvas_size_y - point.y
+  file_name = './path.html'
+
+  Numo.gnuplot do
+    reset
+    unset :multiplot
+    # set title: "trajectory #{n}, left motor"
+    set ylabel: ''
+    set autoscale: :fix
+    # set xlabel: 'time, s'
+
+    set terminal: ['svg', 'size 1200,1200']
+    set output: file_name
+    set multiplot: 'layout 1,1'
+
+    # figure
+    set xrange: "[0:#{Config.canvas_size_x}]"
+    set yrange: "[0:#{Config.canvas_size_y}]"
+    set size: :square
+    unset :xlabel
+
+    plot x, y, w: 'lp' #, smooth: 'csplines'
+  end
 end
 
+# @actual_points_left = []
+# @actual_points_right = []
 
-file_name = './path.html'
+# do_it
+# make_graph
+#
+#
 
-Numo.gnuplot do
-  reset
-  unset :multiplot
-  # set title: "trajectory #{n}, left motor"
-  set ylabel: ''
-  set autoscale: :fix
-  # set xlabel: 'time, s'
-
-  set terminal: ['svg', 'size 1200,1200']
-  set output: file_name
-  set multiplot: 'layout 1,1'
-
-  # figure
-  set xrange: "[0:#{Config.canvas_size_x}]"
-  set yrange: "[0:#{Config.canvas_size_y}]"
-  set size: :square
-  unset :xlabel
-
-  plot x, y, w: 'lp' #, smooth: 'csplines'
+skip = %w[test.rb loop.rb graph.rb]
+Dir.glob('*.rb').map {|f| File.basename f}.each do |f|
+  require_relative f unless skip.any? {|s| s == f}
 end
+
+@motor = initialize_motor(RIGHT_MOTOR_ID)
+@motor.clear_points_queue
+t = @motor.go_to(pos: 1000, start_immediately: true)
+@motor.log_pvt(t + 1.0)
+`gnuplot ./plot.gnu`
 
