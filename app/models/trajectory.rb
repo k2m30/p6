@@ -1,3 +1,5 @@
+Row = Struct.new(:left_deg, :right_deg, :v_left, :v_right, :dt, :x, :y, :dl, :left_mm, :right_mm, :l, :linear_velocity, :t, :v_average_left, :v_average_right)
+
 class Trajectory
   attr_accessor :left_motor_points, :right_motor_points, :id
 
@@ -12,69 +14,115 @@ class Trajectory
   def self.build(spath, tpath)
     fail if spath.elements.size != tpath.elements.size
 
-    linear_velocity = Config.linear_velocity
+    max_linear_velocity = Config.linear_velocity
     idling_velocity = Config.idling_velocity
 
     linear_acceleration = Config.linear_acceleration
-    pulley_radius = Config.motor_pulley_diameter / 2.0
+    diameter = Config.motor_pulley_diameter
 
-    time_points = spath.get_time_points(linear_velocity, linear_acceleration)
-    v_average_points_x = []
-    v_average_points_y = []
+    l = spath.length
+    t1 = max_linear_velocity / linear_acceleration
+    l1 = linear_acceleration * t1 ** 2 / 2
 
-    tpath.elements.each_cons(2) do |curr_e, next_e|
-      i = tpath.elements.index(curr_e)
-      j = tpath.elements.index(next_e)
-      dt = time_points[j] - time_points[i]
-      dpx = next_e.end_point.x - curr_e.end_point.x
-      dpy = next_e.end_point.y - curr_e.end_point.y
-      v_average_x = dpx / dt
-      v_average_y = dpy / dt
-      v_average_points_x << v_average_x
-      v_average_points_y << v_average_y
-      # p [curr_e, next_e, dpx, dpy, v_average_x, v_average_y, dt]
-    end
-    # puts spath
-    # puts tpath
-    # puts ['llllll']
+    t3 = max_linear_velocity / linear_acceleration
+    l3 = linear_acceleration * t3 ** 2 / 2
 
-    velocity_points_x = [0, 0]
-    velocity_points_y = [0, 0]
 
-    v_average_points_x.each_cons(2) do |curr_v, next_v|
-      velocity_points_x.push ((curr_v + next_v) / 2).round(2)
+    l2 = l - l1 - l3
+    if l2 <= 0
+      l1 = l / 2
+      l2 = 0.0
+      l3 = l / 2
     end
 
-    v_average_points_y.each_cons(2) do |curr_v, next_v|
-      velocity_points_y.push ((curr_v + next_v) / 2).round(2)
+    t1 = Math.sqrt(2 * l1 / linear_acceleration)
+    t2 = l2 / max_linear_velocity
+    t3 = Math.sqrt(2 * l3 / linear_acceleration)
+
+    fail 'Wrong length calculation' unless l == l1 + l2 + l3
+
+    r = Row.new
+    r.x = spath.elements.first.end_point.x
+    r.y = spath.elements.first.end_point.y
+    r.dl = 0.0
+    r.left_mm = tpath.elements.first.end_point.x
+    r.right_mm = tpath.elements.first.end_point.y
+    r.left_deg = 360.0 * tpath.elements.first.end_point.x / (Math::PI * diameter)
+    r.right_deg = 360.0 * tpath.elements.first.end_point.x / (Math::PI * diameter)
+    r.l = 0.0
+    r.linear_velocity = 0.0
+    r.t = 0.0
+    r.dt = spath.get_idling_time(linear_acceleration, idling_velocity)
+    # r.dt = 0.0
+    r.v_average_left = 0.0
+    r.v_average_right = 0.0
+    r.v_left = 0.0
+    r.v_right = 0.0
+
+    data = [r]
+
+    tpath.elements[1..-1].each_with_index do |e, k|
+      i = k + 1
+      prev = data[i - 1]
+      r = Row.new
+      r.x = spath.elements[i].end_point.x
+      r.y = spath.elements[i].end_point.y
+
+      r.left_mm = e.end_point.x
+      r.right_mm = e.end_point.y
+
+
+      r.dl = spath.elements[i].length
+      r.left_deg = 360.0 * r.left_mm / (Math::PI * diameter)
+      r.right_deg = 360.0 * r.right_mm / (Math::PI * diameter)
+      r.l = prev.l + r.dl
+
+      if r.l <= l1
+        r.linear_velocity = Math.sqrt(2 * (r.l - prev.l) * linear_acceleration + prev.linear_velocity ** 2)
+        r.t = r.linear_velocity / linear_acceleration
+      elsif r.l > l1 and r.l < l1 + l2
+        r.linear_velocity = max_linear_velocity
+        r.t = t1 + (r.l - l1) / max_linear_velocity
+      else
+        r.linear_velocity = Math.sqrt(-2 * (r.l - prev.l) * linear_acceleration + prev.linear_velocity ** 2) rescue 0.0
+        r.t = prev.t - (r.linear_velocity - prev.linear_velocity) / linear_acceleration
+        r.t
+      end
+
+      r.dt = r.t - prev.t
+      r.v_average_left = (r.left_deg - prev.left_deg) / r.dt
+      r.v_average_right = (r.right_deg - prev.right_deg) / r.dt
+
+      data << r
     end
 
-    velocity_points_x.push 0.0
-    velocity_points_y.push 0.0
+    data[1..-1].each_cons(2) do |r, r_next|
+      r.v_left = (r.v_average_left + r_next.v_average_left) / 2
+      r.v_right = (r.v_average_right + r_next.v_average_right) / 2
+    end
 
-    initial_position_x = tpath.elements.first.start_point.x
-    initial_position_y = tpath.elements.first.start_point.y
+    data.last.v_left = 0.0
+    data.last.v_right = 0.0
+
+    fail 'Wrong time calculation' if data[1..-1].map(&:dt).sum - (t1 + t2 + t3) > 0.0001
+
 
     # first add move_to command
-    idling_time = spath.get_idling_time(linear_acceleration, idling_velocity)
-    time_points.map! {|e| e + idling_time}
-    time_points.insert(0, 0.0)
+    r = Row.new
+    r.left_deg = 360.0 * tpath.elements.first.start_point.x / (Math::PI * diameter)
+    r.right_deg = 360.0 * tpath.elements.first.start_point.y / (Math::PI * diameter)
+    r.dt = 0.0
+    r.v_left = 0.0
+    r.v_right = 0.0
+    data.insert(0, r)
 
-    time_deltas = [0.0]
-    time_points.each_cons(2) do |t1, t2|
-      time_deltas.push t2 - t1
-    end
-
-    fail 'Wrong time calculations' unless time_deltas.size == time_points.size and time_points.last == time_deltas.sum
-
-    position_points_x = [initial_position_x] + tpath.elements.map(&:end_point).map(&:x)
-    position_points_y = [initial_position_y] + tpath.elements.map(&:end_point).map(&:y)
+    fail 'nil values found during trajectory calculation' if data.any? {|d| d.left_deg.nil? or d.right_deg.nil? or d.v_left.nil? or d.v_right.nil? or d.dt.nil?}
 
     left_motor_points = []
     right_motor_points = []
-    time_deltas.each_with_index do |time, i|
-      left_motor_points.push PVT.new(360.0 * position_points_x[i] / (Math::PI * 2 * pulley_radius), 360.0 * velocity_points_x[i] / (Math::PI * 2 * pulley_radius), time)
-      right_motor_points.push PVT.new(360.0 * position_points_y[i] / (Math::PI * 2 * pulley_radius), 360.0 * velocity_points_y[i] / (Math::PI * 2 * pulley_radius), time)
+    data.each do |r|
+      left_motor_points.push PVT.new(r.left_deg, r.v_left, r.dt)
+      right_motor_points.push PVT.new(r.right_deg, r.v_right, r.dt)
     end
 
     Trajectory.new left_motor_points, right_motor_points
@@ -159,7 +207,7 @@ class Trajectory
       set title: "trajectory #{n}, figure"
       unset :xlabel
 
-      plot x, y, w: 'lp'#, smooth: 'csplines'
+      plot x, y, w: 'lp' #, smooth: 'csplines'
     end
   end
 end

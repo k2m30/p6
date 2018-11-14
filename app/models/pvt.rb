@@ -3,6 +3,7 @@ class PVT
 
   def initialize(p, v, t)
     fail unless [p, v, t].all? {|e| e.is_a? Float}
+    fail if [p, v, t].any? {|e| e.nil?}
     @p = p
     @v = v
     @t = t

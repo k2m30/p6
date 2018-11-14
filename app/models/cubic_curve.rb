@@ -93,6 +93,7 @@ class CubicCurve < Element
       x = (1 - t) * (1 - t) * (1 - t) * x0 + 3 * t * (1 - t) * (1 - t) * x1 + 3 * t * t * (1 - t) * x2 + t * t * t * x3
       y = (1 - t) * (1 - t) * (1 - t) * y0 + 3 * t * (1 - t) * (1 - t) * y1 + 3 * t * t * (1 - t) * y2 + t * t * t * y3
       dl = Line.new([sp, Point.new(x.round(2), y.round(2))])
+      fail 'Wrong curve split' if dl.length > size
       result << dl
       sp = dl.end_point
       t += dt
@@ -101,6 +102,7 @@ class CubicCurve < Element
     x = (1 - t) * (1 - t) * (1 - t) * x0 + 3 * t * (1 - t) * (1 - t) * x1 + 3 * t * t * (1 - t) * x2 + t * t * t * x3
     y = (1 - t) * (1 - t) * (1 - t) * y0 + 3 * t * (1 - t) * (1 - t) * y1 + 3 * t * t * (1 - t) * y2 + t * t * t * y3
     result << dl = Line.new([sp, Point.new(x.round(2), y.round(2))])
+    fail 'Wrong curve split' if dl.length > size
     result
   end
 

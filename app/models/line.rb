@@ -13,7 +13,7 @@ class Line < Element
   end
 
   def split(size)
-    n = (length / (size + 1)).ceil
+    n = (length / size).ceil
     dx = (@end_point.x - @start_point.x) / n
     dy = (@end_point.y - @start_point.y) / n
 
@@ -22,6 +22,7 @@ class Line < Element
     n.times do |i|
       point = Point.new((@start_point.x + dx * (i + 1)).round(2), (@start_point.y + dy * (i + 1)).round(2))
       dl = Line.new([sp, point])
+      fail 'Wrong line split' if dl.length > size
       result << dl
       sp = dl.end_point
     end
