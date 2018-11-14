@@ -3,7 +3,7 @@ require 'fiddle/import'
 
 module RRServoModule
   extend Fiddle::Importer
-  dlload './r_r_servo_library.so'
+  dlload './r_r_servo_library.so' rescue dlload Rails.root.join('app', 'models', 'r_r_servo_library.so').to_s
   typealias 'rr_ret_status_t', 'int'
   typealias 'rr_servo_param_t', 'int'
   typealias 'rr_nmt_state_t', 'int'
@@ -149,6 +149,7 @@ module RRServoModule
   extern 'rr_ret_status_t rr_change_id_and_save(rr_can_interface_t *interface, rr_servo_t *servo, uint8_t new_can_id)'
   extern 'rr_ret_status_t rr_get_hardware_version(rr_servo_t *servo, char *version_string, int *version_string_size)'
   extern 'rr_ret_status_t rr_get_software_version(rr_servo_t *servo, char *version_string, int *version_string_size)'
+
   def self.build_methods(file_name)
     functions = []
     blacklist = %w[extern typedef]

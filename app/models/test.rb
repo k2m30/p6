@@ -139,14 +139,14 @@ end
 #
 #
 
-skip = %w[test.rb loop.rb graph.rb]
-Dir.glob('*.rb').map {|f| File.basename f}.each do |f|
-  require_relative f unless skip.any? {|s| s == f}
-end
-
-@motor = initialize_motor(RIGHT_MOTOR_ID)
-@motor.clear_points_queue
-t = @motor.go_to(pos: 1000, start_immediately: true)
-@motor.log_pvt(t + 1.0)
-`gnuplot ./plot.gnu`
-
+# skip = %w[test.rb loop.rb graph.rb]
+# Dir.glob('*.rb').map {|f| File.basename f}.each do |f|
+#   require_relative f unless skip.any? {|s| s == f}
+# end
+#
+# @motor = initialize_motor(RIGHT_MOTOR_ID)
+# @motor.clear_points_queue
+# t = @motor.go_to(pos: 1000, start_immediately: true)
+# @motor.log_pvt(t + 1.0)
+# `gnuplot ./plot.gnu`
+#

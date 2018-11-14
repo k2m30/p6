@@ -2,8 +2,8 @@ require 'redis'
 require 'json'
 require_relative 'config'
 require_relative 'pvt'
-require_relative 'r_r_interface'
-require_relative 'r_r_servo_motor'
+# require_relative 'r_r_interface'
+# require_relative 'r_r_servo_motor'
 
 class Loop
   MIN_QUEUE_SIZE = 3
@@ -130,4 +130,4 @@ class Loop
   end
 end
 
-Loop.new
+# Loop.new

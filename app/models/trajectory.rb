@@ -174,6 +174,7 @@ class Trajectory
 
       set xrange: "[0:#{t.last.ceil}]"
       set yrange: "[#{[velocity.min.floor(-2), position.min.floor(-2)].min}:#{[velocity.max.ceil(-2), position.max.ceil(-2)].max}]"
+      set arrow: "1 from 0,0 to #{t.last.ceil},0 nohead"
 
       plot [t, position, with: 'lp', title: 'Left Motor position'], [t, velocity, with: 'lp', title: 'Left Motor Velocity']
 
@@ -187,6 +188,7 @@ class Trajectory
 
       set xrange: "[0:#{t.last.ceil}]"
       set yrange: "[#{[velocity.min.floor(-2), position.min.floor(-2)].min}:#{[velocity.max.ceil(-2), position.max.ceil(-2)].max}]"
+      set arrow: "1 from 0,0 to #{t.last.ceil},0 nohead"
 
       plot [t, position, with: 'lp', title: 'Right Motor position'], [t, velocity, with: 'lp', title: 'Right Motor Velocity']
 
@@ -197,15 +199,22 @@ class Trajectory
 
       x = []
       y = []
+      diameter = Config.motor_pulley_diameter
+      width = Config.canvas_size_x
+      dm = Config.dm
+      dy = Config.dy
+      height = Config.canvas_size_y
+
       position_left.size.times do |i|
-        xx = position_left[i] * Math::PI * Config.motor_pulley_diameter / 360.0
-        yy = position_right[i] * Math::PI * Config.motor_pulley_diameter / 360.0
-        point = Point.new(xx, yy).to_decart(Config.canvas_size_x, Config.dm, Config.dy)
+        xx = position_left[i] * Math::PI * diameter / 360.0
+        yy = position_right[i] * Math::PI * diameter / 360.0
+        point = Point.new(xx, yy).to_decart(width, dm , dy)
         x << point.x
-        y << Config.canvas_size_y - point.y
+        y << height - point.y
       end
-      set xrange: "[0:#{Config.canvas_size_x}]"
-      set yrange: "[0:#{Config.canvas_size_y}]"
+
+      set xrange: "[0:#{width}]"
+      set yrange: "[0:#{height}]"
       set size: :square
       set title: "trajectory #{n}, figure"
       unset :xlabel

@@ -1,12 +1,12 @@
 ---
 linear_velocity:
-  value: 310.0
+  value: 200.0
   description: линейная скорость окраски, мм/с, g01
 idling_velocity:
   value: 400.0
   description: линейная скорость холостого хода, мм/с, g00
 linear_acceleration:
-  value: 120.0
+  value: 400.0
   description: линейной ускорение мм/c2
 max_angular_velocity:
   value: 181
@@ -70,7 +70,7 @@ simulation_velocity:
   value: 500.1
   description: скорость симуляции, mm/sec
 image_name:
-  value: calibrate.svg
+  value: risovaka007_003.svg
   description: имя файла
   hidden: true
 version:

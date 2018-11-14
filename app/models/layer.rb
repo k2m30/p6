@@ -67,7 +67,6 @@ class Layer
   end
 
   def self.build(layer_raw)
-    p 'build started'
     layer = from_redis layer_raw
     return layer if layer.paths.empty?
     layer.optimize_paths
@@ -105,7 +104,6 @@ class Layer
     fail if layer.paths.size != layer.splitted_paths.size or layer.tpaths.size != layer.trajectories.size or layer.splitted_paths.size != layer.tpaths.size
 
     layer.to_redis
-    p 'build finished'
     layer
   end
 
@@ -184,7 +182,6 @@ class Layer
 
 
   def to_xml
-    p 'to_xml started'
     builder = Nokogiri::XML::Builder.new do |xml|
       display_none = 'display: none;'
 
@@ -235,7 +232,6 @@ class Layer
         end
       end
     end
-    p 'to_xml finished'
     builder.to_xml
   end
 
