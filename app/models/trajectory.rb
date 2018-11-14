@@ -48,7 +48,7 @@ class Trajectory
     r.left_mm = tpath.elements.first.end_point.x
     r.right_mm = tpath.elements.first.end_point.y
     r.left_deg = 360.0 * tpath.elements.first.end_point.x / (Math::PI * diameter)
-    r.right_deg = 360.0 * tpath.elements.first.end_point.x / (Math::PI * diameter)
+    r.right_deg = 360.0 * tpath.elements.first.end_point.y / (Math::PI * diameter)
     r.l = 0.0
     r.linear_velocity = 0.0
     r.t = 0.0
