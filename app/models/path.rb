@@ -63,6 +63,30 @@ class Path
     Path.new(@elements.map {|e| e.split(size)}.flatten)
   end
 
+  def add_key_point(kl)
+    current_length = 0
+    @elements.each do |element|
+      next if element.is_a? MoveTo
+      fail 'add_key_points works with lines only' unless element.is_a? Line
+
+      current_length += element.length
+
+      if current_length == kl
+        return
+      elsif current_length > kl
+        delta = (kl -(current_length - element.length)) / element.length
+        index = @elements.index(element) + 1
+        old_end_point = element.end_point.dup
+        dx = element.end_point.x - element.start_point.x
+        dy = element.end_point.y - element.start_point.y
+        middle_point = Point.new(element.start_point.x + dx * delta, element.start_point.y + dy * delta)
+        element.end_point = middle_point
+        @elements.insert(index, Line.new([middle_point, old_end_point]))
+        return
+      end
+    end
+  end
+
   def self.make_tpath(path, width, dm, dy)
     tpath = path.deep_dup
     elements = []

@@ -49,9 +49,9 @@ class Element
     to_s
   end
 
-  #will not work for Curves
   def length
-    @length ||= Math.sqrt((@start_point.x - @end_point.x) ** 2 + (@start_point.y - @end_point.y) ** 2)
+    fail 'cannot calculate length for curve' if self.is_a? CubicCurve
+    Math.sqrt((@start_point.x - @end_point.x) ** 2 + (@start_point.y - @end_point.y) ** 2)
   end
 
 end

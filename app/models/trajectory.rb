@@ -39,7 +39,7 @@ class Trajectory
     t2 = l2 / max_linear_velocity
     t3 = Math.sqrt(2 * l3 / linear_acceleration)
 
-    fail 'Wrong length calculation' unless l == l1 + l2 + l3
+    fail 'Wrong length calculation' if l - (l1 + l2 + l3) > 0.0001
 
     r = Row.new
     r.x = spath.elements.first.end_point.x
@@ -173,7 +173,7 @@ class Trajectory
       position = trajectory['left_motor_points'].map {|e| e['p'].round(2)}
 
       set xrange: "[0:#{t.last.ceil}]"
-      # set yrange: "[#{velocity.min.floor}:#{velocity.max.ceil}]"
+      set yrange: "[#{[velocity.min.floor(-2), position.min.floor(-2)].min}:#{[velocity.max.ceil(-2), position.max.ceil(-2)].max}]"
 
       plot [t, position, with: 'lp', title: 'Left Motor position'], [t, velocity, with: 'lp', title: 'Left Motor Velocity']
 
@@ -184,6 +184,9 @@ class Trajectory
       time_deltas.size.times {|i| t << time_deltas[0..i].sum}
       velocity = trajectory['right_motor_points'].map {|e| e['v']}
       position = trajectory['right_motor_points'].map {|e| e['p']}
+
+      set xrange: "[0:#{t.last.ceil}]"
+      set yrange: "[#{[velocity.min.floor(-2), position.min.floor(-2)].min}:#{[velocity.max.ceil(-2), position.max.ceil(-2)].max}]"
 
       plot [t, position, with: 'lp', title: 'Right Motor position'], [t, velocity, with: 'lp', title: 'Right Motor Velocity']
 

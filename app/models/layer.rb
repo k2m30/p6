@@ -92,6 +92,8 @@ class Layer
       layer.splitted_paths << path.split(dl)
     end
 
+    layer.add_key_points
+
     layer.tpaths = []
     layer.splitted_paths.each do |spath|
       layer.tpaths.push Path.make_tpath(spath, width, dm, dy)
@@ -107,20 +109,45 @@ class Layer
     layer
   end
 
+  def add_key_points
+    max_linear_velocity = Config.linear_velocity
+    linear_acceleration = Config.linear_acceleration
+
+    @splitted_paths.each do |path|
+
+      l = path.length
+      t1 = max_linear_velocity / linear_acceleration
+      l1 = linear_acceleration * t1 ** 2 / 2
+
+
+      l2 = l - 2 * l1
+      if l2 <= 0
+        l1 = l / 2
+        l2 = 0
+      end
+
+      path.add_key_point(l1)
+      unless l2.zero?
+        path.add_key_point(l1 + l2)
+      end
+    end
+
+  end
+
   def build_trajectories
     Rack::MiniProfiler.step('build trajectories') do
       @trajectories = []
-      Config.version += 1
       @splitted_paths.zip @tpaths do |spath, tpath|
         @trajectories.push Trajectory.build(spath, tpath)
       end
       redis = Redis.new
-      prefix = Config.version
+      prefix = Config.version + 1
       @trajectories.each_with_index do |t, i|
         t.id = i
         redis.set "#{prefix}_#{t.id}", t.to_json
       end
       redis.del "#{prefix}_#{@trajectories.size}"
+      Config.version += 1
     end
   end
 
@@ -168,12 +195,16 @@ class Layer
           xml.polyline(points: "0,0 #{@width},#{@width / 2} 0,#{@width} #{@width / 4},#{@width / 2} 0,0", 'stroke-width': 1, stroke: 'darkred', fill: 'red')
         end
 
+        xml.marker(id: 's', markerWidth: @width/4, markerHeight: @width/4, refX: @width / 8, refY: @width / 8, markerUnits: 'userSpaceOnUse', orient: 'auto') do
+          xml.circle(cx: @width/ 8, cy: @width/8, r: @width/4, stroke: 'none', fill: 'darkred')
+        end
+
         xml.circle(cx: Config.start_point.x, cy: Config.start_point.y, r: @width, fill: 'green', opacity: 0.5)
 
         xml.style do
           xml.text ".d {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 1.0}\n"
           xml.text ".move_to {stroke: darkred; fill-opacity: 0; marker-end: url(#arrow-end); stroke-width: #{(@width / 5.0).to_i}}\n"
-          xml.text ".s {stroke: #{@color}; fill-opacity: 0; stroke-width: #{(@width / 5.0).to_i}; stroke-linecap: round; opacity: 1.0} \n"
+          xml.text ".s {stroke: #{@color}; fill-opacity: 0; stroke-width: #{(@width / 4.0).to_i}; marker-start: url(#s); marker-end: url(#s); marker-mid: url(#s); stroke-linecap: round; opacity: 1.0} \n"
           xml.text ".t {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 1.0} \n"
           xml.text "path.s:hover {stroke-width: #{@width};}"
         end
