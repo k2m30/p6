@@ -195,7 +195,7 @@ class Trajectory
       position_left.size.times do |i|
         xx = position_left[i] * Math::PI * diameter / 360.0
         yy = position_right[i] * Math::PI * diameter / 360.0
-        point = Point.new(xx, yy).to_decart(width, dm , dy)
+        point = Point.new(xx, yy).to_decart(width, dm, dy)
         x << point.x
         y << height - point.y
       end
