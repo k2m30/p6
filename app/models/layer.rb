@@ -85,24 +85,33 @@ class Layer
       path_next.elements.first.start_point = path_current.elements.last.end_point
     end
 
-    dl = Config.max_segment_length
-    layer.splitted_paths = []
-    layer.paths.each do |path|
-      layer.splitted_paths << path.split(dl)
-    end
+    puts "\nSplit paths:"
+    puts Benchmark.realtime {
+      dl = Config.max_segment_length
+      layer.splitted_paths = []
+      layer.paths.each do |path|
+        layer.splitted_paths << path.split(dl)
+      end
+    }
+    puts "\nAdding key points:"
+    puts Benchmark.realtime {layer.add_key_points}
 
-    layer.add_key_points
-
-    layer.tpaths = []
-    layer.splitted_paths.each do |spath|
-      layer.tpaths.push Path.make_tpath(spath, width, dm, dy)
-    end
-
+    puts "\nMake tpaths:"
+    puts Benchmark.realtime {
+      layer.tpaths = []
+      layer.splitted_paths.each do |spath|
+        layer.tpaths.push Path.make_tpath(spath, width, dm, dy)
+      end
+    }
     Config.cleanup
-    layer.build_trajectories
 
-    fail if layer.paths.size != layer.splitted_paths.size or layer.tpaths.size != layer.trajectories.size or layer.splitted_paths.size != layer.tpaths.size
+    puts "\nBuild trajectories:"
+    puts Benchmark.realtime {layer.build_trajectories}
 
+    puts "\nCheck size:"
+    puts Benchmark.realtime {
+      fail if layer.paths.size != layer.splitted_paths.size or layer.tpaths.size != layer.trajectories.size or layer.splitted_paths.size != layer.tpaths.size
+    }
     layer.to_redis
     layer
   end
@@ -192,8 +201,8 @@ class Layer
           xml.polyline(points: "0,0 #{@width},#{@width / 2} 0,#{@width} #{@width / 4},#{@width / 2} 0,0", 'stroke-width': 1, stroke: 'darkred', fill: 'red')
         end
 
-        xml.marker(id: 's', markerWidth: @width/4, markerHeight: @width/4, refX: @width / 8, refY: @width / 8, markerUnits: 'userSpaceOnUse', orient: 'auto') do
-          xml.circle(cx: @width/ 8, cy: @width/8, r: @width/4, stroke: 'none', fill: 'darkred')
+        xml.marker(id: 's', markerWidth: @width / 4, markerHeight: @width / 4, refX: @width / 8, refY: @width / 8, markerUnits: 'userSpaceOnUse', orient: 'auto') do
+          xml.circle(cx: @width / 8, cy: @width / 8, r: @width / 4, stroke: 'none', fill: 'darkred')
         end
 
         xml.circle(cx: Config.start_point.x, cy: Config.start_point.y, r: @width, fill: 'green', opacity: 0.5)

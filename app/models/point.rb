@@ -2,9 +2,9 @@ class Point
   attr_accessor :x, :y
 
   def initialize(x, y)
-    fail "Wrong inputs #{x}, #{y}" if x.nil? or y.nil? or x.is_a? String or y.is_a? String
-    @x = x.to_f
-    @y = y.to_f
+    fail "Wrong inputs #{x}, #{y}" if x.nil? or y.nil?
+    @x = Float x
+    @y = Float y
   end
 
   def to_s

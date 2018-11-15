@@ -126,7 +126,7 @@ class Trajectory
 
     Trajectory.new left_motor_points, right_motor_points
   end
-  
+
   def self.from_json(json)
     left_motor_points = []
     right_motor_points = []
