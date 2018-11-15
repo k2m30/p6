@@ -215,7 +215,7 @@ class Trajectory
 
       set xrange: "[0:#{width}]"
       set yrange: "[0:#{height}]"
-      set size: :square
+      set size: 'ratio -1'
       set title: "trajectory #{n}, figure"
       unset :xlabel
 

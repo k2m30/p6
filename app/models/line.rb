@@ -20,7 +20,7 @@ class Line < Element
     result = []
     sp = @start_point
     n.times do |i|
-      point = Point.new((@start_point.x + dx * (i + 1)).round(2), (@start_point.y + dy * (i + 1)).round(2))
+      point = Point.new(@start_point.x + dx * (i + 1), @start_point.y + dy * (i + 1))
       dl = Line.new([sp, point])
       fail 'Wrong line split' if dl.length > size
       result << dl

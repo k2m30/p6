@@ -2,13 +2,13 @@ class Point
   attr_accessor :x, :y
 
   def initialize(x, y)
-    raise "Wrong inputs #{x}, #{y}" if x.nil? or y.nil?
+    fail "Wrong inputs #{x}, #{y}" if x.nil? or y.nil? or x.is_a? String or y.is_a? String
     @x = x.to_f
     @y = y.to_f
   end
 
   def to_s
-    "#{@x},#{@y}"
+    "#{@x.round(2)},#{@y.round(2)}"
   end
 
   def inspect
@@ -18,7 +18,7 @@ class Point
   def inverse(width, dm, dy)
     lx = Math.sqrt((x - dm / 2) ** 2 + (y - dy) ** 2)
     ly = Math.sqrt((width - x - dm / 2) ** 2 + (y - dy) ** 2)
-    Point.new lx.round(2), ly.round(2)
+    Point.new lx, ly
   end
 
   def to_decart(width, dm, dy)
@@ -26,7 +26,7 @@ class Point
     xx = mx + dm / 2
     yy = Math.sqrt(@x ** 2 - mx ** 2) + dy
 
-    Point.new xx.round(2), yy.round(2)
+    Point.new xx, yy
   end
 
   def self.distance(p1, p2)
