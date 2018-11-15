@@ -2,8 +2,8 @@ require 'redis'
 require 'json'
 require_relative 'config'
 require_relative 'pvt'
-# require_relative 'r_r_interface'
-# require_relative 'r_r_servo_motor'
+require_relative 'r_r_interface'
+require_relative 'r_r_servo_motor'
 
 class Loop
   MIN_QUEUE_SIZE = 3
@@ -27,6 +27,9 @@ class Loop
     @left_motor.clear_points_queue
     @right_motor.clear_points_queue
     run
+  rescue => e
+    puts e.message
+    puts e.backtrace
   ensure
     turn_off_painting
     @redis.del 'running'
@@ -96,11 +99,9 @@ class Loop
 
       path = JSON.parse path
       next_left_point = PVT.from_json path['left_motor_points'][@trajectory_point_index]
-      next_left_point.t *= 1000
       next_right_point = PVT.from_json path['right_motor_points'][@trajectory_point_index]
-      next_right_point.t *= 1000
 
-
+      puts [next_left_point, next_right_point]
       @left_motor.add_point(next_left_point)
       @right_motor.add_point(next_right_point)
 
@@ -114,6 +115,7 @@ class Loop
     rescue => e
       puts e.message
       puts e.backtrace
+      puts [next_left_point, next_right_point, @left_motor.position, @right_motor.position]
       soft_stop
       fail 'Cannot send point'
     end until @left_motor.queue_size > queue_size
@@ -130,4 +132,4 @@ class Loop
   end
 end
 
-# Loop.new
+Loop.new

@@ -86,7 +86,7 @@ class Layer
     end
 
     puts "\nSplit paths:"
-    puts Benchmark.realtime {
+    puts Benchmark.ms {
       dl = Config.max_segment_length
       layer.splitted_paths = []
       layer.paths.each do |path|
@@ -94,24 +94,19 @@ class Layer
       end
     }
     puts "\nAdding key points:"
-    puts Benchmark.realtime {layer.add_key_points}
+    puts Benchmark.ms {layer.add_key_points}
 
     puts "\nMake tpaths:"
-    puts Benchmark.realtime {
+    puts Benchmark.ms {
       layer.tpaths = []
       layer.splitted_paths.each do |spath|
         layer.tpaths.push Path.make_tpath(spath, width, dm, dy)
       end
     }
     Config.cleanup
+    layer.build_trajectories
 
-    puts "\nBuild trajectories:"
-    puts Benchmark.realtime {layer.build_trajectories}
-
-    puts "\nCheck size:"
-    puts Benchmark.realtime {
-      fail if layer.paths.size != layer.splitted_paths.size or layer.tpaths.size != layer.trajectories.size or layer.splitted_paths.size != layer.tpaths.size
-    }
+    fail if layer.paths.size != layer.splitted_paths.size or layer.tpaths.size != layer.trajectories.size or layer.splitted_paths.size != layer.tpaths.size
     layer.to_redis
     layer
   end
@@ -143,18 +138,24 @@ class Layer
 
   def build_trajectories
     Rack::MiniProfiler.step('build trajectories') do
-      @trajectories = []
-      @splitted_paths.zip @tpaths do |spath, tpath|
-        @trajectories.push Trajectory.build(spath, tpath)
-      end
-      redis = Redis.new
-      prefix = Config.version + 1
-      @trajectories.each_with_index do |t, i|
-        t.id = i
-        redis.set "#{prefix}_#{t.id}", t.to_json
-      end
-      redis.del "#{prefix}_#{@trajectories.size}"
-      Config.version += 1
+      puts "\nBuild trajectories"
+      puts Benchmark.ms {
+        @trajectories = []
+        @splitted_paths.zip @tpaths do |spath, tpath|
+          @trajectories.push Trajectory.build(spath, tpath)
+        end
+      }
+      puts "\nTrajectories to Redis"
+      puts Benchmark.ms {
+        redis = Redis.new
+        prefix = Config.version + 1
+        @trajectories.each_with_index do |t, i|
+          t.id = i
+          redis.set "#{prefix}_#{t.id}", t.to_json
+        end
+        redis.del "#{prefix}_#{@trajectories.size}"
+        Config.version += 1
+      }
     end
   end
 

@@ -103,7 +103,7 @@ class Trajectory
     data.last.v_left = 0.0
     data.last.v_right = 0.0
 
-    fail 'Wrong time calculation' if data[1..-1].map(&:dt).sum - (t1 + t2 + t3) > 0.0001
+    # fail 'Wrong time calculation' if data[1..-1].map(&:dt).sum - (t1 + t2 + t3) > 0.0001
 
 
     # first add move_to command
@@ -115,8 +115,7 @@ class Trajectory
     r.v_right = 0.0
     data.insert(0, r)
 
-    fail 'nil values found during trajectory calculation' if data.any? {|d| d.left_deg.nil? or d.right_deg.nil? or d.v_left.nil? or d.v_right.nil? or d.dt.nil?}
-
+    # fail 'nil values found during trajectory calculation' if data.any? {|d| d.left_deg.nil? or d.right_deg.nil? or d.v_left.nil? or d.v_right.nil? or d.dt.nil?}
     left_motor_points = []
     right_motor_points = []
     data.each do |r|
@@ -146,7 +145,7 @@ class Trajectory
       set title: "trajectory #{n}, left motor"
       set ylabel: ''
       set autoscale: :fix
-      set xlabel: 'time, s'
+      set xlabel: 'time, ms'
 
       set terminal: ['svg', 'size 1200,1600']
       set output: file_name
