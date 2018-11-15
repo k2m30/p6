@@ -53,7 +53,6 @@ class Trajectory
     r.linear_velocity = 0.0
     r.t = 0.0
     r.dt = spath.get_idling_time(linear_acceleration, idling_velocity)
-    # r.dt = 0.0
     r.v_average_left = 0.0
     r.v_average_right = 0.0
     r.v_left = 0.0
@@ -127,19 +126,7 @@ class Trajectory
 
     Trajectory.new left_motor_points, right_motor_points
   end
-
-  def left
-    @left_motor_points.each {|point| point.to_s}
-  end
-
-  def right
-    @right_motor_points.each {|point| point.to_s}
-  end
-
-  def time
-    @left_motor_points.last.t
-  end
-
+  
   def self.from_json(json)
     left_motor_points = []
     right_motor_points = []
