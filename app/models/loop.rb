@@ -18,7 +18,7 @@ class Loop
 
     fail 'Already running' unless @redis.get('running').nil?
 
-    @point_index = 0
+    @trajectory = 0
     @trajectory_point_index = 1
     @zero_time = Time.now # Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
@@ -93,7 +93,7 @@ class Loop
 
   def add_points(queue_size)
     begin
-      path = @redis.get("#{Config.version}_#{@point_index}")
+      path = @redis.get("#{Config.version}_#{@trajectory}")
 
       return if path.nil?
 
@@ -109,13 +109,17 @@ class Loop
         @trajectory_point_index += 1
       else
         @trajectory_point_index = 1
-        @point_index += 1
+        @trajectory += 1
       end
 
     rescue => e
       puts e.message
       puts e.backtrace
-      puts [next_left_point, next_right_point, @left_motor.position, @right_motor.position]
+      puts "trajectory: #{@trajectory}"
+      puts "trajectory point: #{@trajectory_point_index}"
+      pp [{'prev_left': PVT.from_json(path['left_motor_points'][@trajectory_point_index - 1]), next_left: next_left_point}]
+      pp [{'prev_right': PVT.from_json(path['right_motor_points'][@trajectory_point_index - 1]), next_left: next_right_point}]
+
       soft_stop
       fail 'Cannot send point'
     end until @left_motor.queue_size > queue_size

@@ -119,8 +119,9 @@ class Trajectory
     left_motor_points = []
     right_motor_points = []
     data.each do |r|
-      left_motor_points.push PVT.new(r.left_deg, r.v_left, r.dt)
-      right_motor_points.push PVT.new(r.right_deg, r.v_right, r.dt)
+      dt = (r.dt * 1000).round(1)
+      left_motor_points.push PVT.new(r.left_deg.round(2), r.v_left.round(2), dt)
+      right_motor_points.push PVT.new(r.right_deg.round(2), r.v_right.round(2), dt)
     end
 
     Trajectory.new left_motor_points, right_motor_points
@@ -149,20 +150,31 @@ class Trajectory
 
       set terminal: ['svg', 'size 1200,1600']
       set output: file_name
-      set multiplot: 'layout 3,1'
+      set multiplot: 'layout 4,1'
 
+      set grid: 'ytics mytics'  # draw lines for each ytics and mytics
+      set grid: 'xtics mytics'  # draw lines for each ytics and mytics
+      set mytics: 2
+      set :grid
       # left
       t = []
       time_deltas = trajectory['left_motor_points'].map {|e| e['t']}
       time_deltas.size.times {|i| t << time_deltas[0..i].sum}
       velocity = trajectory['left_motor_points'].map {|e| e['v'].round(2)}
       position = trajectory['left_motor_points'].map {|e| e['p'].round(2)}
+      acceleration = [0]
+      velocity.zip(time_deltas).each_cons(2) do |curr_vt, next_vt|
+        acceleration << (next_vt[0] - curr_vt[0]) / next_vt[1]
+      end
 
-      set xrange: "[0:#{t.last.ceil}]"
+      set xrange: "[0:#{t.last.ceil(-3)}]"
       set yrange: "[#{[velocity.min.floor(-2), position.min.floor(-2)].min}:#{[velocity.max.ceil(-2), position.max.ceil(-2)].max}]"
       set arrow: "1 from 0,0 to #{t.last.ceil},0 nohead"
 
       plot [t, position, with: 'lp', title: 'Left Motor position'], [t, velocity, with: 'lp', title: 'Left Motor Velocity']
+
+      set yrange: "[#{acceleration.min.floor}:#{acceleration.max.ceil}]"
+      plot [t, acceleration, with: 'l', title: 'Left Motor Acceleration']
 
       #right
       set title: "trajectory #{n}, right motor"

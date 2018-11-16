@@ -162,8 +162,4 @@ class RRServoMotor
   def self.ret_codes
     RRServoModule.constants.select {|e| e.to_s.include?('RET')}
   end
-
-  def wait_for_motion_is_finished
-    loop {break if velocity.round(2).zero?}
-  end
 end
