@@ -200,7 +200,7 @@ class Trajectory
       set title: "trajectory #{n}, figure"
       unset :xlabel
 
-      plot x, y, w: 'lp' #, smooth: 'csplines'
+      plot x, y, w: 'lp', pt: 7, pi: 1, ps: 0.7
     end
   end
 end
