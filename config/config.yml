@@ -15,7 +15,7 @@ max_angular_acceleration:
   value: 250.0
   description: максимальное угловое ускорение моторов, •/сек2
 max_segment_length:
-  value: 50.0
+  value: 1.0
   description: точность апроксимации, мм
 motor_pulley_diameter:
   value: 200.0

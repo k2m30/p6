@@ -94,7 +94,7 @@ class Layer
       end
     }
     puts "\nAdding key points:"
-    puts Benchmark.ms {layer.add_key_points}
+    # puts Benchmark.ms {layer.add_key_points}
 
     puts "\nMake tpaths:"
     puts Benchmark.ms {
