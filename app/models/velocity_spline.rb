@@ -1,6 +1,22 @@
 class VelocitySpline < Spliner::Spliner
 
+  attr_accessor :time_points, :velocity_points, :l1, :l2
   STEP = 0.0001
+
+  def initialize(time_points, velocity_points)
+    @time_points = time_points
+    @velocity_points = velocity_points
+    @max_linear_velocity = velocity_points[3]
+    @t1 = time_points[3]
+    @t2 = time_points[-4]
+
+    super
+
+    @t_array = ((0.0..@t1).step(STEP).to_a + [@t1] + (@t2..range.max).step(STEP).to_a + [range.max]).uniq
+    @v_array = get(@t_array)
+    @l1 = self.l(t: @t1)
+    @l2 = @max_linear_velocity * (@t2 - @t1)
+  end
 
   def self.create(length:, max_linear_velocity:, linear_acceleration:)
     t1 = max_linear_velocity / linear_acceleration
@@ -26,7 +42,8 @@ class VelocitySpline < Spliner::Spliner
     smooth = 6.0
     begin
       time = [0,
-              t1 / smooth, t1 * (smooth - 1) / smooth,
+              t1 / smooth,
+              t1 * (smooth - 1) / smooth,
               (0..n).to_a.map {|i| t1 + t2 / n * i}.uniq,
               2 * t1 + t2 - t1 * (smooth - 1) / smooth,
               2 * t1 + t2 - t1 / smooth,
@@ -54,33 +71,27 @@ class VelocitySpline < Spliner::Spliner
     tmp_spline
   end
 
-  def l
-    v_array.zip(t_array).each_cons(2).map do |prev, curr|
+  def l(t: nil)
+    t ||= range.max
+    @v_array.zip(@t_array).each_cons(2).map do |prev, curr|
       v_prev = prev.first.abs
       t_prev = prev.last
 
       v_curr = curr.first.abs
       t_curr = curr.last
 
+      next if t_curr >= t
       (v_prev + v_curr) / 2 * (t_curr - t_prev)
-    end.reduce(&:+)
-  end
-
-  def t_array
-    (0.0..range.max).step(STEP).to_a
-  end
-
-  def v_array
-    get((0.0..range.max).step(STEP))
+    end.compact.reduce(&:+)
   end
 
   def plot(file_name:)
-    Plot.html(x: t_array, y: v_array, file_name: file_name.sub('.html', '_v.html'))
-    Plot.html(x: t_array, y: a_array, file_name: file_name.sub('.html', '_a.html'))
+    Plot.html(x: @t_array, y: @v_array, file_name: file_name.sub('.html', '_v.html'))
+    Plot.html(x: @t_array, y: a_array, file_name: file_name.sub('.html', '_a.html'))
   end
 
   def a_array
-    v_array.zip(t_array).each_cons(2).map do |prev, curr|
+    @v_array.zip(@t_array).each_cons(2).map do |prev, curr|
       v_prev = prev.first
       t_prev = prev.last
 
@@ -93,8 +104,11 @@ class VelocitySpline < Spliner::Spliner
 
   def time_at(s:)
     return 0 if s.zero?
+    if s >= @l1 and s <= @l1 + @l2
+      return @t1 + (s - @l1) / @max_linear_velocity
+    end
     current_l = 0
-    v_array.zip(t_array).each_cons(2).map do |prev, curr|
+    @v_array.zip(@t_array).each_cons(2).map do |prev, curr|
       v_prev = prev.first.abs
       t_prev = prev.last
 
@@ -104,7 +118,7 @@ class VelocitySpline < Spliner::Spliner
       current_l += (v_prev + v_curr) / 2 * (t_curr - t_prev)
       return t_curr if current_l >= s
     end
-    t_array.last
+    @t_array.last
   end
 
 end

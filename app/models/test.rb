@@ -150,3 +150,12 @@ end
 # @motor.log_pvt(t + 1.0)
 # `gnuplot ./plot.gnu`
 #
+
+#
+# require 'spliner'
+# skip = %w[test.rb loop.rb graph.rb]
+# Dir.glob('*.rb').map {|f| File.basename f}.each do |f|
+#   require_relative f unless skip.any? {|s| s == f}
+# end
+
+# s = VelocitySpline.create(length: 500.0, max_linear_velocity: 200.0, linear_acceleration: 400.0)
