@@ -1,28 +1,3 @@
-class Row
-  attr_accessor :left_deg,
-                :right_deg,
-
-                :v_left,
-                :v_right,
-
-                :dt,
-                :t,
-
-                :x,
-                :y,
-
-                :dl,
-                :l,
-
-                :left_mm,
-                :right_mm,
-
-                :linear_velocity,
-
-                :v_average_left,
-                :v_average_right
-end
-
 class Trajectory
   attr_accessor :left_motor_points, :right_motor_points, :id
 
@@ -61,11 +36,10 @@ class Trajectory
     r.v_right = 0.0
 
     data = [r]
-    if spath.length.zero?
-    else
-      velocity_spline = VelocitySpline.create(length: spath.length, linear_acceleration: linear_acceleration, max_linear_velocity: max_linear_velocity)
-      # velocity_spline.plot(file_name: 'spline.html')
-    end
+
+    velocity_spline = VelocitySpline.create(length: spath.length,
+                                            linear_acceleration: linear_acceleration,
+                                            max_linear_velocity: max_linear_velocity) unless spath.length.zero?
 
     tpath.elements.each_with_index do |curr, i|
       next if i.zero?
@@ -129,10 +103,8 @@ class Trajectory
 
     data.each do |r|
       dt = (r.dt * 1000).round(1)
-      left_motor_points.push PVT.new(r.left_deg.round(2), r.v_average_left.round(2), dt)
-      right_motor_points.push PVT.new(r.right_deg.round(2), r.v_average_right.round(2), dt)
-      # left_motor_points.push PVT.new(r.left_deg.round(2), r.v_left.round(2), dt)
-      # right_motor_points.push PVT.new(r.right_deg.round(2), r.v_right.round(2), dt)
+      left_motor_points.push PVT.new(r.left_deg.round(2), r.v_left.round(2), dt)
+      right_motor_points.push PVT.new(r.right_deg.round(2), r.v_right.round(2), dt)
     end
 
     Trajectory.new left_motor_points, right_motor_points

@@ -6,7 +6,7 @@ idling_velocity:
   value: 400.0
   description: линейная скорость холостого хода, мм/с, g00
 linear_acceleration:
-  value: 400.0
+  value: 80.0
   description: линейной ускорение мм/c2
 max_angular_velocity:
   value: 181
@@ -74,6 +74,6 @@ image_name:
   description: имя файла
   hidden: true
 version:
-  value: 1.0
+  value: 2.0
   description: версия данных в кэше
   hidden: true
