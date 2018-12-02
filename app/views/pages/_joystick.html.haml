@@ -1,10 +1,13 @@
+- redis = Redis.new
 .row
-  .col-sm-6
-    = link_to 'Prev', 'javascript:void(0)', class: 'btn btn-warning btn-block'
-  .col-sm-6
-    = link_to 'Next and paint', 'javascript:void(0)', class: 'btn btn-warning btn-block'
+  .col-sm-4
+    = link_to 'Prev', 'javascript:void(0)', class: 'btn btn-warning btn-block', onclick: "update_trajectory('/prev')"
+  .col-sm-4
+    = link_to Config.start_from.to_i, 'javascript:void(0)', class: 'btn btn-block', id: 'start-from'
+  .col-sm-4
+    = link_to 'Next', 'javascript:void(0)', class: 'btn btn-warning btn-block', onclick: "update_trajectory('/next')"
 .row
   .col-sm-12
-    - running = Redis.new.get('running')
+    - running = redis.get('running')
     = link_to 'Run', 'javascript:void(0)', class: 'btn btn-danger btn-block', id: 'run', onclick: 'onRun()', style: "#{running ? 'display: none;' : ''}"
     = link_to 'Stop', 'javascript:void(0)', class: 'btn btn-danger btn-block', id: 'stop', onclick: 'onStop()', style: "#{running ? '' : 'display: none;'}"

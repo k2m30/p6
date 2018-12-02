@@ -188,6 +188,14 @@ class Config
       set_value('version', value)
     end
 
+    def start_from
+      get_value('start_from')
+    end
+
+    def start_from=(value)
+      set_value('start_from', value)
+    end
+
     #################################################
 
     def file_name

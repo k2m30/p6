@@ -13,5 +13,7 @@ Rails.application.routes.draw do
   post 'acceleration', to: 'robot#acceleration'
   post 'run', to: 'robot#run'
   post 'stop', to: 'robot#stop'
+  post 'next', to: 'robot#next_trajectory'
+  post 'prev', to: 'robot#prev_trajectory'
 end
 
