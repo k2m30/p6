@@ -29,11 +29,11 @@ class VelocitySpline < Spliner::Spliner
     if l2 <= 0
       l1 = length / 2
       l2 = 0.0
+      t1 = Math.sqrt(2 * l1 / linear_acceleration)
+      max_linear_velocity = linear_acceleration * t1
     end
 
-    t1 = Math.sqrt(2 * l1 / linear_acceleration)
     t2 = l2 / max_linear_velocity
-    # t3 = Math.sqrt(2 * l3 / linear_acceleration)
 
     n = 20.0
     dt = t1 / 100

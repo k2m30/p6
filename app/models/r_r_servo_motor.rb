@@ -28,6 +28,30 @@ class RRServoMotor
     value_ptr[0, Fiddle::SIZEOF_INT].unpack('C').first
   end
 
+  def get_errors
+    errors_count = Fiddle::Pointer.malloc(Fiddle::SIZEOF_INT)
+    errors_array = Fiddle::Pointer.malloc(Fiddle::SIZEOF_INT * RRServoModule::ARRAY_ERROR_BITS_SIZE)
+    ret_code = RRServoModule.rr_read_error_status(@servo_handle, errors_count, errors_array)
+
+
+    errors_count = errors_count[0, Fiddle::SIZEOF_INT].unpack('C').first
+
+    errors_count.times do |i|
+      puts RRServoModule.rr_describe_emcy_bit(errors_array[i])
+    end
+
+    check_errors(ret_code)
+    ret_code
+  end
+
+  def calculate_time(start_position:, start_velocity:, start_acceleration: 0, start_time: 0, end_position:, end_velocity:, end_acceleration: 0, end_time: 0)
+    time_ms = Fiddle::Pointer.malloc(Fiddle::SIZEOF_INT)
+    ret_code = RRServoModule.rr_invoke_time_calculation(@servo_handle, start_position, start_velocity, start_acceleration, start_time, end_position, end_velocity, end_acceleration, end_time, time_ms)
+    check_errors(ret_code)
+
+    time_ms[0, Fiddle::SIZEOF_FLOAT].unpack('C').first
+  end
+
   def go_to(pos:, max_velocity: 180.0, acceleration: 250.0, start_immediately: false)
     current_position = position
     l = pos - current_position
@@ -47,6 +71,7 @@ class RRServoMotor
       t2 = 0
     else
       p [position, velocity.round(2), 0.0]
+      p [current_position + sign * l1, max_velocity * sign, t1 * 1000]
 
       add_motion_point(current_position + sign * l1, max_velocity * sign, t1 * 1000)
       p [current_position + sign * l1, max_velocity * sign, t1 * 1000]
@@ -136,7 +161,7 @@ class RRServoMotor
   def read_param(param)
     value_ptr = Fiddle::Pointer.malloc(Fiddle::SIZEOF_FLOAT)
     ret_code = RRServoModule.rr_read_parameter(@servo_handle, param, value_ptr)
-    check_errors(ret_code)
+    # check_errors(ret_code)
 
     value_ptr[0, Fiddle::SIZEOF_FLOAT].unpack('e').first
   end

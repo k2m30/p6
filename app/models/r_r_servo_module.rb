@@ -14,6 +14,8 @@ module RRServoModule
   typealias 'uint32_t', 'int'
   typealias 'bool', 'int'
 
+  ARRAY_ERROR_BITS_SIZE = 64
+#
   RET_OK = 0
   RET_ERROR = 1
   RET_BAD_INSTANCE = 2

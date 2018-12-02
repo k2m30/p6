@@ -56,6 +56,7 @@ class Loop
 
   def initialize_motor(id)
     @servo_interface ||= RRInterface.new('/dev/cu.usbmodem301')
+    # @servo_interface ||= RRInterface.new('192.168.0.42')
     RRServoMotor.new(@servo_interface, id)
   end
 
@@ -77,11 +78,12 @@ class Loop
         if queue_size <= MIN_QUEUE_SIZE
           add_points(QUEUE_SIZE)
         end
+        # data << [@left_motor.position, 0, Time.now - @zero_time]
         data << [@left_motor.position, @right_motor.position, Time.now - @zero_time]
         p [@left_motor.current, @right_motor.current]
       end
       puts 'Done. Stopped'
-      @point_index = 0
+      @trajectory = 0
       @trajectory_point_index = 1
       @zero_time = Time.now # Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
@@ -136,4 +138,4 @@ class Loop
   end
 end
 
-# Loop.new
+Loop.new
