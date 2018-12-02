@@ -1,3 +1,26 @@
+= javascript_include_tag 'pages'
+= javascript_include_tag 'paint'
+
+.alert.alert-danger#alert{style: 'display: none;'}
+  %p
+    Wrong canvas size.
+  %p
+    canvas_size_x =
+    %span#canvas_size_x
+      #{Config.canvas_size_x.to_i}
+  %p
+    initial_x =
+    %span#initial_x
+      #{Config.initial_x.to_i},
+    initial_y =
+    %span#initial_y
+      #{Config.initial_y.to_i}
+  %p
+    svg size =
+    %span#svg_size
+      0
+
+
 - layer_id = params[:layer]
 .row
   .col-md-9

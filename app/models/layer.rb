@@ -155,6 +155,7 @@ class Layer
         end
         redis.del "#{prefix}_#{@trajectories.size}"
         Config.version += 1
+        Config.start_from = 0
       }
     end
   end

@@ -16,6 +16,7 @@ function validate(evt) {
     } else {
     }
     var id = theEvent.srcElement.id;
+    console.log(theEvent.srcElement.id);
     var value = $('#' + theEvent.srcElement.id).val();
     update(id, value)
 
