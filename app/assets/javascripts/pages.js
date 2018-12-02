@@ -11,13 +11,33 @@ function onAccelerationChange(layer) {
 }
 
 function onRun() {
-    $('#run').toggle();
-    $('#stop').toggle();
+    $('#run').hide();
+    $('#stop').show();
     $.post('run', {});
+    poll(1000);
+}
+
+function poll(interval) {
+    setTimeout(function () {
+        $.ajax({
+            url: "/running",
+            type: "GET",
+            success: function (data) {
+                console.log(data);
+                if (data) {
+                    poll(interval);
+                } else {
+                    onStop();
+                }
+            },
+            dataType: "json",
+            timeout: 2000
+        })
+    }, interval);
 }
 
 function onStop() {
-    $('#run').toggle();
-    $('#stop').toggle();
+    $('#run').show();
+    $('#stop').hide();
     $.post('stop', {});
 }

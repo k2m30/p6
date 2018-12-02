@@ -21,6 +21,10 @@ class RobotController < ApplicationController
     head(:ok)
   end
 
+  def running
+    render plain: Redis.new.get('running') || false
+  end
+
   def stop
     Redis.new.del'running'
     head(:ok)

@@ -26,6 +26,9 @@ initial_x:
 initial_y:
   value: 3800.0
   description: начальная длина правого ремня, мм
+start_from:
+  value: 0
+  description: с какой траектории начать рисование
 crop_x:
   value: 0
   description: левый верхний угол для обрезки

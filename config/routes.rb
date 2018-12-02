@@ -3,6 +3,7 @@ Rails.application.routes.draw do
   get 'build', to: 'pages#build'
   get 'image', to: 'pages#image'
   get 'position', to: 'robot#position'
+  get 'running', to: 'robot#running'
   get 'trajectory', to: 'pages#trajectory'
 
   get 'settings', to: 'settings#index'
