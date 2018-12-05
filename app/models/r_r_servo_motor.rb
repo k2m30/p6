@@ -66,14 +66,14 @@ class RRServoMotor
 
     if l2 <= 0
       t1 = Math.sqrt(l.abs / acceleration)
-      calculate_time(start_position: position, start_velocity: 0, end_position: current_position + sign * l.abs / 2, end_velocity: t1 * acceleration * sign)
+      # calculate_time(start_position: position, start_velocity: 0, end_position: current_position + sign * l.abs / 2, end_velocity: t1 * acceleration * sign)
       add_motion_point(current_position + sign * l.abs / 2, t1 * acceleration * sign, t1 * 1000)
       add_motion_point(pos, 0, t1 * 2 * 1000)
       t2 = 0
     else
       p [position, velocity.round(2), 0.0]
       p [current_position + sign * l1, max_velocity * sign, t1 * 1000]
-      calculate_time(start_position: position, start_velocity: 0, end_position: current_position + sign * l1, end_velocity: max_velocity * sign)
+      # calculate_time(start_position: position, start_velocity: 0, end_position: current_position + sign * l1, end_velocity: max_velocity * sign)
 
       add_motion_point(current_position + sign * l1, max_velocity * sign, t1 * 1000)
       p [current_position + sign * l1, max_velocity * sign, t1 * 1000]

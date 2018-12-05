@@ -115,21 +115,21 @@ class Trajectory
     data.each_cons(2) do |first, second|
       if (second.left_deg - first.left_deg) > 0
         if second.v_left < 0
-          fail
+          fail 'Over zero velocity move failed'
         end
       else
         if second.v_left > 0
-          fail
+          fail 'Over zero velocity move failed'
         end
       end
 
       if (second.right_deg - first.right_deg) > 0
         if second.v_right < 0
-          fail
+          fail 'Over zero velocity move failed'
         end
       else
         if second.v_right > 0
-          fail
+          fail 'Over zero velocity move failed'
         end
       end
     end
@@ -235,5 +235,18 @@ class Trajectory
 
       plot x, y, w: 'lp', pt: 7, pi: 1, ps: 0.7
     end
+  end
+
+  def self.dump
+    i = 0
+    r = Redis.new
+    puts '['
+    while (s = r.get("#{Config.version}_#{i}")).present?
+      t = Trajectory.from_json(JSON.parse(s))
+      t.id = i
+      puts t.to_json << ','
+      i += 1
+    end
+    puts ']'
   end
 end

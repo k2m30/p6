@@ -8,7 +8,7 @@ require_relative 'r_r_servo_motor'
 class Loop
   MIN_QUEUE_SIZE = 3
   QUEUE_SIZE = 10
-  LEFT_MOTOR_ID = 19
+  LEFT_MOTOR_ID = 35
   RIGHT_MOTOR_ID = 32
 
   NO_POINTS_IN_QUEUE_LEFT = 0
@@ -23,9 +23,9 @@ class Loop
     @zero_time = Time.now # Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
     @left_motor = initialize_motor(LEFT_MOTOR_ID)
-    @right_motor = initialize_motor(RIGHT_MOTOR_ID)
+    # @right_motor = initialize_motor(RIGHT_MOTOR_ID)
     @left_motor.clear_points_queue
-    @right_motor.clear_points_queue
+    # @right_motor.clear_points_queue
     run
   rescue => e
     puts e.message
@@ -40,23 +40,23 @@ class Loop
 
   def move_to_initial_point
     @left_motor.clear_points_queue
-    @right_motor.clear_points_queue
+    # @right_motor.clear_points_queue
     left_point = 360.0 * Config.initial_x / (Math::PI * Config.motor_pulley_diameter)
-    right_point = 360.0 * Config.initial_y / (Math::PI * Config.motor_pulley_diameter)
+    # right_point = 360.0 * Config.initial_y / (Math::PI * Config.motor_pulley_diameter)
 
     @left_motor.go_to(pos: left_point, max_velocity: Config.max_angular_velocity, acceleration: Config.max_angular_acceleration)
-    @right_motor.go_to(pos: right_point, max_velocity: Config.max_angular_velocity, acceleration: Config.max_angular_acceleration)
+    # @right_motor.go_to(pos: right_point, max_velocity: Config.max_angular_velocity, acceleration: Config.max_angular_acceleration)
 
     @left_motor.add_motion_point(left_point, 0, 1000)
-    @right_motor.add_motion_point(right_point, 0, 1000)
+    # @right_motor.add_motion_point(right_point, 0, 1000)
 
     @servo_interface.start_motion
 
   end
 
   def initialize_motor(id)
-    # @servo_interface ||= RRInterface.new('/dev/cu.usbmodem301')
-    @servo_interface ||= RRInterface.new('192.168.0.42')
+    @servo_interface ||= RRInterface.new('/dev/cu.usbmodem301')
+    # @servo_interface ||= RRInterface.new('192.168.0.42')
     RRServoMotor.new(@servo_interface, id)
   end
 
@@ -78,9 +78,9 @@ class Loop
         if queue_size <= MIN_QUEUE_SIZE
           add_points(QUEUE_SIZE)
         end
-        # data << [@left_motor.position, 0, Time.now - @zero_time]
-        data << [@left_motor.position, @right_motor.position, Time.now - @zero_time]
-        p [@left_motor.current, @right_motor.current]
+        data << [@left_motor.position, 0, Time.now - @zero_time]
+        # data << [@left_motor.position, @right_motor.position, Time.now - @zero_time]
+        # p [@left_motor.current, @right_motor.current]
       end
       puts 'Done. Stopped'
       @trajectory = 0
@@ -105,7 +105,7 @@ class Loop
 
       puts [next_left_point, next_right_point]
       @left_motor.add_point(next_left_point)
-      @right_motor.add_point(next_right_point)
+      # @right_motor.add_point(next_right_point)
 
       if @trajectory_point_index < path['left_motor_points'].size - 1
         @trajectory_point_index += 1
@@ -117,6 +117,7 @@ class Loop
     rescue => e
       puts e.message
       puts e.backtrace
+      # puts @left_motor.get_errors
       puts "trajectory: #{@trajectory}"
       puts "trajectory point: #{@trajectory_point_index}"
       pp [{'prev_left': PVT.from_json(path['left_motor_points'][@trajectory_point_index - 1]), next_left: next_left_point}]
@@ -130,7 +131,7 @@ class Loop
   def soft_stop
     turn_off_painting # it's better to check for the 'running' key inside the painting loop
     @left_motor.soft_stop
-    @right_motor.soft_stop
+    # @right_motor.soft_stop
   end
 
   def turn_off_painting

@@ -96,57 +96,19 @@ class Path
     new(elements)
   end
 
-  def get_time_points(v, a)
-    time_points = [0.0]
-    l = length
-    l_current = 0.0
+  def get_idling_time(acceleration, velocity)
+    l = @elements.first.length
+    t1 = velocity / acceleration
+    l1 = acceleration * t1 ** 2 / 2
 
-    t1 = v / a
-    l1 = a * t1 ** 2 / 2
-
-    l2 = l - 2 * l1
-    t2 = l2 / v
+    l2 = l.abs - 2 * l1
+    t2 = l2 / velocity
 
     if l2 <= 0
-      t1 = Math.sqrt(l / a)
-      l1 = l / 2.0
-      t2 = 0.0
-      l2 = 0.0
+      t1 = Math.sqrt(l.abs / acceleration)
+      t2 = 0
     end
-
-    @elements.each do |element|
-      next if element.is_a? MoveTo
-
-      l_current += element.length
-
-      raise StandardError.new('Edge case') if 2 * l1 + l2 != l or l_current > l
-
-      t = if l_current <= l1
-            Math.sqrt(2 * l_current / a)
-          elsif l_current > l1 and l_current <= (l1 + l2)
-            t1 + (l_current - l1) / v
-          elsif l_current > (l1 + l2)
-            t1 + t2 + Math.sqrt(2 * (l_current - (l1 + l2)) / a)
-          end
-      time_points.push t
-    end
-
-    time_points
-  end
-
-  def get_idling_time(a, v)
-    l = @elements.first.length
-    t1 = v / a
-    l1 = a * t1 ** 2 / 2
-
-    l2 = l - 2 * l1
-    t2 = l2 / v
-
-    if l2 < 0
-      return Math.sqrt(l / (2 * a))
-    end
-    raise StandardError.new('Edge case') if 2 * l1 + l2 != l
-    2 * t1 + t2
+    t1 + t2 + t1
   end
 
   def d
