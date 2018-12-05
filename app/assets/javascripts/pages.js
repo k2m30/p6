@@ -84,7 +84,7 @@ $(function () {
     var initial_x = parseInt($('#initial_x')[0].textContent);
     var initial_y = parseInt($('#initial_y')[0].textContent);
     var svg_x = parseInt($('svg')[0].attributes[7].value.split(', ')[2]);
-    if (canvas_size_x <= initial_x || canvas_size_x <= initial_y || svg_x <= initial_y || svg_x <= initial_x || canvas_size_x * 1.2 > initial_x + initial_y) {
+    if (canvas_size_x <= initial_x || canvas_size_x <= initial_y || svg_x <= initial_y || svg_x <= initial_x || canvas_size_x * 1.2 > initial_x + initial_y || svg_x * 1.2 > initial_x + initial_y) {
         $('#svg_size').text(svg_x);
         $('#alert').show();
     }

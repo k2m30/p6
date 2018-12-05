@@ -72,10 +72,11 @@ class Trajectory
       r.v_right = (r.v_average_right + r_next.v_average_right) / 2
     end
 
+    # fail 'Wrong time calculation' if data[1..-1].map(&:dt).sum - (t1 + t2 + t3) > 0.0001
+    data.first.v_left = 0.0
+    data.first.v_right = 0.0
     data.last.v_left = 0.0
     data.last.v_right = 0.0
-
-    # fail 'Wrong time calculation' if data[1..-1].map(&:dt).sum - (t1 + t2 + t3) > 0.0001
 
 
     # first add move_to command
@@ -100,6 +101,38 @@ class Trajectory
     # Plot.html x: data.map(&:t), y: data.map(&:linear_velocity), file_name: 'linear_velocity.html'
     # Plot.html x: (0..data.size).to_a, y: data.map(&:dt), file_name: 'dt2.html'
     # Plot.html x: (0..data.map(&:t).size).to_a, y: data.map(&:t), file_name: 't.html'
+
+    data[1..-1].each_cons(3) do |first, second, third|
+      if (first.left_deg < second.left_deg and third.left_deg < second.left_deg) or (first.left_deg > second.left_deg and third.left_deg > second.left_deg)
+        second.v_left = 0
+      end
+
+      if (first.right_deg < second.right_deg and third.right_deg < second.right_deg) or (first.right_deg > second.right_deg and third.right_deg > second.right_deg)
+        second.v_right = 0
+      end
+    end
+
+    data.each_cons(2) do |first, second|
+      if (second.left_deg - first.left_deg) > 0
+        if second.v_left < 0
+          fail
+        end
+      else
+        if second.v_left > 0
+          fail
+        end
+      end
+
+      if (second.right_deg - first.right_deg) > 0
+        if second.v_right < 0
+          fail
+        end
+      else
+        if second.v_right > 0
+          fail
+        end
+      end
+    end
 
     data.each do |r|
       dt = (r.dt * 1000).round(1)

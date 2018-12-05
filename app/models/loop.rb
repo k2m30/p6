@@ -55,8 +55,8 @@ class Loop
   end
 
   def initialize_motor(id)
-    @servo_interface ||= RRInterface.new('/dev/cu.usbmodem301')
-    # @servo_interface ||= RRInterface.new('192.168.0.42')
+    # @servo_interface ||= RRInterface.new('/dev/cu.usbmodem301')
+    @servo_interface ||= RRInterface.new('192.168.0.42')
     RRServoMotor.new(@servo_interface, id)
   end
 
