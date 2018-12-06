@@ -8,7 +8,7 @@ require_relative 'r_r_servo_motor'
 class Loop
   MIN_QUEUE_SIZE = 3
   QUEUE_SIZE = 10
-  LEFT_MOTOR_ID = 35
+  LEFT_MOTOR_ID = 32
   RIGHT_MOTOR_ID = 32
 
   NO_POINTS_IN_QUEUE_LEFT = 0
@@ -117,11 +117,11 @@ class Loop
     rescue => e
       puts e.message
       puts e.backtrace
-      # puts @left_motor.get_errors
+      puts @left_motor.get_errors
       puts "trajectory: #{@trajectory}"
       puts "trajectory point: #{@trajectory_point_index}"
       pp [{'prev_left': PVT.from_json(path['left_motor_points'][@trajectory_point_index - 1]), next_left: next_left_point}]
-      pp [{'prev_right': PVT.from_json(path['right_motor_points'][@trajectory_point_index - 1]), next_left: next_right_point}]
+      # pp [{'prev_right': PVT.from_json(path['right_motor_points'][@trajectory_point_index - 1]), next_left: next_right_point}]
 
       soft_stop
       fail 'Cannot send point'
