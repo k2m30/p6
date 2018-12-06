@@ -57,7 +57,7 @@ class VelocitySpline < Spliner::Spliner
                   0.0].flatten
       tmp_spline = new(time, velocity)
 
-      puts tmp_spline.l
+      # puts tmp_spline.l
       sign = tmp_spline.l - length > 0 ? -1 : 1
       if t2.zero?
         t1 += dt * sign

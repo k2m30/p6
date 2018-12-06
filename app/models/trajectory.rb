@@ -1,3 +1,5 @@
+require 'r_r_servo_motor'
+
 class Trajectory
   attr_accessor :left_motor_points, :right_motor_points, :id
 
@@ -13,7 +15,7 @@ class Trajectory
     fail if spath.elements.size != tpath.elements.size
 
     max_linear_velocity = Config.linear_velocity
-
+    angular_velocity = Config.max_angular_velocity
     linear_acceleration = Config.linear_acceleration
     diameter = Config.motor_pulley_diameter
 
@@ -89,24 +91,24 @@ class Trajectory
     r.t = 0.0
     data.insert(0, r)
 
-    initial_move_to_points_left = RRServoMotor.get_move_to_points(from: data[0].left_deg, to: data[1].left_deg, max_velocity: max_linear_velocity)
-    initial_move_to_points_right = RRServoMotor.get_move_to_points(from: data[0].right_deg, to: data[1].right_deg, max_velocity: max_linear_velocity)
+    initial_move_to_points_left = RRServoMotor.get_move_to_points(from: data[0].left_deg, to: data[1].left_deg, max_velocity: angular_velocity)
+    initial_move_to_points_right = RRServoMotor.get_move_to_points(from: data[0].right_deg, to: data[1].right_deg, max_velocity: angular_velocity)
 
     time_left = initial_move_to_points_left.map(&:t).sum
     time_right = initial_move_to_points_right.map(&:t).sum
 
     if time_left > time_right
-      data[1].dt = initial_move_to_points_left.last.t
+      data[1].dt = initial_move_to_points_left.last.t / 1000.0
     else
-      data[1].dt = initial_move_to_points_right.last.t
+      data[1].dt = initial_move_to_points_right.last.t / 1000.0
     end
 
-    initial_move_to_points_left[1..-2].size.times do |i|
+    2.times do |i|
       j = i + 1
       r = Row.new
       r.left_deg = initial_move_to_points_left[j].p
       r.right_deg = initial_move_to_points_right[j].p
-      r.dt = [initial_move_to_points_left[j].t, initial_move_to_points_right[j].t].max
+      r.dt = [initial_move_to_points_left[j].t, initial_move_to_points_right[j].t].max / 1000.0
       r.v_left = initial_move_to_points_left[j].v
       r.v_right = initial_move_to_points_right[j].v
       r.linear_velocity = 0.0

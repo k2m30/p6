@@ -139,12 +139,14 @@ class Layer
   def build_trajectories
     Rack::MiniProfiler.step('build trajectories') do
       puts "\nBuild trajectories"
-      puts Benchmark.ms {
-        @trajectories = []
-        @splitted_paths.zip @tpaths do |spath, tpath|
+      @trajectories = []
+      i = 0
+      @splitted_paths.zip @tpaths do |spath, tpath|
+        puts Benchmark.ms {
           @trajectories.push Trajectory.build(spath, tpath)
-        end
-      }
+        } << ' #'<<i += 1
+      end
+
       puts "\nTrajectories to Redis"
       puts Benchmark.ms {
         redis = Redis.new

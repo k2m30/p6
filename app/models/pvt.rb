@@ -10,7 +10,7 @@ class PVT
   end
 
   def to_s
-    "[#{@p}, #{@v}, #{@t}] "
+    "[#{@p.round(1)}, #{@v.round(1)}, #{@t.round(1)}] "
   end
 
   def inspect
