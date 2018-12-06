@@ -52,9 +52,8 @@ class RRServoMotor
     time_ms[0, Fiddle::SIZEOF_FLOAT].unpack('C').first
   end
 
-  def go_to(pos:, max_velocity: 180.0, acceleration: 250.0, start_immediately: false)
-    current_position = position
-    l = pos - current_position
+  def self.get_move_to_points(from:, to:, max_velocity: 180.0, acceleration: 250.0)
+    l = to - from
     sign = l <=> 0
     sign = 1 if sign.zero?
 
@@ -63,30 +62,24 @@ class RRServoMotor
 
     l2 = l.abs - 2 * l1
     t2 = l2 / max_velocity
+    points = [PVT.new(from, 0, 0)]
 
     if l2 <= 0
       t1 = Math.sqrt(l.abs / acceleration)
-      # calculate_time(start_position: position, start_velocity: 0, end_position: current_position + sign * l.abs / 2, end_velocity: t1 * acceleration * sign)
-      add_motion_point(current_position + sign * l.abs / 2, t1 * acceleration * sign, t1 * 1000)
-      add_motion_point(pos, 0, t1 * 2 * 1000)
-      t2 = 0
+      points << PVT.new(from + sign * l.abs / 2, t1 * acceleration * sign, t1 * 1000)
     else
-      p [position, velocity.round(2), 0.0]
-      p [current_position + sign * l1, max_velocity * sign, t1 * 1000]
-      # calculate_time(start_position: position, start_velocity: 0, end_position: current_position + sign * l1, end_velocity: max_velocity * sign)
-
-      add_motion_point(current_position + sign * l1, max_velocity * sign, t1 * 1000)
-      p [current_position + sign * l1, max_velocity * sign, t1 * 1000]
-
-      add_motion_point(current_position + sign * (l1 + l2), max_velocity * sign, t2 * 1000)
-      p [current_position + sign * (l1 + l2), max_velocity * sign, t2 * 1000]
-
-      add_motion_point(pos, 0, t1 * 1000)
-      p [pos, 0, t1 * 1000]
-
+      points << PVT.new(from + sign * l1, max_velocity * sign, t1 * 1000)
+      points << PVT.new(from + sign * (l1 + l2), max_velocity * sign, t2 * 1000)
     end
+    points << PVT.new(to, 0, t1 * 1000)
+    points
+  end
+
+  def go_to(pos:, max_velocity: 180.0, acceleration: 250.0, start_immediately: false)
+    RRServoMotor.get_move_to_points(
+        from: position, to: pos, max_velocity: max_velocity, acceleration: acceleration
+    ).each(&method(:add_point))
     @interface.start_motion if start_immediately
-    t1 + t2 + t1
   end
 
   def set_state_operational
@@ -163,7 +156,7 @@ class RRServoMotor
   def read_param(param)
     value_ptr = Fiddle::Pointer.malloc(Fiddle::SIZEOF_FLOAT)
     ret_code = RRServoModule.rr_read_parameter(@servo_handle, param, value_ptr)
-    # check_errors(ret_code)
+    check_errors(ret_code)
 
     value_ptr[0, Fiddle::SIZEOF_FLOAT].unpack('e').first
   end

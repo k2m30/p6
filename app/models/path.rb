@@ -96,21 +96,6 @@ class Path
     new(elements)
   end
 
-  def get_idling_time(acceleration, velocity)
-    l = @elements.first.length
-    t1 = velocity / acceleration
-    l1 = acceleration * t1 ** 2 / 2
-
-    l2 = l.abs - 2 * l1
-    t2 = l2 / velocity
-
-    if l2 <= 0
-      t1 = Math.sqrt(l.abs / acceleration)
-      t2 = 0
-    end
-    t1 + t2 + t1
-  end
-
   def d
     d = ''
     @elements.each {|e| d << e.to_s}
