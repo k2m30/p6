@@ -13,7 +13,6 @@ class Trajectory
     fail if spath.elements.size != tpath.elements.size
 
     max_linear_velocity = Config.linear_velocity
-    idling_velocity = Config.idling_velocity
 
     linear_acceleration = Config.linear_acceleration
     diameter = Config.motor_pulley_diameter
@@ -29,7 +28,7 @@ class Trajectory
     r.l = 0.0
     r.linear_velocity = 0.0
     r.t = 0.0
-    r.dt = spath.get_idling_time(linear_acceleration, idling_velocity)
+    r.dt = 0.0
     r.v_average_left = 0.0
     r.v_average_right = 0.0
     r.v_left = 0.0
@@ -79,7 +78,7 @@ class Trajectory
     data.last.v_right = 0.0
 
 
-    # first add move_to command
+    # first add move_to commands
     r = Row.new
     r.left_deg = 360.0 * tpath.elements.first.start_point.x / (Math::PI * diameter)
     r.right_deg = 360.0 * tpath.elements.first.start_point.y / (Math::PI * diameter)
@@ -87,10 +86,33 @@ class Trajectory
     r.v_left = 0.0
     r.v_right = 0.0
     r.linear_velocity = 0.0
-    r.v_average_left = 0.0
-    r.v_average_right = 0.0
     r.t = 0.0
     data.insert(0, r)
+
+    initial_move_to_points_left = RRServoMotor.get_move_to_points(from: data[0].left_deg, to: data[1].left_deg, max_velocity: max_linear_velocity)
+    initial_move_to_points_right = RRServoMotor.get_move_to_points(from: data[0].right_deg, to: data[1].right_deg, max_velocity: max_linear_velocity)
+
+    time_left = initial_move_to_points_left.map(&:t).sum
+    time_right = initial_move_to_points_right.map(&:t).sum
+
+    if time_left > time_right
+      data[1].dt = initial_move_to_points_left.last.t
+    else
+      data[1].dt = initial_move_to_points_right.last.t
+    end
+
+    initial_move_to_points_left[1..-2].size.times do |i|
+      j = i + 1
+      r = Row.new
+      r.left_deg = initial_move_to_points_left[j].p
+      r.right_deg = initial_move_to_points_right[j].p
+      r.dt = [initial_move_to_points_left[j].t, initial_move_to_points_right[j].t].max
+      r.v_left = initial_move_to_points_left[j].v
+      r.v_right = initial_move_to_points_right[j].v
+      r.linear_velocity = 0.0
+      r.t = 0.0
+      data.insert(j, r)
+    end
 
     # fail 'nil values found during trajectory calculation' if data.any? {|d| d.left_deg.nil? or d.right_deg.nil? or d.v_left.nil? or d.v_right.nil? or d.dt.nil?}
     left_motor_points = []

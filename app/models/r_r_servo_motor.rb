@@ -62,15 +62,22 @@ class RRServoMotor
 
     l2 = l.abs - 2 * l1
     t2 = l2 / max_velocity
-    points = [PVT.new(from, 0, 0)]
 
     if l2 <= 0
+      k = 0.9 # make trapezium out of the triangle
       t1 = Math.sqrt(l.abs / acceleration)
-      points << PVT.new(from + sign * l.abs / 2, t1 * acceleration * sign, t1 * 1000)
+      tsq = t1 / k - t1
+      tt = t1 - tsq
+      l1 = acceleration * tt ** 2 / 2
+      l2 = l.abs - 2 * l1
+      t1 = tt
+      t2 = 2 * tsq
     else
-      points << PVT.new(from + sign * l1, max_velocity * sign, t1 * 1000)
-      points << PVT.new(from + sign * (l1 + l2), max_velocity * sign, t2 * 1000)
+      k = 1.0
     end
+    points = [PVT.new(from, 0, 0)]
+    points << PVT.new(from + sign * l1, max_velocity * k * sign, t1 * 1000)
+    points << PVT.new(from + sign * (l1 + l2), max_velocity * k * sign, t2 * 1000)
     points << PVT.new(to, 0, t1 * 1000)
     points
   end
