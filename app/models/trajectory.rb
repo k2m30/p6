@@ -1,4 +1,7 @@
-require 'r_r_servo_motor'
+require 'csv'
+
+Benchmark.ms {l.splitted_paths.map {|s| VelocitySpline.create(length: s.elements.first.length, max_linear_velocity: Config.linear_velocity, linear_acceleration: Config.max_angular_acceleration)}}
+
 
 class Trajectory
   attr_accessor :left_motor_points, :right_motor_points, :id
@@ -208,13 +211,15 @@ class Trajectory
       end
 
       set xrange: "[0:#{t.last.ceil(-3)}]"
-      set yrange: "[#{[velocity.min.floor(-2), position.min.floor(-2)].min}:#{[velocity.max.ceil(-2), position.max.ceil(-2)].max}]"
+      # set yrange: "[#{[velocity.min.floor(-2), position.min.floor(-2)].min}:#{[velocity.max.ceil(-2), position.max.ceil(-2)].max}]"
+      set yrange: "[#{velocity.min.floor(-2)}:#{velocity.max.ceil(-2)}]"
       set arrow: "1 from 0,0 to #{t.last.ceil},0 nohead"
 
-      plot [t, position, with: 'l', title: 'Left Motor position'], [t, velocity, with: 'l', title: 'Left Motor Velocity']
+      # plot [t, position, with: 'l', title: 'Left Motor position'], [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Left Motor Velocity']
+      plot [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Left Motor Velocity']
 
-      set yrange: "[#{acceleration.min.floor}:#{acceleration.max.ceil}]"
-      plot [t, acceleration, with: 'l', title: 'Left Motor Acceleration']
+      # set yrange: "[#{acceleration.min.floor}:#{acceleration.max.ceil}]"
+      # plot [t, acceleration, with: 'l', title: 'Left Motor Acceleration']
 
       #right
       set title: "trajectory #{n}, right motor"
@@ -224,11 +229,13 @@ class Trajectory
       velocity = trajectory['right_motor_points'].map {|e| e['v']}
       position = trajectory['right_motor_points'].map {|e| e['p']}
 
-      set xrange: "[0:#{t.last.ceil}]"
-      set yrange: "[#{[velocity.min.floor(-2), position.min.floor(-2)].min}:#{[velocity.max.ceil(-2), position.max.ceil(-2)].max}]"
+      # set xrange: "[0:#{t.last.ceil}]"
+      # set yrange: "[#{[velocity.min.floor(-2), position.min.floor(-2)].min}:#{[velocity.max.ceil(-2), position.max.ceil(-2)].max}]"
+      set yrange: "[#{velocity.min.floor(-2)}:#{velocity.max.ceil(-2)}]"
       set arrow: "1 from 0,0 to #{t.last.ceil},0 nohead"
 
-      plot [t, position, with: 'l', title: 'Right Motor position'], [t, velocity, with: 'l', title: 'Right Motor Velocity']
+      # plot [t, position, with: 'l', title: 'Right Motor position'], [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Right Motor Velocity']
+      plot [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Right Motor Velocity']
 
 
       # figure
@@ -257,20 +264,36 @@ class Trajectory
       set title: "trajectory #{n}, figure"
       unset :xlabel
 
-      plot x, y, w: 'lp', pt: 7, pi: 1, ps: 0.7
+      plot x, y, w: 'lp', pt: 7, pi: 1, ps: 0.4
     end
   end
 
-  def self.dump
+  def self.to_json
     i = 0
     r = Redis.new
-    puts '['
+    json = ''
+    json << '['
     while (s = r.get("#{Config.version}_#{i}")).present?
       t = Trajectory.from_json(JSON.parse(s))
       t.id = i
-      puts t.to_json << ','
+      json << t.to_json << ','
       i += 1
     end
-    puts ']'
+    json << ']'
+    json.sub!(/,\]$/, ']')
+    json
+  end
+
+  def self.to_csv(t = 0)
+    trajectory = JSON.parse(self.to_json, symbolize_names: true).select {|trajectory| trajectory[:id] == t}.first
+    CSV.open("./#{t}.csv", 'wb') do |csv|
+      csv << %w(id motor p v t)
+      trajectory[:left_motor_points].each do |point|
+        csv << [t, :left, point[:p], point[:v], point[:t]]
+      end
+      # trajectory[:right_motor_points].each do |point|
+      #   csv << [t, :right, point[:p], point[:v], point[:t]]
+      # end
+    end
   end
 end

@@ -1,5 +1,5 @@
-require_relative 'r_r_servo_module'
-require_relative 'r_r_interface'
+require_relative 'rr_servo_module'
+require_relative 'rr_interface'
 
 class RRServoMotor
   attr_accessor :id, :servo_handle
@@ -85,7 +85,9 @@ class RRServoMotor
   def go_to(pos:, max_velocity: 180.0, acceleration: 250.0, start_immediately: false)
     RRServoMotor.get_move_to_points(
         from: position, to: pos, max_velocity: max_velocity, acceleration: acceleration
-    ).each(&method(:add_point))
+    )[1..-1].each do |point|
+      add_point(point)
+    end
     @interface.start_motion if start_immediately
   end
 

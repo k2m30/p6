@@ -3,7 +3,7 @@ require 'fiddle/import'
 
 module RRServoModule
   extend Fiddle::Importer
-  dlload './r_r_servo_library.so' rescue dlload Rails.root.join('app', 'models', 'r_r_servo_library.so').to_s
+  dlload './rr_servo_library.so' rescue dlload Rails.root.join('app', 'models', 'rr_servo_library.so').to_s
   typealias 'rr_ret_status_t', 'int'
   typealias 'rr_servo_param_t', 'int'
   typealias 'rr_nmt_state_t', 'int'
@@ -198,7 +198,7 @@ module RRServoModule
     end
   end
 
-  def self.build_module_names(file_name = './r_r_servo_api.h')
+  def self.build_module_names(file_name = './rr_servo_api.h')
     build_constants(file_name)
     build_methods(file_name)
   end

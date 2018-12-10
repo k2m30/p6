@@ -1,4 +1,4 @@
-require_relative 'r_r_servo_module'
+require_relative 'rr_servo_module'
 
 class RRInterface
   attr_reader :handle

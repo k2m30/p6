@@ -144,7 +144,8 @@ class Layer
       @splitted_paths.zip @tpaths do |spath, tpath|
         puts Benchmark.ms {
           @trajectories.push Trajectory.build(spath, tpath)
-        } << ' #'<<i += 1
+        }.to_s << ' #' << i.to_s
+        i += 1
       end
 
       puts "\nTrajectories to Redis"

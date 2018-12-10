@@ -2,13 +2,13 @@ require 'redis'
 require 'json'
 require_relative 'config'
 require_relative 'pvt'
-require_relative 'r_r_interface'
-require_relative 'r_r_servo_motor'
+# require_relative 'rr_interface'
+# require_relative 'rr_servo_motor'
 
 class Loop
   MIN_QUEUE_SIZE = 3
   QUEUE_SIZE = 10
-  LEFT_MOTOR_ID = 32
+  LEFT_MOTOR_ID = 35
   RIGHT_MOTOR_ID = 32
 
   NO_POINTS_IN_QUEUE_LEFT = 0
