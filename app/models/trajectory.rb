@@ -1,8 +1,5 @@
 require 'csv'
 
-Benchmark.ms {l.splitted_paths.map {|s| VelocitySpline.create(length: s.elements.first.length, max_linear_velocity: Config.linear_velocity, linear_acceleration: Config.max_angular_acceleration)}}
-
-
 class Trajectory
   attr_accessor :left_motor_points, :right_motor_points, :id
 
