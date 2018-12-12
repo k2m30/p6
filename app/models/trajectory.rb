@@ -115,7 +115,7 @@ class Trajectory
         end
       else
         if second.v_right > 0
-          # fail 'Over zero velocity move failed'
+          fail 'Over zero velocity move failed'
         end
       end
     end
