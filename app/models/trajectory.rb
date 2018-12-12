@@ -1,18 +1,5 @@
 require 'csv'
 
-class Array
-  def cumsum
-    self.inject([]) {|cs, n| cs << (cs.last || 0) + n}
-  end
-
-  def diff(dt = 1)
-    [0] +
-        self.each_cons(2).map do |cur, nxt|
-          (nxt - cur) / dt
-        end
-  end
-end
-
 class Trajectory
   attr_accessor :left_motor_points, :right_motor_points, :id
 

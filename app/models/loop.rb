@@ -139,4 +139,4 @@ class Loop
   end
 end
 
-Loop.new
+# Loop.new

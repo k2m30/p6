@@ -1,6 +1,6 @@
 graphics_toolkit gnuplot
 
-data = dlmread('49.csv', ',', 1, 2);
+data = dlmread('1.csv', ',', 1, 2);
 pt.p = deg2rad(data(:, 1));
 pt.v = deg2rad(data(:, 2));
 pt.t = cumsum(data(:, 3)) * 1e-3;

@@ -1,3 +1,7 @@
+require 'csv'
+require 'numo/gnuplot'
+# require_relative 'plot'
+
 class PositionSpline
 
   class << self
@@ -48,7 +52,7 @@ class PositionSpline
   end
 end
 
-# data = CSV.read('49.csv', headers: true, converters: :numeric, header_converters: :symbol)
+# data = CSV.read('1.csv', headers: true, converters: :numeric, header_converters: :symbol)
 # p = data[:p]#.map {|dp| dp * Math::PI / 180}
 # v = data[:v]#.map {|dv| dv * Math::PI / 180}
 # a = Array[0] * v.size
