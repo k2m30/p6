@@ -1,7 +1,7 @@
 class VelocitySpline < Spliner::Spliner
 
   attr_accessor :time_points, :velocity_points, :l1, :l2
-  STEP = 0.0001
+  STEP = 0.001
 
   def initialize(time_points, velocity_points)
     @time_points = time_points
@@ -73,6 +73,7 @@ class VelocitySpline < Spliner::Spliner
 
   def l(t: nil)
     t ||= range.max
+    return 0 if t.zero?
     @v_array.zip(@t_array).each_cons(2).map do |prev, curr|
       v_prev = prev.first.abs
       t_prev = prev.last

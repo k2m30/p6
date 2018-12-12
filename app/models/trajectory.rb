@@ -16,6 +16,7 @@ class Trajectory
 
     max_linear_velocity = Config.linear_velocity
     angular_velocity = Config.max_angular_velocity
+    angular_acceleration = Config.max_angular_acceleration
     linear_acceleration = Config.linear_acceleration
     diameter = Config.motor_pulley_diameter
 
@@ -91,8 +92,8 @@ class Trajectory
     r.t = 0.0
     data.insert(0, r)
 
-    initial_move_to_points_left = RRServoMotor.get_move_to_points(from: data[0].left_deg, to: data[1].left_deg, max_velocity: angular_velocity)
-    initial_move_to_points_right = RRServoMotor.get_move_to_points(from: data[0].right_deg, to: data[1].right_deg, max_velocity: angular_velocity)
+    initial_move_to_points_left = RRServoMotor.get_move_to_points(from: data[0].left_deg, to: data[1].left_deg, max_velocity: angular_velocity, acceleration: angular_acceleration)
+    initial_move_to_points_right = RRServoMotor.get_move_to_points(from: data[0].right_deg, to: data[1].right_deg, max_velocity: angular_velocity, acceleration: angular_acceleration)
 
     time_left = initial_move_to_points_left.map(&:t).sum
     time_right = initial_move_to_points_right.map(&:t).sum
@@ -153,7 +154,7 @@ class Trajectory
         end
       else
         if second.v_right > 0
-          fail 'Over zero velocity move failed'
+          # fail 'Over zero velocity move failed'
         end
       end
     end

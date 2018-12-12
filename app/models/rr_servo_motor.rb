@@ -55,30 +55,20 @@ class RRServoMotor
   def self.get_move_to_points(from:, to:, max_velocity: 180.0, acceleration: 250.0)
     l = to - from
     sign = l <=> 0
-    sign = 1 if sign.zero?
+    return [] if sign.zero?
 
-    t1 = max_velocity / acceleration
-    l1 = acceleration * t1 ** 2 / 2
+    vs = VelocitySpline.create(length: (to - from).abs, max_linear_velocity: max_velocity, linear_acceleration: acceleration)
 
-    l2 = l.abs - 2 * l1
-    t2 = l2 / max_velocity
+    points = []
 
-    if l2 <= 0
-      k = 0.9 # make trapezium out of the triangle
-      t1 = Math.sqrt(l.abs / acceleration)
-      tsq = t1 / k - t1
-      tt = t1 - tsq
-      l1 = acceleration * tt ** 2 / 2
-      l2 = l.abs - 2 * l1
-      t1 = tt
-      t2 = 2 * tsq
-    else
-      k = 1.0
+
+    dt = [vs.time_points.last / 100, 0.1].max
+    pvts = []
+    t_prev = 0
+    (0..vs.time_points.last).step(dt).each do |t|
+      points << PVT.new(from + sign * vs.l(t: t), vs[t] * sign, (t - t_prev) * 1000)
+      t_prev = t
     end
-    points = [PVT.new(from, 0, 0)]
-    points << PVT.new(from + sign * l1, max_velocity * k * sign, t1 * 1000)
-    points << PVT.new(from + sign * (l1 + l2), max_velocity * k * sign, t2 * 1000)
-    points << PVT.new(to, 0, t1 * 1000)
     points
   end
 
