@@ -201,6 +201,7 @@ class Trajectory
       t = []
       time_deltas = trajectory['left_motor_points'].map {|e| e['t']}
       time_deltas.size.times {|i| t << time_deltas[0..i].sum}
+
       velocity = trajectory['left_motor_points'].map {|e| e['v'].round(2)}
       position = trajectory['left_motor_points'].map {|e| e['p'].round(2)}
       acceleration = [0]
@@ -208,13 +209,17 @@ class Trajectory
         acceleration << (next_vt[0] - curr_vt[0]) / next_vt[1]
       end
 
+      dt = 0.01
+      a = Array[0] * time_deltas.size
+      _, q, vq = PositionSpline.qupsample(position, velocity, a, time_deltas, dt)
+
       set xrange: "[0:#{t.last.ceil(-3)}]"
       # set yrange: "[#{[velocity.min.floor(-2), position.min.floor(-2)].min}:#{[velocity.max.ceil(-2), position.max.ceil(-2)].max}]"
       set yrange: "[#{velocity.min.floor(-2)}:#{velocity.max.ceil(-2)}]"
       set arrow: "1 from 0,0 to #{t.last.ceil},0 nohead"
 
-      # plot [t, position, with: 'l', title: 'Left Motor position'], [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Left Motor Velocity']
-      plot [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Left Motor Velocity']
+      plot [t, position, with: 'l', title: 'Left Motor position'], [t, q, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Left Motor real Position']
+      plot [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Left Motor Velocity'], [t, vq, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Left Motor real Velocity']
 
       # set yrange: "[#{acceleration.min.floor}:#{acceleration.max.ceil}]"
       # plot [t, acceleration, with: 'l', title: 'Left Motor Acceleration']
@@ -227,13 +232,17 @@ class Trajectory
       velocity = trajectory['right_motor_points'].map {|e| e['v']}
       position = trajectory['right_motor_points'].map {|e| e['p']}
 
+      dt = 0.01
+      a = Array[0] * time_deltas.size
+      _, q, vq = PositionSpline.qupsample(position, velocity, a, time_deltas, dt)
+
       # set xrange: "[0:#{t.last.ceil}]"
       # set yrange: "[#{[velocity.min.floor(-2), position.min.floor(-2)].min}:#{[velocity.max.ceil(-2), position.max.ceil(-2)].max}]"
       set yrange: "[#{velocity.min.floor(-2)}:#{velocity.max.ceil(-2)}]"
       set arrow: "1 from 0,0 to #{t.last.ceil},0 nohead"
 
-      # plot [t, position, with: 'l', title: 'Right Motor position'], [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Right Motor Velocity']
-      plot [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Right Motor Velocity']
+      plot [t, position, with: 'l', title: 'Right Motor position'], [t, q, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Right Motor real Velocity']
+      plot [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Right Motor Velocity'], [t, vq, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Right Motor real Velocity']
 
 
       # figure

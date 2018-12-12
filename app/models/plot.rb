@@ -1,5 +1,7 @@
 class Plot
-  def self.html(y:, x:, file_name: './data.html')
+  def self.html(y:, x:, file_name: 'data.html')
+    path = defined?(Dir.tmpdir) ? Dir.tmpdir << '/' << file_name : file_name
+
     Numo.gnuplot do
       reset
       unset :multiplot
@@ -9,7 +11,7 @@ class Plot
       set title: file_name
 
       set terminal: ['canvas', 'size 1200,800 mousing']
-      set output: "#{Dir.tmpdir << '/' << file_name}"
+      set output: path
       # set style: 'func linespoints'
       # set multiplot: 'layout 4,1'
 
@@ -25,7 +27,7 @@ class Plot
 
       plot x, y, w: 'lp', pt: 7, pi: 1, ps: 0.7
     end
-    `open -a Safari #{Dir.tmpdir << '/' << file_name}`
+    `open -a Safari #{path}`
   end
 
 end
