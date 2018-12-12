@@ -15,7 +15,7 @@ max_angular_acceleration:
   value: 250.0
   description: максимальное угловое ускорение моторов, •/сек2
 max_segment_length:
-  value: 30.0
+  value: 5.0
   description: точность апроксимации, мм
 motor_pulley_diameter:
   value: 200.0
@@ -27,7 +27,7 @@ initial_y:
   value: 3500.0
   description: начальная длина правого ремня, мм
 start_from:
-  value: 1.0
+  value: 0.0
   description: с какой траектории начать рисование
 crop_x:
   value: 0
@@ -77,6 +77,6 @@ image_name:
   description: имя файла
   hidden: true
 version:
-  value: 0.0
+  value: 1.0
   description: версия данных в кэше
   hidden: true

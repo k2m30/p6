@@ -103,6 +103,20 @@ class VelocitySpline < Spliner::Spliner
     end
   end
 
+  def p_array(dt: STEP)
+    @p_array = []
+    @v_array.zip(@t_array).each_cons(2).map do |prev, curr|
+      v_prev = prev.first.abs
+      t_prev = prev.last
+
+      v_curr = curr.first.abs
+      t_curr = curr.last
+
+      next if t_curr >= t
+      (v_prev + v_curr) / 2 * (t_curr - t_prev)
+    end.compact.reduce(&:+)
+  end
+
   def time_at(s:)
     return 0 if s.zero?
     if s >= @l1 and s <= @l1 + @l2

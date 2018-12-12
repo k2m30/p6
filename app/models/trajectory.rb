@@ -1,5 +1,18 @@
 require 'csv'
 
+class Array
+  def cumsum
+    self.inject([]) {|cs, n| cs << (cs.last || 0) + n}
+  end
+
+  def diff(dt = 1)
+    [0] +
+        self.each_cons(2).map do |cur, nxt|
+          (nxt - cur) / dt
+        end
+  end
+end
+
 class Trajectory
   attr_accessor :left_motor_points, :right_motor_points, :id
 
@@ -80,46 +93,7 @@ class Trajectory
     data.last.v_left = 0.0
     data.last.v_right = 0.0
 
-
-    # first add move_to commands
-    r = Row.new
-    r.left_deg = 360.0 * tpath.elements.first.start_point.x / (Math::PI * diameter)
-    r.right_deg = 360.0 * tpath.elements.first.start_point.y / (Math::PI * diameter)
-    r.dt = 0.0
-    r.v_left = 0.0
-    r.v_right = 0.0
-    r.linear_velocity = 0.0
-    r.t = 0.0
-    data.insert(0, r)
-
-    initial_move_to_points_left = RRServoMotor.get_move_to_points(from: data[0].left_deg, to: data[1].left_deg, max_velocity: angular_velocity, acceleration: angular_acceleration)
-    initial_move_to_points_right = RRServoMotor.get_move_to_points(from: data[0].right_deg, to: data[1].right_deg, max_velocity: angular_velocity, acceleration: angular_acceleration)
-
-    time_left = initial_move_to_points_left.map(&:t).sum
-    time_right = initial_move_to_points_right.map(&:t).sum
-
-    if time_left > time_right
-      data[1].dt = initial_move_to_points_left.last.t / 1000.0
-    else
-      data[1].dt = initial_move_to_points_right.last.t / 1000.0
-    end
-
-    2.times do |i|
-      j = i + 1
-      r = Row.new
-      r.left_deg = initial_move_to_points_left[j].p
-      r.right_deg = initial_move_to_points_right[j].p
-      r.dt = [initial_move_to_points_left[j].t, initial_move_to_points_right[j].t].max / 1000.0
-      r.v_left = initial_move_to_points_left[j].v
-      r.v_right = initial_move_to_points_right[j].v
-      r.linear_velocity = 0.0
-      r.t = 0.0
-      data.insert(j, r)
-    end
-
     # fail 'nil values found during trajectory calculation' if data.any? {|d| d.left_deg.nil? or d.right_deg.nil? or d.v_left.nil? or d.v_right.nil? or d.dt.nil?}
-    left_motor_points = []
-    right_motor_points = []
     # Plot.html x: data.map(&:t), y: data.map(&:v_left), file_name: 'v_left.html'
     # Plot.html x: data.map(&:t), y: data.map(&:v_average_left), file_name: 'v_average_left.html'
     # Plot.html x: data.map(&:t), y: data.map(&:dt), file_name: 'dt.html'
@@ -158,6 +132,47 @@ class Trajectory
         end
       end
     end
+
+    # first add move_to commands
+    move_to_left_deg = 360.0 * tpath.elements.first.start_point.x / (Math::PI * diameter)
+    move_to_right_deg = 360.0 * tpath.elements.first.start_point.y / (Math::PI * diameter)
+
+    left_motor_points = RRServoMotor.get_move_to_points(from: move_to_left_deg, to: data[0].left_deg, max_velocity: angular_velocity, acceleration: angular_acceleration)
+    right_motor_points = RRServoMotor.get_move_to_points(from: move_to_right_deg, to: data[0].right_deg, max_velocity: angular_velocity, acceleration: angular_acceleration)
+
+
+    time_left = left_motor_points.map(&:t).sum
+    time_right = right_motor_points.map(&:t).sum
+
+    time_diff = time_left - time_right
+    size_diff = left_motor_points.size - right_motor_points.size
+
+    if size_diff.zero?
+      if time_diff > 0
+        right_motor_points.last.t += time_diff.abs
+      else
+        left_motor_points.last.t += time_diff.abs
+      end
+    elsif size_diff > 0 #left trajectory longer
+      position = right_motor_points.last.p
+      dt = (time_diff / size_diff).abs
+      size_diff.times do
+        right_motor_points << PVT.new(position, 0.0, dt)
+      end
+    else #right trajectory longer
+      position = left_motor_points.last.p
+      dt = (time_diff / size_diff).abs
+      size_diff.abs.times do
+        left_motor_points << PVT.new(position, 0.0, dt)
+      end
+    end
+
+    fail 'Left and right motors trajectory have different size' unless left_motor_points.size == right_motor_points.size
+    time_left = left_motor_points.map(&:t).sum
+    time_right = right_motor_points.map(&:t).sum
+
+    fail 'Trajectories time is different' unless time_left == time_right
+
 
     data.each do |r|
       dt = (r.dt * 1000).round(1)
@@ -202,8 +217,8 @@ class Trajectory
       time_deltas = trajectory['left_motor_points'].map {|e| e['t']}
       time_deltas.size.times {|i| t << time_deltas[0..i].sum}
 
-      velocity = trajectory['left_motor_points'].map {|e| e['v'].round(2)}
-      position = trajectory['left_motor_points'].map {|e| e['p'].round(2)}
+      velocity = trajectory['left_motor_points'].map {|e| e['v']}
+      position = trajectory['left_motor_points'].map {|e| e['p']}
       acceleration = [0]
       velocity.zip(time_deltas).each_cons(2) do |curr_vt, next_vt|
         acceleration << (next_vt[0] - curr_vt[0]) / next_vt[1]
@@ -211,15 +226,17 @@ class Trajectory
 
       dt = 0.01
       a = Array[0] * time_deltas.size
-      _, q, vq = PositionSpline.qupsample(position, velocity, a, time_deltas, dt)
+      tt, q, vq = PositionSpline.qupsample(position, velocity, a, time_deltas.map {|td| td / 1000.0}, dt)
 
       set xrange: "[0:#{t.last.ceil(-3)}]"
       # set yrange: "[#{[velocity.min.floor(-2), position.min.floor(-2)].min}:#{[velocity.max.ceil(-2), position.max.ceil(-2)].max}]"
       set yrange: "[#{velocity.min.floor(-2)}:#{velocity.max.ceil(-2)}]"
       set arrow: "1 from 0,0 to #{t.last.ceil},0 nohead"
 
-      plot [t, position, with: 'l', title: 'Left Motor position'], [t, q, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Left Motor real Position']
-      plot [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Left Motor Velocity'], [t, vq, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Left Motor real Velocity']
+      plot [t, position, with: 'l', title: 'Left Motor position']
+      plot [tt, q, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Left Motor real Position']
+      plot [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Left Motor Velocity']
+      plot [tt, vq, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Left Motor real Velocity']
 
       # set yrange: "[#{acceleration.min.floor}:#{acceleration.max.ceil}]"
       # plot [t, acceleration, with: 'l', title: 'Left Motor Acceleration']
@@ -234,15 +251,17 @@ class Trajectory
 
       dt = 0.01
       a = Array[0] * time_deltas.size
-      _, q, vq = PositionSpline.qupsample(position, velocity, a, time_deltas, dt)
+      tt, q, vq = PositionSpline.qupsample(position, velocity, a, time_deltas.map {|td| td / 1000.0}, dt)
 
       # set xrange: "[0:#{t.last.ceil}]"
       # set yrange: "[#{[velocity.min.floor(-2), position.min.floor(-2)].min}:#{[velocity.max.ceil(-2), position.max.ceil(-2)].max}]"
       set yrange: "[#{velocity.min.floor(-2)}:#{velocity.max.ceil(-2)}]"
       set arrow: "1 from 0,0 to #{t.last.ceil},0 nohead"
 
-      plot [t, position, with: 'l', title: 'Right Motor position'], [t, q, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Right Motor real Velocity']
-      plot [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Right Motor Velocity'], [t, vq, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Right Motor real Velocity']
+      plot [t, position, with: 'l', title: 'Right Motor position']
+      plot [tt, q, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Right Motor real Velocity']
+      plot [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Right Motor Velocity']
+      plot [t, vq, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Right Motor real Velocity']
 
 
       # figure

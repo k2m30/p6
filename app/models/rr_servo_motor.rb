@@ -57,18 +57,24 @@ class RRServoMotor
     sign = l <=> 0
     return [] if sign.zero?
 
-    vs = VelocitySpline.create(length: (to - from).abs, max_linear_velocity: max_velocity, linear_acceleration: acceleration)
+    velocity_spline = VelocitySpline.create(length: (to - from).abs, max_linear_velocity: max_velocity, linear_acceleration: acceleration)
+
+    dt = [velocity_spline.time_points.last / 100.0, 0.01].max
+    t = (0..velocity_spline.time_points.last).step(dt)
+    v = velocity_spline.get(t)
+    p = [0]
+    deltas = [0]
+    v.zip(t).each_cons(2) do |cur, nxt|
+      t_delta = (nxt[1] - cur[1])
+      deltas << t_delta
+      p << (nxt[0] + cur[0]) / 2 * t_delta + p.last
+    end
 
     points = []
-
-
-    dt = [vs.time_points.last / 100, 0.1].max
-    pvts = []
-    t_prev = 0
-    (0..vs.time_points.last).step(dt).each do |t|
-      points << PVT.new(from + sign * vs.l(t: t), vs[t] * sign, (t - t_prev) * 1000)
-      t_prev = t
+    p.zip(v, deltas).each do |position, velocity, time|
+      points << PVT.new(from + sign * position, velocity * sign, time * 1000.0)
     end
+
     points
   end
 
