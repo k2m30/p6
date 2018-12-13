@@ -1,21 +1,23 @@
+require_relative 'array'
+
 class VelocitySpline < Spliner::Spliner
 
-  attr_accessor :time_points, :velocity_points, :l1, :l2
-  STEP = 0.001
+  attr_accessor :time_points, :velocity_points, :pvt_points, :l1, :l2
+  STEP = 0.01
 
-  def initialize(time_points, velocity_points)
+  def initialize(time_points, velocity_points, length)
     @time_points = time_points
     @velocity_points = velocity_points
     @max_linear_velocity = velocity_points[3]
     @t1 = time_points[3]
     @t2 = time_points[-4]
+    @length = length
 
-    super
+    super(time_points, velocity_points)
 
-    @t_array = ((0.0..@t1).step(STEP).to_a + [@t1] + (@t2..range.max).step(STEP).to_a + [range.max]).uniq
+    @t_array = (0..range.max).step(STEP).to_a
     @v_array = get(@t_array)
-    @l1 = self.l(t: @t1)
-    @l2 = @max_linear_velocity * (@t2 - @t1)
+    calculate_s
   end
 
   def self.create(length:, max_linear_velocity:, linear_acceleration:)
@@ -55,85 +57,55 @@ class VelocitySpline < Spliner::Spliner
                   max_linear_velocity * (smooth ** 2 - 1) / smooth ** 2,
                   max_linear_velocity / smooth ** 2,
                   0.0].flatten
-      tmp_spline = new(time, velocity)
+      tmp_spline = new(time, velocity, length)
 
-      # puts tmp_spline.l
-      sign = tmp_spline.l - length > 0 ? -1 : 1
+      # puts "#{[tmp_spline.l, length]}"
+      l_diff = tmp_spline.l - length
+      sign = l_diff > 0 ? 1 : -1
       if t2.zero?
-        t1 += dt * sign
-      else
         t1 -= dt * sign
-        t2 += 2 * dt * sign
+      else
+        t2 -= l_diff / max_linear_velocity
       end
       k += 1
-      break if k > 100
+      if k > 100
+        fail 'Wrong velocity spline calculation'
+        # break
+      end
     end while (tmp_spline.l - length).abs > dl
     tmp_spline
   end
 
   def l(t: nil)
-    t ||= range.max
+    return @p_array.last if t.nil?
     return 0 if t.zero?
-    @v_array.zip(@t_array).each_cons(2).map do |prev, curr|
-      v_prev = prev.first.abs
-      t_prev = prev.last
+    point = @pvt_points.select {|pvt| pvt[2] >= t}.first
+    point.first #position
+  end
 
-      v_curr = curr.first.abs
-      t_curr = curr.last
+  def time_at(s:)
+    return 0 if s.zero?
+    return @t_array.last if s == @length
+    point = @pvt_points.select {|pvt| pvt[0] >= s}.first
+    point[2] #time
+  end
 
-      next if t_curr >= t
-      (v_prev + v_curr) / 2 * (t_curr - t_prev)
-    end.compact.reduce(&:+)
+
+  def a_array
+    @v_array.diff(STEP)
+  end
+
+  def calculate_s(dt: STEP)
+    unless dt == STEP
+      @t_array = (0..range.max).step(dt)
+      @v_array = get(@t_array)
+    end
+    @p_array = @v_array.map {|v| v * dt}.cumsum
+    @pvt_points = @p_array.zip(@v_array, @t_array)
   end
 
   def plot(file_name:)
     Plot.html(x: @t_array, y: @v_array, file_name: file_name.sub('.html', '_v.html'))
     Plot.html(x: @t_array, y: a_array, file_name: file_name.sub('.html', '_a.html'))
   end
-
-  def a_array
-    @v_array.zip(@t_array).each_cons(2).map do |prev, curr|
-      v_prev = prev.first
-      t_prev = prev.last
-
-      v_curr = curr.first
-      t_curr = curr.last
-
-      (v_curr - v_prev) / (t_curr - t_prev)
-    end
-  end
-
-  def p_array(dt: STEP)
-    @p_array = []
-    @v_array.zip(@t_array).each_cons(2).map do |prev, curr|
-      v_prev = prev.first.abs
-      t_prev = prev.last
-
-      v_curr = curr.first.abs
-      t_curr = curr.last
-
-      next if t_curr >= t
-      (v_prev + v_curr) / 2 * (t_curr - t_prev)
-    end.compact.reduce(&:+)
-  end
-
-  def time_at(s:)
-    return 0 if s.zero?
-    if s >= @l1 and s <= @l1 + @l2
-      return @t1 + (s - @l1) / @max_linear_velocity
-    end
-    current_l = 0
-    @v_array.zip(@t_array).each_cons(2).map do |prev, curr|
-      v_prev = prev.first.abs
-      t_prev = prev.last
-
-      v_curr = curr.first.abs
-      t_curr = curr.last
-
-      current_l += (v_prev + v_curr) / 2 * (t_curr - t_prev)
-      return t_curr if current_l >= s
-    end
-    @t_array.last
-  end
-
 end

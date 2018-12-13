@@ -63,6 +63,8 @@ class Trajectory
       r.linear_velocity = velocity_spline[r.t]
 
       r.dt = r.t - prev_r.t
+      fail 'spath discretization is too small' if r.dt.zero?
+
       r.v_average_left = (r.left_deg - prev_r.left_deg) / r.dt
       r.v_average_right = (r.right_deg - prev_r.right_deg) / r.dt
 
@@ -161,10 +163,10 @@ class Trajectory
     fail 'Trajectories time is different' unless time_left == time_right
 
 
-    data.each do |r|
-      dt = (r.dt * 1000).round(1)
-      left_motor_points.push PVT.new(r.left_deg.round(2), r.v_left.round(2), dt)
-      right_motor_points.push PVT.new(r.right_deg.round(2), r.v_right.round(2), dt)
+    data[1..-1].each do |r|
+      dt = (r.dt * 1000)
+      left_motor_points.push PVT.new(r.left_deg, r.v_left, dt)
+      right_motor_points.push PVT.new(r.right_deg, r.v_right, dt)
     end
 
     Trajectory.new left_motor_points, right_motor_points
