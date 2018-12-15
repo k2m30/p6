@@ -6,8 +6,8 @@ require_relative 'rr_interface'
 require_relative 'rr_servo_motor'
 
 class Loop
-  MIN_QUEUE_SIZE = 3
-  QUEUE_SIZE = 10
+  MIN_QUEUE_SIZE = 15
+  QUEUE_SIZE = 33
   LEFT_MOTOR_ID = 19
   RIGHT_MOTOR_ID = 32
 
@@ -78,9 +78,10 @@ class Loop
         if queue_size <= MIN_QUEUE_SIZE
           add_points(QUEUE_SIZE)
         end
-        data << [@left_motor.position, 0, Time.now - @zero_time]
+        # data << [@left_motor.position, 0, Time.now - @zero_time]
         # data << [@left_motor.position, @right_motor.position, Time.now - @zero_time]
         # p [@left_motor.current, @right_motor.current]
+        @redis.set(:position, {left: @left_motor.position, right: @right_motor.position})
       end
       puts 'Done. Stopped'
       @trajectory = 0
@@ -103,7 +104,7 @@ class Loop
       next_left_point = PVT.from_json path['left_motor_points'][@trajectory_point_index]
       next_right_point = PVT.from_json path['right_motor_points'][@trajectory_point_index]
 
-      puts [next_left_point, next_right_point]
+      # puts [next_left_point, next_right_point]
       @left_motor.add_point(next_left_point)
       @right_motor.add_point(next_right_point)
 
@@ -112,6 +113,7 @@ class Loop
       else
         @trajectory_point_index = 1
         @trajectory += 1
+        puts @trajectory
       end
 
     rescue => e
