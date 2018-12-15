@@ -50,10 +50,10 @@ class Plot
       set title: "trajectory #{n}, left motor"
       set xrange: "[0:#{t.last.ceil(-3)}]"
 
-      set yrange: "[#{position.min.floor(-2)}:#{position.max.ceil(-2)}]"
+      set yrange: "[#{[position.min.floor(-2), q.min.floor(-2)].min}:#{[position.max.ceil(-2), q.max.ceil(-2)].max}]"
       plot [t, position, with: 'l', title: 'Left Motor position'], [tt, q, with: 'l', title: 'Left Motor real Position']
 
-      set yrange: "[#{velocity.min.floor(-2)}:#{velocity.max.ceil(-2)}]"
+      set yrange: "[#{[velocity.min.floor(-2), vq.min.floor(-2)].min}:#{[velocity.max.ceil(-2), vq.max.ceil(-2)].max}]"
       plot [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Left Motor Velocity'], [tt, vq, with: 'l', title: 'Left Motor real Velocity']
 
       ##########################################################
@@ -74,10 +74,11 @@ class Plot
 
       set xrange: "[0:#{t.last.ceil(-3)}]"
       set arrow: "1 from 0,0 to #{t.last.ceil},0 nohead"
-      set yrange: "[#{position.min.floor(-2)}:#{position.max.ceil(-2)}]"
+
+      set yrange: "[#{[position.min.floor(-2), q.min.floor(-2)].min}:#{[position.max.ceil(-2), q.max.ceil(-2)].max}]"
       plot [t, position, with: 'l', title: 'Right Motor position'], [tt, q, with: 'l', title: 'Right Motor real Position']
 
-      set yrange: "[#{velocity.min.floor(-2)}:#{velocity.max.ceil(-2)}]"
+      set yrange: "[#{[velocity.min.floor(-2), vq.min.floor(-2)].min}:#{[velocity.max.ceil(-2), vq.max.ceil(-2)].max}]"
       plot [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Right Motor Velocity'], [tt, vq, with: 'l', title: 'Right Motor real Velocity']
 
       ##########################################################
