@@ -9,10 +9,10 @@ linear_acceleration:
   value: 400.0
   description: линейной ускорение мм/c2
 max_angular_velocity:
-  value: 181
+  value: 101.0
   description: максимальная угловая скорость моторов, •/сек
 max_angular_acceleration:
-  value: 250.0
+  value: 200.0
   description: максимальное угловое ускорение моторов, •/сек2
 max_segment_length:
   value: 30.0
@@ -27,7 +27,7 @@ initial_y:
   value: 3500.0
   description: начальная длина правого ремня, мм
 start_from:
-  value: 42.0
+  value: 0.0
   description: с какой траектории начать рисование
 crop_x:
   value: 0
