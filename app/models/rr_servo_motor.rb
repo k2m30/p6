@@ -1,5 +1,6 @@
 require_relative 'rr_servo_module'
 require_relative 'rr_interface'
+require_relative 'velocity_spline'
 
 class RRServoMotor
   attr_accessor :id, :servo_handle

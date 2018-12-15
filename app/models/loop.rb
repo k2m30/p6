@@ -2,13 +2,13 @@ require 'redis'
 require 'json'
 require_relative 'config'
 require_relative 'pvt'
-# require_relative 'rr_interface'
-# require_relative 'rr_servo_motor'
+require_relative 'rr_interface'
+require_relative 'rr_servo_motor'
 
 class Loop
   MIN_QUEUE_SIZE = 3
   QUEUE_SIZE = 10
-  LEFT_MOTOR_ID = 35
+  LEFT_MOTOR_ID = 19
   RIGHT_MOTOR_ID = 32
 
   NO_POINTS_IN_QUEUE_LEFT = 0
@@ -23,9 +23,9 @@ class Loop
     @zero_time = Time.now # Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
     @left_motor = initialize_motor(LEFT_MOTOR_ID)
-    # @right_motor = initialize_motor(RIGHT_MOTOR_ID)
+    @right_motor = initialize_motor(RIGHT_MOTOR_ID)
     @left_motor.clear_points_queue
-    # @right_motor.clear_points_queue
+    @right_motor.clear_points_queue
     run
   rescue => e
     puts e.message
@@ -40,15 +40,15 @@ class Loop
 
   def move_to_initial_point
     @left_motor.clear_points_queue
-    # @right_motor.clear_points_queue
+    @right_motor.clear_points_queue
     left_point = 360.0 * Config.initial_x / (Math::PI * Config.motor_pulley_diameter)
-    # right_point = 360.0 * Config.initial_y / (Math::PI * Config.motor_pulley_diameter)
+    right_point = 360.0 * Config.initial_y / (Math::PI * Config.motor_pulley_diameter)
 
     @left_motor.go_to(pos: left_point, max_velocity: Config.max_angular_velocity, acceleration: Config.max_angular_acceleration)
-    # @right_motor.go_to(pos: right_point, max_velocity: Config.max_angular_velocity, acceleration: Config.max_angular_acceleration)
+    @right_motor.go_to(pos: right_point, max_velocity: Config.max_angular_velocity, acceleration: Config.max_angular_acceleration)
 
     @left_motor.add_motion_point(left_point, 0, 1000)
-    # @right_motor.add_motion_point(right_point, 0, 1000)
+    @right_motor.add_motion_point(right_point, 0, 1000)
 
     @servo_interface.start_motion
 
@@ -105,7 +105,7 @@ class Loop
 
       puts [next_left_point, next_right_point]
       @left_motor.add_point(next_left_point)
-      # @right_motor.add_point(next_right_point)
+      @right_motor.add_point(next_right_point)
 
       if @trajectory_point_index < path['left_motor_points'].size - 1
         @trajectory_point_index += 1
@@ -131,7 +131,7 @@ class Loop
   def soft_stop
     turn_off_painting # it's better to check for the 'running' key inside the painting loop
     @left_motor.soft_stop
-    # @right_motor.soft_stop
+    @right_motor.soft_stop
   end
 
   def turn_off_painting
@@ -139,4 +139,4 @@ class Loop
   end
 end
 
-# Loop.new
+Loop.new

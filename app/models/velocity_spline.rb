@@ -1,4 +1,5 @@
 require_relative 'array'
+require 'spliner'
 
 class VelocitySpline < Spliner::Spliner
 
