@@ -8,37 +8,108 @@ require_relative 'array'
 class Plot
   DT = 0.001
 
-  def self.trajectory(n:)
-    s = Redis.new.get("#{Config.version}_#{n}")
-    trajectory = JSON.parse(s, symbolize_names: true)
-    left_p = trajectory[:left_motor_points].map {|t| t[:p]}
-    left_v = trajectory[:left_motor_points].map {|t| t[:v]}
-    a = Array[0] * left_v.size
-    dts = trajectory[:left_motor_points].map {|t| t[:t] / 1000.0}
+  def self.trajectory(n:, file_name: "#{n}.hmtl")
+    v = Config.version
+    trajectory = JSON.parse Redis.new.get("#{v}_#{n}")
+    file_name = "#{file_name.to_s}"
 
-    t = dts.cumsum
-    st, q, vq = PositionSpline.qupsample(left_p, left_v, a, dts, DT)
+    Numo.gnuplot do
+      reset
+      unset :multiplot
+      set title: "trajectory #{n}, left motor"
+      set ylabel: ''
+      set autoscale: :fix
+      set xlabel: 'time, ms'
 
-    html(x: t, y: left_p, file_name: "left_p_#{n}.html")
-    Plot.html(x: st, y: q, file_name: "left_p_real_#{n}.html")
+      set terminal: ['svg', 'size 1200,1600']
+      set output: file_name
+      set multiplot: 'layout 5,1'
 
-    html(x: t, y: left_v, file_name: "left_v_#{n}.html")
-    Plot.html(x: st, y: vq, file_name: "left_v_real_#{n}.html")
-    pp t.size
-    pp st.size
-    ########################
-    right_p = trajectory[:right_motor_points].map {|t| t[:p]}
-    right_v = trajectory[:right_motor_points].map {|t| t[:v]}
-    a = Array[0] * right_v.size
-    dts = trajectory[:right_motor_points].map {|t| t[:t] / 1000.0}
-    t = dts.cumsum
-    st, q, vq = PositionSpline.qupsample(right_p, right_v, a, dts, DT)
+      set grid: 'ytics mytics' # draw lines for each ytics and mytics
+      set grid: 'xtics mytics' # draw lines for each ytics and mytics
+      set mytics: 2
+      set :grid
+      # left
+      t = []
+      time_deltas = trajectory['left_motor_points'].map {|e| e['t']}
+      time_deltas.size.times {|i| t << time_deltas[0..i].sum}
 
-    html(x: t, y: right_p, file_name: "right_p_#{n}.html")
-    Plot.html(x: st, y: q, file_name: "right_p_real_#{n}.html")
+      velocity = trajectory['left_motor_points'].map {|e| e['v']}
+      position = trajectory['left_motor_points'].map {|e| e['p']}
+      acceleration = [0]
+      velocity.zip(time_deltas).each_cons(2) do |curr_vt, next_vt|
+        acceleration << (next_vt[0] - curr_vt[0]) / next_vt[1]
+      end
 
-    html(x: t, y: right_v, file_name: "right_v_#{n}.html")
-    Plot.html(x: st, y: vq, file_name: "right_v_real_#{n}.html")
+      dt = 0.01
+      a = Array[0] * time_deltas.size
+      tt, q, vq = PositionSpline.qupsample(position, velocity, a, time_deltas.map {|td| td / 1000.0}, dt)
+      tt.map! {|t| t * 1000.0}
+      set arrow: "1 from 0,0 to #{t.last.ceil},0 nohead"
+
+      set title: "trajectory #{n}, left motor"
+      set xrange: "[0:#{t.last.ceil(-3)}]"
+
+      set yrange: "[#{position.min.floor(-2)}:#{position.max.ceil(-2)}]"
+      plot [t, position, with: 'l', title: 'Left Motor position'], [tt, q, with: 'l', title: 'Left Motor real Position']
+
+      set yrange: "[#{velocity.min.floor(-2)}:#{velocity.max.ceil(-2)}]"
+      plot [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Left Motor Velocity'], [tt, vq, with: 'l', title: 'Left Motor real Velocity']
+
+      ##########################################################
+      #right
+      ##########################################################
+
+      set title: "trajectory #{n}, right motor"
+      t = []
+      time_deltas = trajectory['right_motor_points'].map {|e| e['t']}
+      time_deltas.size.times {|i| t << time_deltas[0..i].sum}
+      velocity = trajectory['right_motor_points'].map {|e| e['v']}
+      position = trajectory['right_motor_points'].map {|e| e['p']}
+
+      dt = 0.01
+      a = Array[0] * time_deltas.size
+      tt, q, vq = PositionSpline.qupsample(position, velocity, a, time_deltas.map {|td| td / 1000.0}, dt)
+      tt.map! {|t| t * 1000.0}
+
+      set xrange: "[0:#{t.last.ceil(-3)}]"
+      set arrow: "1 from 0,0 to #{t.last.ceil},0 nohead"
+      set yrange: "[#{position.min.floor(-2)}:#{position.max.ceil(-2)}]"
+      plot [t, position, with: 'l', title: 'Right Motor position'], [tt, q, with: 'l', title: 'Right Motor real Position']
+
+      set yrange: "[#{velocity.min.floor(-2)}:#{velocity.max.ceil(-2)}]"
+      plot [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Right Motor Velocity'], [tt, vq, with: 'l', title: 'Right Motor real Velocity']
+
+      ##########################################################
+      # figure
+      ##########################################################
+      position_left = trajectory['left_motor_points'].map {|e| e['p']}
+      position_right = trajectory['right_motor_points'].map {|e| e['p']}
+      index = trajectory['right_motor_points'].map {|e| e['v']}[0..-2].rindex(0)
+      x = []
+      y = []
+      diameter = Config.motor_pulley_diameter
+      width = Config.canvas_size_x
+      dm = Config.dm
+      dy = Config.dy
+      height = Config.canvas_size_y
+
+      position_left.size.times do |i|
+        xx = position_left[i] * Math::PI * diameter / 360.0
+        yy = position_right[i] * Math::PI * diameter / 360.0
+        point = Point.new(xx, yy).to_decart(width, dm, dy)
+        x << point.x
+        y << height - point.y
+      end
+
+      set xrange: "[0:#{width}]"
+      set yrange: "[0:#{height}]"
+      set size: 'ratio -1'
+      set title: "trajectory #{n}, figure"
+      unset :xlabel
+
+      plot [x[0..index - 1], y[0..index - 1], w: 'l', title: 'move-to'], [x[index + 1..-1], y[index + 1..-1], w: 'lp', pt: 7, pi: 1, ps: 0.2, title: 'paint']
+    end
   end
 
   def self.html(y:, x:, file_name: 'data.html')
