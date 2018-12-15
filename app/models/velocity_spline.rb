@@ -80,14 +80,18 @@ class VelocitySpline < Spliner::Spliner
     return @p_array.last if t.nil?
     return 0 if t.zero?
     point = @pvt_points.select {|pvt| pvt[2] >= t}.first
-    point.first #position
+    dt = t - point[2]
+    ds = point[1] * dt
+    point[0] + ds #position
   end
 
   def time_at(s:)
     return 0 if s.zero?
     return @t_array.last if s == @length
     point = @pvt_points.select {|pvt| pvt[0] >= s}.first
-    point[2] #time
+    ds = s - point[0]
+    dt = ds / point[1]
+    point[2] + dt #time
   end
 
 

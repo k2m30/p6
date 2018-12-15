@@ -59,7 +59,7 @@ class RRServoMotor
 
     velocity_spline = VelocitySpline.create(length: (to - from).abs, max_linear_velocity: max_velocity, linear_acceleration: acceleration)
 
-    dt = [velocity_spline.time_points.last / 100.0, 0.01].max
+    dt = [velocity_spline.time_points.last / 100.0, 0.2].max
     t = (0..velocity_spline.time_points.last).step(dt)
     v = velocity_spline.get(t)
     p = [0]

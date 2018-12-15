@@ -21,7 +21,7 @@ class Plot
       set autoscale: :fix
       set xlabel: 'time, ms'
 
-      set terminal: ['svg', 'size 1200,1600']
+      set terminal: ['svg', 'size 1200,2600']
       set output: file_name
       set multiplot: 'layout 5,1'
 
@@ -45,7 +45,7 @@ class Plot
       a = Array[0] * time_deltas.size
       tt, q, vq = PositionSpline.qupsample(position, velocity, a, time_deltas.map {|td| td / 1000.0}, dt)
       tt.map! {|t| t * 1000.0}
-      set arrow: "1 from 0,0 to #{t.last.ceil},0 nohead"
+      # set arrow: "1 from 0,0 to #{t.last.ceil},0 nohead"
 
       set title: "trajectory #{n}, left motor"
       set xrange: "[0:#{t.last.ceil(-3)}]"
@@ -73,7 +73,7 @@ class Plot
       tt.map! {|t| t * 1000.0}
 
       set xrange: "[0:#{t.last.ceil(-3)}]"
-      set arrow: "1 from 0,0 to #{t.last.ceil},0 nohead"
+      # set arrow: "1 from 0,0 to #{t.last.ceil},0 nohead"
 
       set yrange: "[#{[position.min.floor(-2), q.min.floor(-2)].min}:#{[position.max.ceil(-2), q.max.ceil(-2)].max}]"
       plot [t, position, with: 'l', title: 'Right Motor position'], [tt, q, with: 'l', title: 'Right Motor real Position']
@@ -109,7 +109,8 @@ class Plot
       set title: "trajectory #{n}, figure"
       unset :xlabel
 
-      plot [x[0..index - 1], y[0..index - 1], w: 'l', title: 'move-to'], [x[index + 1..-1], y[index + 1..-1], w: 'lp', pt: 7, pi: 1, ps: 0.2, title: 'paint']
+      # plot [x[0..index - 1], y[0..index - 1], w: 'l', title: 'move-to'], [x[index + 1..-1], y[index + 1..-1], w: 'lp', pt: 7, pi: 1, ps: 0.2, title: 'paint']
+      plot [x, y, w: 'l']
     end
   end
 

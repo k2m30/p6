@@ -1,4 +1,5 @@
 require 'csv'
+require 'array'
 
 class Trajectory
   attr_accessor :left_motor_points, :right_motor_points, :id
@@ -73,10 +74,10 @@ class Trajectory
       data << r
     end
 
-    # data.each_cons(2) do |r, r_next|
-    #   r.v_left = (r.v_average_left + r_next.v_average_left) / 2
-    #   r.v_right = (r.v_average_right + r_next.v_average_right) / 2
-    # end
+    data.each_cons(2) do |r, r_next|
+      r.v_left = (r.v_average_left + r_next.v_average_left) / 2
+      r.v_right = (r.v_average_right + r_next.v_average_right) / 2
+    end
 
     # fail 'Wrong time calculation' if data[1..-1].map(&:dt).sum - (t1 + t2 + t3) > 0.0001
     data.first.v_left = 0.0
