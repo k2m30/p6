@@ -75,11 +75,8 @@ class Trajectory
       r.v_left = r.v_average_left
       r.v_right = r.v_average_right
 
-      # r.a_left = (r.v_left - prev_r.v_left) / r.dt
-      # r.a_right = (r.v_right - prev_r.v_right) / r.dt
-
-      # r.a_left = 0
-      # r.a_right = 0
+      prev_r.a_left = (r.v_left - prev_r.v_left) / r.dt
+      prev_r.a_right = (r.v_right - prev_r.v_right) / r.dt
 
       data << r
     end
@@ -87,9 +84,6 @@ class Trajectory
     data.each_cons(2) do |r, r_next|
       r.v_left = (r.v_average_left + r_next.v_average_left) / 2
       r.v_right = (r.v_average_right + r_next.v_average_right) / 2
-
-      r.a_left = (r.v_left - r_next.v_left) / r.dt
-      r.a_right = (r.v_right - r_next.v_right) / r.dt
     end
 
     # fail 'Wrong time calculation' if data[1..-1].map(&:dt).sum - (t1 + t2 + t3) > 0.0001
@@ -187,6 +181,8 @@ class Trajectory
       dt = (r.dt * 1000)
       left_motor_points.push PVAT.new(r.left_deg, r.v_left, r.a_left, dt)
       right_motor_points.push PVAT.new(r.right_deg, r.v_right, r.a_right, dt)
+      # left_motor_points.push PVAT.new(r.left_deg.round(2), r.v_left.round(2), r.a_left, dt.round(2))
+      # right_motor_points.push PVAT.new(r.right_deg.round(2), r.v_right.round(2), r.a_right, dt.round(2))
     end
 
     Trajectory.new left_motor_points, right_motor_points, id

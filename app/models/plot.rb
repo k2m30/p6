@@ -22,7 +22,7 @@ class Plot
 
       set terminal: ['svg', 'size 1200,2600']
       set output: file_name
-      set multiplot: 'layout 6,1'
+      set multiplot: 'layout 7,1'
 
       set grid: 'ytics mytics' # draw lines for each ytics and mytics
       set grid: 'xtics mytics' # draw lines for each ytics and mytics
@@ -38,7 +38,7 @@ class Plot
       acceleration = trajectory['left_motor_points'].map {|e| e['a']}
 
       dt = 0.01
-      tt, q, vq = PositionSpline.qupsample(position, velocity, acceleration, time_deltas.map {|td| td / 1000.0}, dt)
+      tt, q, vq, aq = PositionSpline.qupsample(position, velocity, acceleration, time_deltas.map {|td| td / 1000.0}, dt)
       tt.map! {|t| t * 1000.0}
 
       set title: "trajectory #{n}, left motor position"
@@ -50,6 +50,10 @@ class Plot
       set title: "trajectory #{n}, left motor velocity"
       set yrange: "[#{[velocity.min.floor(-2), vq.min.floor(-2)].min}:#{[velocity.max.ceil(-2), vq.max.ceil(-2)].max}]"
       plot [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Left Motor Velocity'], [tt, vq, with: 'l', title: 'Left Motor real Velocity']
+
+      set title: "trajectory #{n}, left motor acceleration"
+      set yrange: "[#{[acceleration.min.floor(-2), aq.min.floor(-2)].min}:#{[acceleration.max.ceil(-2), aq.max.ceil(-2)].max}]"
+      plot [t, acceleration, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Left Motor Acceleration'], [tt, aq, with: 'l', title: 'Left Motor real Acceleration']
 
       ##########################################################
       #right

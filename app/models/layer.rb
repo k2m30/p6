@@ -137,29 +137,25 @@ class Layer
   end
 
   def build_trajectories
+    redis = Redis.new
+    prefix = Config.version + 1
     Rack::MiniProfiler.step('build trajectories') do
       puts "\nBuild trajectories"
       @trajectories = []
       id = 0
       @splitted_paths.zip @tpaths do |spath, tpath|
         puts Benchmark.ms {
-          @trajectories.push Trajectory.build(spath, tpath, id)
+          t = Trajectory.build(spath, tpath, id)
+          @trajectories.push t
+          redis.set "#{prefix}_#{t.id}", t.to_json
         }.to_s << ' #' << id.to_s
         id += 1
       end
 
-      puts "\nTrajectories to Redis"
-      puts Benchmark.ms {
-        redis = Redis.new
-        prefix = Config.version + 1
-        @trajectories.each_with_index do |t, i|
-          t.id = i
-          redis.set "#{prefix}_#{t.id}", t.to_json
-        end
-        redis.del "#{prefix}_#{@trajectories.size}"
-        Config.version += 1
-        Config.start_from = 0
-      }
+      redis.del "#{prefix}_#{@trajectories.size}"
+      Config.version += 1
+      Config.start_from = 0
+
     end
   end
 
@@ -215,17 +211,18 @@ class Layer
         xml.style do
           xml.text ".d {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 1.0}\n"
           xml.text ".move_to {stroke: darkred; fill-opacity: 0; marker-end: url(#arrow-end); stroke-width: #{(@width / 5.0).to_i}}\n"
-          xml.text ".s {stroke: #{@color}; fill-opacity: 0; stroke-width: #{(@width / 4.0).to_i}; marker-start: url(#s); marker-end: url(#s); marker-mid: url(#s); stroke-linecap: round; opacity: 1.0} \n"
-          xml.text ".t {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 1.0} \n"
+          # xml.text ".s {stroke: #{@color}; fill-opacity: 0; stroke-width: #{(@width / 4.0).to_i}; marker-start: url(#s); marker-end: url(#s); marker-mid: url(#s); stroke-linecap: round; opacity: 1.0} \n"
+          xml.text ".s {stroke: #{@color}; fill-opacity: 0; stroke-width: #{(@width / 4.0).to_i}; stroke-linecap: round; opacity: 1.0} \n"
+          # xml.text ".t {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 1.0} \n"
           xml.text "path.s:hover {stroke-width: #{@width};} \n"
           xml.text ".invisible {visibility: hidden;}"
         end
 
-        xml.g(id: :main, color: @color, width: @width) do
-          @paths.each_with_index do |path, i|
-            xml.path(d: path.d, id: "path_#{i}", class: 'd', style: @splitted_paths.empty? ? '' : display_none)
-          end
-        end
+        # xml.g(id: :main, color: @color, width: @width) do
+        #   @paths.each_with_index do |path, i|
+        #     xml.path(d: path.d, id: "path_#{i}", class: 'd', style: @splitted_paths.empty? ? '' : display_none)
+        #   end
+        # end
 
         xml.g(id: :splitted, color: @color, width: @width, style: @splitted_paths.empty? ? display_none : '') do
           @splitted_paths.each_with_index do |spath, i|
@@ -234,17 +231,17 @@ class Layer
           end
         end
 
-        xml.g(id: :tpath, color: @color, width: @width, style: 'display: none;') do
-          @tpaths.each_with_index do |tpath, i|
-            xml.path(d: tpath.d, id: "tpath_#{i}", class: 't')
-          end
-        end
-        @trajectories ||= []
-        xml.g(id: :trajectories) do
-          @trajectories.each_with_index do |trajectory, i|
-            xml.trajectory(id: "trajectory_#{i}", left: trajectory.left, right: trajectory.right)
-          end
-        end
+        # xml.g(id: :tpath, color: @color, width: @width, style: 'display: none;') do
+        #   @tpaths.each_with_index do |tpath, i|
+        #     xml.path(d: tpath.d, id: "tpath_#{i}", class: 't')
+        #   end
+        # end
+        # @trajectories ||= []
+        # xml.g(id: :trajectories) do
+        #   @trajectories.each_with_index do |trajectory, i|
+        #     xml.trajectory(id: "trajectory_#{i}", left: trajectory.left, right: trajectory.right)
+        #   end
+        # end
       end
     end
     builder.to_xml
