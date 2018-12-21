@@ -1,3 +1,4 @@
+#!/usr/local/bin/octave
 graphics_toolkit gnuplot
 
 data = dlmread('1.csv', ',', 1, 2);

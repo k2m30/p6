@@ -7,7 +7,7 @@ function [t, q] = qupsample(pt, dt)
             pt.p(k), pt.v(k), pt.a(k), ...
             pt.t(k+1) - pt.t(k));
 
-        ind = (t >= pt.t(k)) & (t < pt.t(k+1));
+        ind = (t > pt.t(k)) & (t <= pt.t(k+1));
 
         q(ind) = trj(a, t(ind) - pt.t(k));
     end

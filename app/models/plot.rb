@@ -16,14 +16,13 @@ class Plot
     Numo.gnuplot do
       reset
       unset :multiplot
-      set title: "trajectory #{n}, left motor"
       set ylabel: ''
       set autoscale: :fix
       set xlabel: 'time, ms'
 
       set terminal: ['svg', 'size 1200,2600']
       set output: file_name
-      set multiplot: 'layout 5,1'
+      set multiplot: 'layout 6,1'
 
       set grid: 'ytics mytics' # draw lines for each ytics and mytics
       set grid: 'xtics mytics' # draw lines for each ytics and mytics
@@ -34,25 +33,21 @@ class Plot
       time_deltas = trajectory['left_motor_points'].map {|e| e['t']}
       time_deltas.size.times {|i| t << time_deltas[0..i].sum}
 
-      velocity = trajectory['left_motor_points'].map {|e| e['v']}
       position = trajectory['left_motor_points'].map {|e| e['p']}
-      acceleration = [0]
-      velocity.zip(time_deltas).each_cons(2) do |curr_vt, next_vt|
-        acceleration << (next_vt[0] - curr_vt[0]) / next_vt[1]
-      end
+      velocity = trajectory['left_motor_points'].map {|e| e['v']}
+      acceleration = trajectory['left_motor_points'].map {|e| e['a']}
 
       dt = 0.01
-      a = Array[0] * time_deltas.size
-      tt, q, vq = PositionSpline.qupsample(position, velocity, a, time_deltas.map {|td| td / 1000.0}, dt)
+      tt, q, vq = PositionSpline.qupsample(position, velocity, acceleration, time_deltas.map {|td| td / 1000.0}, dt)
       tt.map! {|t| t * 1000.0}
-      # set arrow: "1 from 0,0 to #{t.last.ceil},0 nohead"
 
-      set title: "trajectory #{n}, left motor"
+      set title: "trajectory #{n}, left motor position"
       set xrange: "[0:#{t.last.ceil(-3)}]"
 
       set yrange: "[#{[position.min.floor(-2), q.min.floor(-2)].min}:#{[position.max.ceil(-2), q.max.ceil(-2)].max}]"
       plot [t, position, with: 'l', title: 'Left Motor position'], [tt, q, with: 'l', title: 'Left Motor real Position']
 
+      set title: "trajectory #{n}, left motor velocity"
       set yrange: "[#{[velocity.min.floor(-2), vq.min.floor(-2)].min}:#{[velocity.max.ceil(-2), vq.max.ceil(-2)].max}]"
       plot [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Left Motor Velocity'], [tt, vq, with: 'l', title: 'Left Motor real Velocity']
 
@@ -60,16 +55,16 @@ class Plot
       #right
       ##########################################################
 
-      set title: "trajectory #{n}, right motor"
+      set title: "trajectory #{n}, right motor position"
       t = []
       time_deltas = trajectory['right_motor_points'].map {|e| e['t']}
       time_deltas.size.times {|i| t << time_deltas[0..i].sum}
-      velocity = trajectory['right_motor_points'].map {|e| e['v']}
       position = trajectory['right_motor_points'].map {|e| e['p']}
+      velocity = trajectory['right_motor_points'].map {|e| e['v']}
+      acceleration = trajectory['right_motor_points'].map {|e| e['a']}
 
       dt = 0.01
-      a = Array[0] * time_deltas.size
-      tt, q, vq = PositionSpline.qupsample(position, velocity, a, time_deltas.map {|td| td / 1000.0}, dt)
+      tt, q, vq, aq = PositionSpline.qupsample(position, velocity, acceleration, time_deltas.map {|td| td / 1000.0}, dt)
       tt.map! {|t| t * 1000.0}
 
       set xrange: "[0:#{t.last.ceil(-3)}]"
@@ -78,15 +73,19 @@ class Plot
       set yrange: "[#{[position.min.floor(-2), q.min.floor(-2)].min}:#{[position.max.ceil(-2), q.max.ceil(-2)].max}]"
       plot [t, position, with: 'l', title: 'Right Motor position'], [tt, q, with: 'l', title: 'Right Motor real Position']
 
+      set title: "trajectory #{n}, right motor velocity"
       set yrange: "[#{[velocity.min.floor(-2), vq.min.floor(-2)].min}:#{[velocity.max.ceil(-2), vq.max.ceil(-2)].max}]"
       plot [t, velocity, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Right Motor Velocity'], [tt, vq, with: 'l', title: 'Right Motor real Velocity']
+
+      set title: "trajectory #{n}, right motor acceleration"
+      set yrange: "[#{[acceleration.min.floor(-2), aq.min.floor(-2)].min}:#{[acceleration.max.ceil(-2), aq.max.ceil(-2)].max}]"
+      plot [t, acceleration, with: 'lp', pt: 7, pi: 1, ps: 0.5, title: 'Right Motor Acceleration'], [tt, aq, with: 'l', title: 'Right Motor real Acceleration']
 
       ##########################################################
       # figure
       ##########################################################
       position_left = trajectory['left_motor_points'].map {|e| e['p']}
       position_right = trajectory['right_motor_points'].map {|e| e['p']}
-      index = trajectory['right_motor_points'].map {|e| e['v']}[0..-2].rindex(0)
       x = []
       y = []
       diameter = Config.motor_pulley_diameter

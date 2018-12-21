@@ -42,11 +42,11 @@ class PositionSpline
 
       p.zip(v, a, cs).each_cons(2) do |cur, nxt|
         coeff = spline_coeff(nxt[0], nxt[1], nxt[2], cur[0], cur[1], cur[2], nxt[3] - cur[3])
-        t_piece = st.select {|el| el >= cur[3] and el < nxt[3]}.map {|el| el - cur[3]}
+        t_piece = st.select {|el| el > cur[3] and el <= nxt[3]}.map {|el| el - cur[3]}
         q << trajectory(coeff, t_piece)
       end
       q.flatten!
-      [st, q, diff(q, dt)]
+      [st, q, diff(q, dt), diff(diff(q, dt), dt)]
     end
 
   end

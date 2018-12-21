@@ -12,7 +12,7 @@ class Trajectory
     @right_motor_points = right_motor_points
   end
 
-  def self.build(spath, tpath)
+  def self.build(spath, tpath, id)
     fail if spath.elements.size != tpath.elements.size
 
     max_linear_velocity = Config.linear_velocity
@@ -37,12 +37,15 @@ class Trajectory
     r.v_average_right = 0.0
     r.v_left = 0.0
     r.v_right = 0.0
+    r.a_left = 0.0
+    r.a_right = 0.0
 
     data = [r]
 
-    velocity_spline = VelocitySpline.create(length: spath.length,
-                                            linear_acceleration: linear_acceleration,
-                                            max_linear_velocity: max_linear_velocity) unless spath.length.zero?
+    velocity_spline = VelocitySpline.new(length: spath.length,
+                                         linear_acceleration: linear_acceleration,
+                                         max_linear_velocity: max_linear_velocity) unless spath.length.zero?
+    # velocity_spline.plot(file_name: 'spline.html')
 
     tpath.elements.each_with_index do |curr, i|
       next if i.zero?
@@ -61,7 +64,7 @@ class Trajectory
       r.l = prev_r.l + r.dl
 
       r.t = velocity_spline.time_at(s: r.l)
-      r.linear_velocity = velocity_spline[r.t]
+      r.linear_velocity = velocity_spline.v(t: r.t)
 
       r.dt = r.t - prev_r.t
       fail 'spath discretization is too small' if r.dt.zero?
@@ -71,12 +74,22 @@ class Trajectory
 
       r.v_left = r.v_average_left
       r.v_right = r.v_average_right
+
+      # r.a_left = (r.v_left - prev_r.v_left) / r.dt
+      # r.a_right = (r.v_right - prev_r.v_right) / r.dt
+
+      # r.a_left = 0
+      # r.a_right = 0
+
       data << r
     end
 
     data.each_cons(2) do |r, r_next|
       r.v_left = (r.v_average_left + r_next.v_average_left) / 2
       r.v_right = (r.v_average_right + r_next.v_average_right) / 2
+
+      r.a_left = (r.v_left - r_next.v_left) / r.dt
+      r.a_right = (r.v_right - r_next.v_right) / r.dt
     end
 
     # fail 'Wrong time calculation' if data[1..-1].map(&:dt).sum - (t1 + t2 + t3) > 0.0001
@@ -84,6 +97,8 @@ class Trajectory
     data.first.v_right = 0.0
     data.last.v_left = 0.0
     data.last.v_right = 0.0
+    data.last.a_left = 0.0
+    data.last.a_right = 0.0
 
     # fail 'nil values found during trajectory calculation' if data.any? {|d| d.left_deg.nil? or d.right_deg.nil? or d.v_left.nil? or d.v_right.nil? or d.dt.nil?}
     # Plot.html x: data.map(&:t), y: data.map(&:v_left), file_name: 'v_left.html'
@@ -132,6 +147,8 @@ class Trajectory
     left_motor_points = RRServoMotor.get_move_to_points(from: move_to_left_deg, to: data[0].left_deg, max_velocity: angular_velocity, acceleration: angular_acceleration)
     right_motor_points = RRServoMotor.get_move_to_points(from: move_to_right_deg, to: data[0].right_deg, max_velocity: angular_velocity, acceleration: angular_acceleration)
 
+    fail "Wrong left motor move_to calculation ##{id}" unless left_motor_points.first.v.zero? and left_motor_points.last.v.zero?
+    fail "Wrong left motor move_to calculation ##{id}" unless right_motor_points.first.v.zero? and right_motor_points.last.v.zero?
 
     time_left = left_motor_points.map(&:t).sum
     time_right = right_motor_points.map(&:t).sum
@@ -149,13 +166,13 @@ class Trajectory
       position = right_motor_points.last.p
       dt = (time_diff / size_diff).abs
       size_diff.times do
-        right_motor_points << PVT.new(position, 0.0, dt)
+        right_motor_points << PVAT.new(position, 0.0, 0.0, dt)
       end
     else #right trajectory longer
       position = left_motor_points.last.p
       dt = (time_diff / size_diff).abs
       size_diff.abs.times do
-        left_motor_points << PVT.new(position, 0.0, dt)
+        left_motor_points << PVAT.new(position, 0.0, 0.0, dt)
       end
     end
 
@@ -168,18 +185,18 @@ class Trajectory
 
     data[1..-1].each do |r|
       dt = (r.dt * 1000)
-      left_motor_points.push PVT.new(r.left_deg, r.v_left, dt)
-      right_motor_points.push PVT.new(r.right_deg, r.v_right, dt)
+      left_motor_points.push PVAT.new(r.left_deg, r.v_left, r.a_left, dt)
+      right_motor_points.push PVAT.new(r.right_deg, r.v_right, r.a_right, dt)
     end
 
-    Trajectory.new left_motor_points, right_motor_points
+    Trajectory.new left_motor_points, right_motor_points, id
   end
 
   def self.from_json(json)
     left_motor_points = []
     right_motor_points = []
-    json['left_motor_points'].each {|e| left_motor_points.push PVT.new(e['p'], e['v'], e['t'])}
-    json['right_motor_points'].each {|e| right_motor_points.push PVT.new(e['p'], e['v'], e['t'])}
+    json['left_motor_points'].each {|e| left_motor_points.push PVAT.new(e['p'], e['v'], e['a'], e['t'])}
+    json['right_motor_points'].each {|e| right_motor_points.push PVAT.new(e['p'], e['v'], e['a'], e['t'])}
     Trajectory.new(left_motor_points, right_motor_points, json['id'])
   end
 

@@ -18,8 +18,8 @@ class RRServoMotor
   end
 
   def add_point(point)
-    fail 'Point is not of PVT type' unless point.is_a? PVT
-    add_motion_point(point.p, point.v, point.t)
+    fail 'Point is not of PVT type' unless point.is_a? PVAT
+    add_motion_point(point.p, point.v, point.a, point.t)
   end
 
   def queue_size
@@ -56,26 +56,15 @@ class RRServoMotor
   def self.get_move_to_points(from:, to:, max_velocity: 180.0, acceleration: 250.0)
     l = to - from
     sign = l <=> 0
-    return [] if sign.zero?
+    return [] if to == from
 
-    velocity_spline = VelocitySpline.create(length: (to - from).abs, max_linear_velocity: max_velocity, linear_acceleration: acceleration)
-
-    dt = [velocity_spline.time_points.last / 100.0, 0.2].max
-    t = (0..velocity_spline.time_points.last).step(dt)
-    v = velocity_spline.get(t)
-    p = [0]
-    deltas = [0]
-    v.zip(t).each_cons(2) do |cur, nxt|
-      t_delta = (nxt[1] - cur[1])
-      deltas << t_delta
-      p << (nxt[0] + cur[0]) / 2 * t_delta + p.last
+    velocity_spline = VelocitySpline.new(length: (to - from).abs, max_linear_velocity: max_velocity, linear_acceleration: acceleration)
+    points = velocity_spline.pvat_points
+    points.each do |point|
+      point.p = from + sign * point.p
+      point.v *= sign
+      point.a *= sign
     end
-
-    points = []
-    p.zip(v, deltas).each do |position, velocity, time|
-      points << PVT.new(from + sign * position, velocity * sign, time * 1000.0)
-    end
-
     points
   end
 
@@ -176,8 +165,8 @@ class RRServoMotor
     check_errors(ret_code)
   end
 
-  def add_motion_point(point, velocity, time)
-    ret_code = RRServoModule.rr_add_motion_point(@servo_handle, point, velocity, time)
+  def add_motion_point(point, velocity, acceleration, time)
+    ret_code = RRServoModule.rr_add_motion_point_pvat(@servo_handle, point, velocity, acceleration, time)
     check_errors(ret_code)
   end
 

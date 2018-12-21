@@ -1,7 +1,7 @@
 require 'redis'
 require 'json'
 require_relative 'config'
-require_relative 'pvt'
+require_relative 'pvat'
 require_relative 'rr_interface'
 require_relative 'rr_servo_motor'
 
@@ -101,8 +101,8 @@ class Loop
       return if path.nil?
 
       path = JSON.parse path
-      next_left_point = PVT.from_json path['left_motor_points'][@trajectory_point_index]
-      next_right_point = PVT.from_json path['right_motor_points'][@trajectory_point_index]
+      next_left_point = PVAT.from_json path['left_motor_points'][@trajectory_point_index]
+      next_right_point = PVAT.from_json path['right_motor_points'][@trajectory_point_index]
 
       # puts [next_left_point, next_right_point]
       @left_motor.add_point(next_left_point)
@@ -122,8 +122,8 @@ class Loop
       puts @left_motor.get_errors
       puts "trajectory: #{@trajectory}"
       puts "trajectory point: #{@trajectory_point_index}"
-      pp [{'prev_left': PVT.from_json(path['left_motor_points'][@trajectory_point_index - 1]), next_left: next_left_point}]
-      # pp [{'prev_right': PVT.from_json(path['right_motor_points'][@trajectory_point_index - 1]), next_left: next_right_point}]
+      pp [{'prev_left': PVAT.from_json(path['left_motor_points'][@trajectory_point_index - 1]), next_left: next_left_point}]
+      # pp [{'prev_right': PVAT.from_json(path['right_motor_points'][@trajectory_point_index - 1]), next_left: next_right_point}]
 
       soft_stop
       fail 'Cannot send point'
@@ -141,4 +141,4 @@ class Loop
   end
 end
 
-Loop.new
+# Loop.new
