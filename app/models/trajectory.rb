@@ -4,12 +4,13 @@ require 'array'
 class Trajectory
   attr_accessor :left_motor_points, :right_motor_points, :id
 
-  def initialize(left_motor_points, right_motor_points, id = nil)
+  def initialize(left_motor_points, right_motor_points, id)
     fail unless left_motor_points.is_a? Array and right_motor_points.is_a? Array
     fail if left_motor_points.size != right_motor_points.size
 
     @left_motor_points = left_motor_points
     @right_motor_points = right_motor_points
+    @id = id
   end
 
   def self.build(spath, tpath, id)
@@ -181,8 +182,6 @@ class Trajectory
       dt = (r.dt * 1000)
       left_motor_points.push PVAT.new(r.left_deg, r.v_left, r.a_left, dt)
       right_motor_points.push PVAT.new(r.right_deg, r.v_right, r.a_right, dt)
-      # left_motor_points.push PVAT.new(r.left_deg.round(2), r.v_left.round(2), r.a_left, dt.round(2))
-      # right_motor_points.push PVAT.new(r.right_deg.round(2), r.v_right.round(2), r.a_right, dt.round(2))
     end
 
     Trajectory.new left_motor_points, right_motor_points, id
