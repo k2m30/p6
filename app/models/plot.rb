@@ -6,7 +6,7 @@ require_relative 'array'
 # require_relative 'position_spline'
 
 class Plot
-  DT = 0.001
+  DT = 0.1
 
   def self.trajectory(n:, file_name: "#{n}.hmtl")
     v = Config.version
@@ -37,8 +37,8 @@ class Plot
       velocity = trajectory['left_motor_points'].map {|e| e['v']}
       acceleration = trajectory['left_motor_points'].map {|e| e['a']}
 
-      dt = 0.01
-      tt, q, vq, aq = PositionSpline.qupsample(position, velocity, acceleration, time_deltas.map {|td| td / 1000.0}, dt)
+
+      tt, q, vq, aq = PositionSpline.qupsample(position, velocity, acceleration, time_deltas.map {|td| td / 1000.0}, DT)
       tt.map! {|t| t * 1000.0}
 
       set title: "trajectory #{n}, left motor position"
@@ -67,8 +67,7 @@ class Plot
       velocity = trajectory['right_motor_points'].map {|e| e['v']}
       acceleration = trajectory['right_motor_points'].map {|e| e['a']}
 
-      dt = 0.01
-      tt, q, vq, aq = PositionSpline.qupsample(position, velocity, acceleration, time_deltas.map {|td| td / 1000.0}, dt)
+      tt, q, vq, aq = PositionSpline.qupsample(position, velocity, acceleration, time_deltas.map {|td| td / 1000.0}, DT)
       tt.map! {|t| t * 1000.0}
 
       set xrange: "[0:#{t.last.ceil(-3)}]"

@@ -42,6 +42,9 @@ class Layer
 
   def to_redis
     redis = Redis.new
+    @splitted_paths = []
+    @tpaths = []
+    @trajectories = []
     json = to_json
     redis.set(@name, json)
   end
@@ -57,8 +60,9 @@ class Layer
     Rack::MiniProfiler.step('from json') do
       @name = json['name']
       @paths = json['paths'].map {|path| Path.from_json(path)}
-      @splitted_paths = json['splitted_paths'].map {|path| Path.from_json(path)}
-      @tpaths = json['tpaths'].map {|path| Path.from_json(path)}
+      @splitted_paths = json['splitted_paths']
+      # @splitted_paths = @splitted_paths.map {|path| Path.from_json(path)} unless @splitted_paths.blank?
+      # @tpaths = json['tpaths'].map {|path| Path.from_json(path)}
       # @trajectories = json['trajectories'].map {|trajectory| Trajectory.from_json(trajectory)}
       @color = json['color']
       @width = json['width']
@@ -93,7 +97,7 @@ class Layer
         layer.splitted_paths << path.split(dl)
       end
     }
-    puts "\nAdding key points:"
+    # puts "\nAdding key points:"
     # puts Benchmark.ms {layer.add_key_points}
 
     puts "\nMake tpaths:"
@@ -217,13 +221,13 @@ class Layer
           xml.text "path.s:hover {stroke-width: #{@width};} \n"
           xml.text ".invisible {visibility: hidden;}"
         end
+        @splitted_paths ||= []
 
-        # xml.g(id: :main, color: @color, width: @width) do
-        #   @paths.each_with_index do |path, i|
-        #     xml.path(d: path.d, id: "path_#{i}", class: 'd', style: @splitted_paths.empty? ? '' : display_none)
-        #   end
-        # end
-
+        xml.g(id: :main, color: @color, width: @width) do
+          @paths.each_with_index do |path, i|
+            xml.path(d: path.d, id: "path_#{i}", class: 'd', style: @splitted_paths.empty? ? '' : display_none)
+          end
+        end
         xml.g(id: :splitted, color: @color, width: @width, style: @splitted_paths.empty? ? display_none : '') do
           @splitted_paths.each_with_index do |spath, i|
             xml.path(d: "M#{spath.start_point.x},#{spath.start_point.y} L#{spath.elements.first.end_point.x},#{spath.elements.first.end_point.y}", class: 'move_to', id: "move_to_#{i}")
