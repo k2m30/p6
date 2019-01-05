@@ -175,7 +175,7 @@ class Trajectory
     time_left = left_motor_points.map(&:t).sum
     time_right = right_motor_points.map(&:t).sum
 
-    fail 'Trajectories time is different' unless time_left == time_right
+    fail "Trajectories time is different ##{id}" unless time_left.truncate(4) == time_right.truncate(4)
 
 
     data[1..-1].each do |r|

@@ -6,7 +6,7 @@ require_relative 'array'
 # require_relative 'position_spline'
 
 class Plot
-  DT = 0.1
+  DT = 0.01
 
   def self.trajectory(n:, file_name: "#{n}.hmtl")
     v = Config.version

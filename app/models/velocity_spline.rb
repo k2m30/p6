@@ -3,7 +3,7 @@ require 'array'
 class VelocitySpline
   attr_accessor :l1, :l2, :t1, :t2, :max_linear_velocity, :linear_acceleration
 
-  STEP = 0.01
+  STEP = 0.1
 
   def initialize(length:, max_linear_velocity:, linear_acceleration:, t: nil)
     @max_linear_velocity = max_linear_velocity

@@ -215,25 +215,26 @@ class Layer
         xml.style do
           xml.text ".d {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 1.0}\n"
           xml.text ".move_to {stroke: darkred; fill-opacity: 0; marker-end: url(#arrow-end); stroke-width: #{(@width / 5.0).to_i}}\n"
-          # xml.text ".s {stroke: #{@color}; fill-opacity: 0; stroke-width: #{(@width / 4.0).to_i}; marker-start: url(#s); marker-end: url(#s); marker-mid: url(#s); stroke-linecap: round; opacity: 1.0} \n"
-          xml.text ".s {stroke: #{@color}; fill-opacity: 0; stroke-width: #{(@width / 4.0).to_i}; stroke-linecap: round; opacity: 1.0} \n"
+          # xml.text ".s {stroke: #{@color}; fill-opacity: 0; stroke-width: #{(@width / 4.0).to_i}; stroke-linecap: round; opacity: 1.0} \n"
           # xml.text ".t {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 1.0} \n"
-          xml.text "path.s:hover {stroke-width: #{@width};} \n"
+          xml.text "path.d:hover {stroke-width: #{@width * 1.5};} \n"
           xml.text ".invisible {visibility: hidden;}"
         end
         @splitted_paths ||= []
 
         xml.g(id: :main, color: @color, width: @width) do
           @paths.each_with_index do |path, i|
-            xml.path(d: path.d, id: "path_#{i}", class: 'd', style: @splitted_paths.empty? ? '' : display_none)
+            xml.path(d: "M#{path.start_point.x},#{path.start_point.y} L#{path.elements.first.end_point.x},#{path.elements.first.end_point.y}", class: 'move_to', id: "move_to_#{i}")
+            xml.path(d: path.d, id: "path_#{i}", class: 'd', onclick: "window.open('/trajectory?id=#{i}')")
           end
         end
-        xml.g(id: :splitted, color: @color, width: @width, style: @splitted_paths.empty? ? display_none : '') do
-          @splitted_paths.each_with_index do |spath, i|
-            xml.path(d: "M#{spath.start_point.x},#{spath.start_point.y} L#{spath.elements.first.end_point.x},#{spath.elements.first.end_point.y}", class: 'move_to', id: "move_to_#{i}")
-            xml.path(d: spath.d, id: "spath_#{i}", class: 's', onclick: "window.open('/trajectory?id=#{i}')")
-          end
-        end
+
+        # xml.g(id: :splitted, color: @color, width: @width, style: @splitted_paths.empty? ? display_none : '') do
+        #   @splitted_paths.each_with_index do |spath, i|
+        #     xml.path(d: "M#{spath.start_point.x},#{spath.start_point.y} L#{spath.elements.first.end_point.x},#{spath.elements.first.end_point.y}", class: 'move_to', id: "move_to_#{i}")
+        #     xml.path(d: spath.d, id: "spath_#{i}", class: 's', onclick: "window.open('/trajectory?id=#{i}')")
+        #   end
+        # end
 
         # xml.g(id: :tpath, color: @color, width: @width, style: 'display: none;') do
         #   @tpaths.each_with_index do |tpath, i|
