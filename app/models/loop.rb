@@ -55,7 +55,15 @@ class Loop
   end
 
   def initialize_motor(id)
-    @servo_interface ||= RRInterface.new('/dev/cu.usbmodem301')
+    device = case RUBY_PLATFORM
+             when 'x86_64-darwin16'
+               '/dev/cu.usbmodem301'
+             when 'armv7l-linux-eabihf'
+               '/dev/serial/by-id/usb-Rozum_Robotics_USB-CAN_Interface_301-if00'
+             else
+               'unknown_os'
+             end
+    @servo_interface ||= RRInterface.new(device)
     # @servo_interface ||= RRInterface.new('192.168.0.42')
     RRServoMotor.new(@servo_interface, id)
   end
