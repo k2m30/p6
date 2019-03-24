@@ -1,4 +1,4 @@
-require 'array'
+require_relative 'array'
 
 class VelocitySpline
   attr_accessor :l1, :l2, :t1, :t2, :max_linear_velocity, :linear_acceleration
