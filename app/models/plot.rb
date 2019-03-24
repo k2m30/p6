@@ -8,9 +8,9 @@ require_relative 'array'
 class Plot
   DT = 0.01
 
-  def self.trajectory(n:, file_name: "#{n}.hmtl")
+  def self.trajectory(n:, file_name: "#{n}.html", trajectory: nil)
     v = Config.version
-    trajectory = JSON.parse Redis.new.get("#{v}_#{n}")
+    trajectory ||= JSON.parse Redis.new.get("#{v}_#{n}")
     file_name = "#{file_name.to_s}"
 
     Numo.gnuplot do
@@ -45,7 +45,7 @@ class Plot
       set xrange: "[0:#{t.last.ceil(-3)}]"
 
       set yrange: "[#{[position.min.floor(-2), q.min.floor(-2)].min}:#{[position.max.ceil(-2), q.max.ceil(-2)].max}]"
-      plot [t, position, with: 'l', title: 'Left Motor position'], [tt, q, with: 'l', title: 'Left Motor real Position']
+      plot [t, position, with: 'lp', title: 'Left Motor position'], [tt, q, with: 'l', title: 'Left Motor real Position']
 
       set title: "trajectory #{n}, left motor velocity"
       set yrange: "[#{[velocity.min.floor(-2), vq.min.floor(-2)].min}:#{[velocity.max.ceil(-2), vq.max.ceil(-2)].max}]"
@@ -100,7 +100,7 @@ class Plot
       position_left.size.times do |i|
         xx = position_left[i] * Math::PI * diameter / 360.0
         yy = position_right[i] * Math::PI * diameter / 360.0
-        point = Point.new(xx, yy).to_decart(width, dm, dy)
+        point = Point.new(xx, yy)#.to_decart(width, dm, dy)
         x << point.x
         y << height - point.y
       end
@@ -146,5 +146,26 @@ class Plot
     end
     `open -a Safari #{path}`
   end
+
+
+  def self.customer
+    left_motor_points = [
+        PVAT.new(360.0, 0, 0.0, 0),
+        PVAT.new(360.0, 101.0, 0.0, 1000),
+        PVAT.new(360.0, 101.0, 0.0, 10000),
+        PVAT.new(360.0, 0.0, 0.0, 1000),
+    ]
+
+    right_motor_points = [
+        PVAT.new(0, 0, 0.0, 0),
+        PVAT.new(360.0, 100.0, 0.0, 1000),
+        PVAT.new(720.0, 100.0, 0.0, 10000),
+        PVAT.new(1080.0, 0.0, 0.0, 1000),
+    ]
+
+    t = Trajectory.new(left_motor_points, right_motor_points, 190)
+    Plot.trajectory(n: 190, trajectory: JSON.parse(t.to_json))
+  end
+
 
 end
