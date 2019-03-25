@@ -14,6 +14,7 @@ class RobotController < ApplicationController
   end
 
   def position
+    render json: Redis.new.get(:position)
   end
 
   def run
