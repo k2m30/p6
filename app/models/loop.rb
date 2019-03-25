@@ -35,7 +35,7 @@ class Loop
     @redis.del 'running'
     # @left_motor.deinitialize
     # @right_motor.deinitialize
-    @servo_interface&.deinitialize
+    # @servo_interface&.deinitialize
   end
 
   def move_to_initial_point
