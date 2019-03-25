@@ -149,4 +149,4 @@ class Loop
   end
 end
 
-Loop.new if Rails.env.production?
+# Loop.new
