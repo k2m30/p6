@@ -40,6 +40,17 @@ extern "C"
  */
 #define ARRAY_ERROR_BITS_SIZE (64)
 
+/**
+ * @brief Size of the emergency (EMCY) log entry
+ */
+#define EMCY_LOG_DEPTH	1024
+
+/**
+ * @brief Maximal number of CanOpen devoces on bus
+ *
+ */
+#define MAX_CO_DEV	128
+
 /* Exported types ------------------------------------------------------------*/
 /**
  * @brief Return codes of the API functions
@@ -61,7 +72,7 @@ typedef enum
 
 /**
  * @brief Device parameter and source indices
- * 
+ *
  */
 typedef enum
 {
@@ -128,10 +139,10 @@ typedef enum
 
 /**
  * @brief Network management (NMT) states
- * 
- * @image html "nmt_states.png" 
- * @image latex "nmt_states.png" 
- * 
+ *
+ * @image html "nmt_states.png"
+ * @image latex "nmt_states.png"
+ *
  */
 typedef enum
 {
@@ -145,7 +156,7 @@ typedef enum
 
 /**
  * @brief Device information source instance
- * 
+ *
  */
 typedef struct
 {
@@ -154,8 +165,20 @@ typedef struct
 } param_cache_entry_t;
 
 /**
+ * @brief Emergency (EMCY) log entry structure
+ */
+typedef struct
+{
+	uint8_t id;
+	uint16_t err_code;
+	uint8_t err_reg;
+	uint8_t err_bits;
+       	int32_t err_info;
+} emcy_log_entry_t;
+
+/**
  * @brief Device instance structure
- * 
+ *
  */
 typedef struct
 {
@@ -165,13 +188,20 @@ typedef struct
 
 /**
  * @brief Interface instance structure
- * 
+ *
  */
 typedef struct
 {
     void *iface;   ///< Interface internals
     void *nmt_cb;  ///< NMT callback pointer
     void *emcy_cb; ///< EMCY callback pointer
+    struct
+    {
+	    emcy_log_entry_t *d;
+	    int head;
+	    int tail;
+	    int sz;
+    } emcy_log;
 } rr_can_interface_t;
 
 /**
@@ -179,7 +209,7 @@ typedef struct
  * @param interface Descriptor of the interface (see ::rr_init_interface) where the NMT event occured
  * @param servo_id Descriptor of the servo (see ::rr_init_servo) where the NMT event occured
  * @param nmt_state Network management state (::rr_nmt_state_t) that the servo entered
- * 
+ *
  */
 typedef void (*rr_nmt_cb_t)(rr_can_interface_t *interface, int servo_id, rr_nmt_state_t nmt_state);
 
@@ -213,6 +243,9 @@ void rr_setup_emcy_callback(rr_can_interface_t *interface, rr_emcy_cb_t cb);
 const char *rr_describe_nmt(rr_nmt_state_t state);
 const char *rr_describe_emcy_code(uint16_t code);
 const char *rr_describe_emcy_bit(uint8_t bit);
+int rr_emcy_log_get_size(rr_can_interface_t *iface);
+emcy_log_entry_t *rr_emcy_log_pop(rr_can_interface_t *iface);
+void rr_emcy_log_clear(rr_can_interface_t *iface);
 
 rr_can_interface_t *rr_init_interface(const char *interface_name);
 rr_ret_status_t rr_deinit_interface(rr_can_interface_t **interface);
@@ -225,13 +258,16 @@ rr_ret_status_t rr_servo_set_state_operational(const rr_servo_t *servo);
 rr_ret_status_t rr_servo_set_state_pre_operational(const rr_servo_t *servo);
 rr_ret_status_t rr_servo_set_state_stopped(const rr_servo_t *servo);
 
+rr_ret_status_t rr_servo_get_state(const rr_servo_t *servo, rr_nmt_state_t *state);
+rr_ret_status_t rr_servo_get_hb_stat(const rr_servo_t *servo, int64_t *min_hb_ival, int64_t *max_hb_ival);
+rr_ret_status_t rr_servo_clear_hb_stat(const rr_servo_t *servo);
+
 rr_ret_status_t rr_net_reboot(const rr_can_interface_t *interface);
 rr_ret_status_t rr_net_reset_communication(const rr_can_interface_t *interface);
 rr_ret_status_t rr_net_set_state_operational(const rr_can_interface_t *interface);
 rr_ret_status_t rr_net_set_state_pre_operational(const rr_can_interface_t *interface);
 rr_ret_status_t rr_net_set_state_stopped(const rr_can_interface_t *interface);
 rr_ret_status_t rr_net_get_state(const rr_can_interface_t *interface, int id, rr_nmt_state_t *state);
-rr_ret_status_t rr_servo_get_state(const rr_servo_t *servo, rr_nmt_state_t *state);
 
 rr_ret_status_t rr_release(const rr_servo_t *servo);
 rr_ret_status_t rr_freeze(const rr_servo_t *servo);
@@ -243,17 +279,17 @@ rr_ret_status_t rr_set_velocity(const rr_servo_t *servo, const float velocity_de
 rr_ret_status_t rr_set_velocity_motor(const rr_servo_t *servo, const float velocity_rpm);
 rr_ret_status_t rr_set_position(const rr_servo_t *servo, const float position_deg);
 rr_ret_status_t rr_set_velocity_with_limits(const rr_servo_t *servo, const float velocity_deg_per_sec, const float current_a);
-rr_ret_status_t rr_set_position_with_limits(const rr_servo_t *servo, const float position_deg, const float velocity_deg_per_sec, const float current_a);
+rr_ret_status_t rr_set_position_with_limits(rr_servo_t *servo, const float position_deg, const float velocity_deg_per_sec, const float accel_deg_per_sec_sq, uint32_t *time_ms);
 rr_ret_status_t rr_set_duty(const rr_servo_t *servo, float duty_percent);
 
 rr_ret_status_t rr_add_motion_point(const rr_servo_t *servo, const float position_deg, const float velocity_deg, const uint32_t time_ms);
 rr_ret_status_t rr_add_motion_point_pvat(
-    const rr_servo_t *servo, 
-    const float position_deg, 
-    const float velocity_deg_per_sec, 
-    const float accel_deg_per_sec2, 
+    const rr_servo_t *servo,
+    const float position_deg,
+    const float velocity_deg_per_sec,
+    const float accel_deg_per_sec2,
     const uint32_t time_ms);
-    
+
 rr_ret_status_t rr_start_motion(rr_can_interface_t *interface, uint32_t timestamp_ms);
 
 rr_ret_status_t rr_read_error_status(const rr_servo_t *servo, uint32_t *const error_count, uint8_t *const error_array);
@@ -281,10 +317,18 @@ rr_ret_status_t rr_set_zero_position_and_save(const rr_servo_t *servo, const flo
 rr_ret_status_t rr_get_max_velocity(const rr_servo_t *servo, float *velocity_deg_per_sec);
 rr_ret_status_t rr_set_max_velocity(const rr_servo_t *servo, const float max_velocity_deg_per_sec);
 
-rr_ret_status_t rr_change_id_and_save(rr_can_interface_t *interface, rr_servo_t *servo, uint8_t new_can_id);
+rr_ret_status_t rr_change_id_and_save(rr_can_interface_t *interface, rr_servo_t **servo, uint8_t new_can_id);
 
 rr_ret_status_t rr_get_hardware_version(const rr_servo_t *servo, char *version_string, int *version_string_size);
 rr_ret_status_t rr_get_software_version(const rr_servo_t *servo, char *version_string, int *version_string_size);
+
+bool rr_check_point(const float velocity_limit_deg_per_sec,
+                    float *velocity_max_calc_deg_per_sec,
+                    const float position_deg_start,
+                    const float velocity_deg_per_sec_start,
+                    const float position_deg_end,
+                    const float velocity_deg_per_sec_end,
+                    const uint32_t time_ms);
 
 #ifdef __cplusplus
 }

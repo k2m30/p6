@@ -15,7 +15,9 @@ module RRServoModule
   typealias 'bool', 'int'
 
   ARRAY_ERROR_BITS_SIZE = 64
-#
+  EMCY_LOG_DEPTH = 1024
+  MAX_CO_DEV = 128
+
   RET_OK = 0
   RET_ERROR = 1
   RET_BAD_INSTANCE = 2
@@ -105,6 +107,9 @@ module RRServoModule
   extern 'char *rr_describe_nmt(rr_nmt_state_t state)'
   extern 'char *rr_describe_emcy_code(uint16_t code)'
   extern 'char *rr_describe_emcy_bit(uint8_t bit)'
+  extern 'int rr_emcy_log_get_size(rr_can_interface_t *iface)'
+  extern 'emcy_log_entry_t *rr_emcy_log_pop(rr_can_interface_t *iface)'
+  extern 'void rr_emcy_log_clear(rr_can_interface_t *iface)'
   extern 'rr_can_interface_t *rr_init_interface(char *interface_name)'
   extern 'rr_ret_status_t rr_deinit_interface(rr_can_interface_t **interface)'
   extern 'rr_servo_t *rr_init_servo(rr_can_interface_t *interface, uint8_t id)'
@@ -114,13 +119,15 @@ module RRServoModule
   extern 'rr_ret_status_t rr_servo_set_state_operational(rr_servo_t *servo)'
   extern 'rr_ret_status_t rr_servo_set_state_pre_operational(rr_servo_t *servo)'
   extern 'rr_ret_status_t rr_servo_set_state_stopped(rr_servo_t *servo)'
+  extern 'rr_ret_status_t rr_servo_get_state(rr_servo_t *servo, rr_nmt_state_t *state)'
+  extern 'rr_ret_status_t rr_servo_get_hb_stat(rr_servo_t *servo, int64_t *min_hb_ival, int64_t *max_hb_ival)'
+  extern 'rr_ret_status_t rr_servo_clear_hb_stat(rr_servo_t *servo)'
   extern 'rr_ret_status_t rr_net_reboot(rr_can_interface_t *interface)'
   extern 'rr_ret_status_t rr_net_reset_communication(rr_can_interface_t *interface)'
   extern 'rr_ret_status_t rr_net_set_state_operational(rr_can_interface_t *interface)'
   extern 'rr_ret_status_t rr_net_set_state_pre_operational(rr_can_interface_t *interface)'
   extern 'rr_ret_status_t rr_net_set_state_stopped(rr_can_interface_t *interface)'
   extern 'rr_ret_status_t rr_net_get_state(rr_can_interface_t *interface, int id, rr_nmt_state_t *state)'
-  extern 'rr_ret_status_t rr_servo_get_state(rr_servo_t *servo, rr_nmt_state_t *state)'
   extern 'rr_ret_status_t rr_release(rr_servo_t *servo)'
   extern 'rr_ret_status_t rr_freeze(rr_servo_t *servo)'
   extern 'rr_ret_status_t rr_brake_engage(rr_servo_t *servo, bool en)'
@@ -129,7 +136,7 @@ module RRServoModule
   extern 'rr_ret_status_t rr_set_velocity_motor(rr_servo_t *servo, float velocity_rpm)'
   extern 'rr_ret_status_t rr_set_position(rr_servo_t *servo, float position_deg)'
   extern 'rr_ret_status_t rr_set_velocity_with_limits(rr_servo_t *servo, float velocity_deg_per_sec, float current_a)'
-  extern 'rr_ret_status_t rr_set_position_with_limits(rr_servo_t *servo, float position_deg, float velocity_deg_per_sec, float current_a)'
+  extern 'rr_ret_status_t rr_set_position_with_limits(rr_servo_t *servo, float position_deg, float velocity_deg_per_sec, float accel_deg_per_sec_sq, uint32_t *time_ms)'
   extern 'rr_ret_status_t rr_set_duty(rr_servo_t *servo, float duty_percent)'
   extern 'rr_ret_status_t rr_add_motion_point(rr_servo_t *servo, float position_deg, float velocity_deg, uint32_t time_ms)'
   extern 'rr_ret_status_t rr_add_motion_point_pvat( rr_servo_t *servo, float position_deg, float velocity_deg_per_sec, float accel_deg_per_sec2, uint32_t time_ms)'
@@ -148,9 +155,10 @@ module RRServoModule
   extern 'rr_ret_status_t rr_set_zero_position_and_save(rr_servo_t *servo, float position_deg)'
   extern 'rr_ret_status_t rr_get_max_velocity(rr_servo_t *servo, float *velocity_deg_per_sec)'
   extern 'rr_ret_status_t rr_set_max_velocity(rr_servo_t *servo, float max_velocity_deg_per_sec)'
-  extern 'rr_ret_status_t rr_change_id_and_save(rr_can_interface_t *interface, rr_servo_t *servo, uint8_t new_can_id)'
+  extern 'rr_ret_status_t rr_change_id_and_save(rr_can_interface_t *interface, rr_servo_t **servo, uint8_t new_can_id)'
   extern 'rr_ret_status_t rr_get_hardware_version(rr_servo_t *servo, char *version_string, int *version_string_size)'
   extern 'rr_ret_status_t rr_get_software_version(rr_servo_t *servo, char *version_string, int *version_string_size)'
+  extern 'bool rr_check_point(float velocity_limit_deg_per_sec, float *velocity_max_calc_deg_per_sec, float position_deg_start, float velocity_deg_per_sec_start, float position_deg_end, float velocity_deg_per_sec_end, uint32_t time_ms)'
 
   def self.build_methods(file_name)
     functions = []
