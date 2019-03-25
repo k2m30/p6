@@ -210,6 +210,7 @@ class Layer
           xml.circle(cx: @width / 8, cy: @width / 8, r: @width / 4, stroke: 'none', fill: 'darkred')
         end
 
+        xml.circle(cx: Config.start_point.x, cy: Config.start_point.y, r: @width, fill: 'red', opacity: 0.5, id: 'current')
         xml.circle(cx: Config.start_point.x, cy: Config.start_point.y, r: @width, fill: 'green', opacity: 0.5)
 
         xml.style do

@@ -2,8 +2,7 @@ Rails.application.routes.draw do
   root 'pages#main'
   get 'build', to: 'pages#build'
   get 'image', to: 'pages#image'
-  get 'position', to: 'robot#position'
-  get 'running', to: 'robot#running'
+  get 'state', to: 'robot#state'
   get 'trajectory', to: 'pages#trajectory'
 
   get 'settings', to: 'settings#index'

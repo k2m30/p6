@@ -14,17 +14,18 @@ function onRun() {
     $('#run').hide();
     $('#stop').show();
     $.post('run', {});
-    poll(1000);
+    poll(300);
 }
 
 function poll(interval) {
     setTimeout(function () {
         $.ajax({
-            url: "/running",
+            url: "/state",
             type: "GET",
             success: function (data) {
-                console.log(data);
-                if (data) {
+                // console.log(data);
+                if (data.running) {
+                    update_current_point(data);
                     poll(interval);
                 } else {
                     onStop();
@@ -34,6 +35,15 @@ function poll(interval) {
             timeout: 2000
         })
     }, interval);
+}
+
+function update_current_point(data) {
+    var p = $('#current')[0];
+
+    p.setAttribute("cx", data.x);
+    p.setAttribute("cy", data.y);
+    $("#x")[0].textContent = data.x.toFixed(2);
+    $("#y")[0].textContent = data.y.toFixed(2);
 }
 
 function onStop() {

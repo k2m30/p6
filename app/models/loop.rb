@@ -89,7 +89,7 @@ class Loop
         # data << [@left_motor.position, 0, Time.now - @zero_time]
         # data << [@left_motor.position, @right_motor.position, Time.now - @zero_time]
         # p [@left_motor.current, @right_motor.current]
-        @redis.set(:position, {left: @left_motor.position, right: @right_motor.position}.to_json)
+        @redis.set(:state, {left: @left_motor.position, right: @right_motor.position}.to_json)
       end
       puts 'Done. Stopped'
       @trajectory = 0

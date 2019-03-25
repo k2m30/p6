@@ -13,8 +13,12 @@ class RobotController < ApplicationController
     head(:ok)
   end
 
-  def position
-    render json: Redis.new.get(:position)
+  def state
+    redis = Redis.new
+    state = JSON[redis.get(:state), symbolize_names: true]
+    pd = Math::PI * Config.motor_pulley_diameter / 360.0
+    point = Point.new(state[:left] * pd , state[:right] * pd).to_decart(Config.canvas_size_x, Config.dm, Config.dy)
+    render json: state.merge(x: point&.x, y: point&.y, running: redis.get('running') || false)
   end
 
   def run
