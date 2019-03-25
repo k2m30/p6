@@ -47,8 +47,8 @@ class Loop
     @left_motor.go_to(pos: left_point, max_velocity: Config.max_angular_velocity, acceleration: Config.max_angular_acceleration)
     @right_motor.go_to(pos: right_point, max_velocity: Config.max_angular_velocity, acceleration: Config.max_angular_acceleration)
 
-    @left_motor.add_motion_point(left_point, 0, 1000)
-    @right_motor.add_motion_point(right_point, 0, 1000)
+    @left_motor.add_motion_point(left_point, 0, 0, 1000)
+    @right_motor.add_motion_point(right_point, 0, 0, 1000)
 
     @servo_interface.start_motion
 
@@ -149,4 +149,4 @@ class Loop
   end
 end
 
-# Loop.new
+Loop.new if Rails.env.production?
