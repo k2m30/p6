@@ -25,3 +25,4 @@ app/models/*.svg
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 /app/models/rr_servo_library.so
+*.rdb
