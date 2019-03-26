@@ -100,7 +100,7 @@ class Plot
       position_left.size.times do |i|
         xx = position_left[i] * Math::PI * diameter / 360.0
         yy = position_right[i] * Math::PI * diameter / 360.0
-        point = Point.new(xx, yy)#.to_decart(width, dm, dy)
+        point = Point.new(xx, yy).to_decart(width, dm, dy)
         x << point.x
         y << height - point.y
       end
@@ -146,26 +146,5 @@ class Plot
     end
     `open -a Safari #{path}`
   end
-
-
-  def self.customer
-    left_motor_points = [
-        PVAT.new(360.0, 0, 0.0, 0),
-        PVAT.new(360.0, 101.0, 0.0, 1000),
-        PVAT.new(360.0, 101.0, 0.0, 10000),
-        PVAT.new(360.0, 0.0, 0.0, 1000),
-    ]
-
-    right_motor_points = [
-        PVAT.new(0, 0, 0.0, 0),
-        PVAT.new(360.0, 100.0, 0.0, 1000),
-        PVAT.new(720.0, 100.0, 0.0, 10000),
-        PVAT.new(1080.0, 0.0, 0.0, 1000),
-    ]
-
-    t = Trajectory.new(left_motor_points, right_motor_points, 190)
-    Plot.trajectory(n: 190, trajectory: JSON.parse(t.to_json))
-  end
-
 
 end

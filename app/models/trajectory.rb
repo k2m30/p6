@@ -180,8 +180,8 @@ class Trajectory
 
     data[1..-1].each do |r|
       dt = (r.dt * 1000)
-      left_motor_points.push PVAT.new(r.left_deg, r.v_left, r.a_left, dt)
-      right_motor_points.push PVAT.new(r.right_deg, r.v_right, r.a_right, dt)
+      left_motor_points.push PVAT.new(r.left_deg, r.v_left, r.a_left, dt, true)
+      right_motor_points.push PVAT.new(r.right_deg, r.v_right, r.a_right, dt, true)
     end
 
     Trajectory.new left_motor_points, right_motor_points, id
@@ -190,8 +190,8 @@ class Trajectory
   def self.from_json(json)
     left_motor_points = []
     right_motor_points = []
-    json['left_motor_points'].each {|e| left_motor_points.push PVAT.new(e['p'], e['v'], e['a'], e['t'])}
-    json['right_motor_points'].each {|e| right_motor_points.push PVAT.new(e['p'], e['v'], e['a'], e['t'])}
+    json['left_motor_points'].each {|e| left_motor_points.push PVAT.new(e['p'], e['v'], e['a'], e['t'], e['paint'])}
+    json['right_motor_points'].each {|e| right_motor_points.push PVAT.new(e['p'], e['v'], e['a'], e['t'], e['paint'])}
     Trajectory.new(left_motor_points, right_motor_points, json['id'])
   end
 
