@@ -24,8 +24,8 @@ function poll(interval) {
             type: "GET",
             success: function (data) {
                 // console.log(data);
+                update_current_point(data);
                 if (data.running) {
-                    update_current_point(data);
                     poll(interval);
                 } else {
                     onStop();
