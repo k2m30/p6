@@ -210,8 +210,7 @@ class Layer
           xml.circle(cx: @width / 8, cy: @width / 8, r: @width / 4, stroke: 'none', fill: 'darkred')
         end
 
-        xml.circle(cx: Config.start_point.x, cy: Config.start_point.y, r: @width, fill: 'red', opacity: 0.5, id: 'current')
-        xml.circle(cx: Config.start_point.x, cy: Config.start_point.y, r: @width, fill: 'green', opacity: 0.5)
+        xml.circle(cx: Config.start_point.x, cy: Config.start_point.y, r: @width, fill: 'green', opacity: 0.4)
 
         xml.style do
           xml.text ".d {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 1.0}\n"
@@ -229,6 +228,8 @@ class Layer
             xml.path(d: path.d, id: "path_#{i}", class: 'd', onclick: "window.open('/trajectory?id=#{i}')")
           end
         end
+
+        xml.circle(cx: Config.start_point.x, cy: Config.start_point.y, r: @width, fill: 'red', opacity: 1, id: 'current')
 
         # xml.g(id: :splitted, color: @color, width: @width, style: @splitted_paths.empty? ? display_none : '') do
         #   @splitted_paths.each_with_index do |spath, i|

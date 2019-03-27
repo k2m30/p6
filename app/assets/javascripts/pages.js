@@ -105,4 +105,5 @@ $(function () {
         $('#move_to_' + i)[0].classList.add('invisible');
     }
     update_start_point(start_from);
+    poll(1000);
 });

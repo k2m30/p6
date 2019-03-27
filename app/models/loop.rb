@@ -26,6 +26,7 @@ class Loop
     @right_motor = initialize_motor(RIGHT_MOTOR_ID)
     @left_motor.clear_points_queue
     @right_motor.clear_points_queue
+    @redis.set(:state, {left: @left_motor.position, right: @right_motor.position}.to_json)
     run
   rescue => e
     puts e.message
