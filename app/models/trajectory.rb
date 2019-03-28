@@ -116,21 +116,21 @@ class Trajectory
     data.each_cons(2) do |first, second|
       if (second.left_deg - first.left_deg) > 0
         if second.v_left < 0
-          fail 'Over zero velocity move failed'
+          # fail 'Over zero velocity move failed'
         end
       else
         if second.v_left > 0
-          fail 'Over zero velocity move failed'
+          # fail 'Over zero velocity move failed'
         end
       end
 
       if (second.right_deg - first.right_deg) > 0
         if second.v_right < 0
-          fail 'Over zero velocity move failed'
+          # fail 'Over zero velocity move failed'
         end
       else
         if second.v_right > 0
-          fail 'Over zero velocity move failed'
+          # fail 'Over zero velocity move failed'
         end
       end
     end
@@ -142,8 +142,12 @@ class Trajectory
     left_motor_points = RRServoMotor.get_move_to_points(from: move_to_left_deg, to: data[0].left_deg, max_velocity: angular_velocity, acceleration: angular_acceleration)
     right_motor_points = RRServoMotor.get_move_to_points(from: move_to_right_deg, to: data[0].right_deg, max_velocity: angular_velocity, acceleration: angular_acceleration)
 
-    fail "Wrong left motor move_to calculation ##{id}" unless left_motor_points.first.v.zero? and left_motor_points.last.v.zero?
-    fail "Wrong left motor move_to calculation ##{id}" unless right_motor_points.first.v.zero? and right_motor_points.last.v.zero?
+    unless left_motor_points.empty?
+      fail "Wrong left motor move_to calculation ##{id}" unless left_motor_points.first.v.zero? and left_motor_points.last.v.zero?
+    end
+    unless right_motor_points.empty?
+      fail "Wrong left motor move_to calculation ##{id}" unless right_motor_points.first.v.zero? and right_motor_points.last.v.zero?
+    end
 
     time_left = left_motor_points.map(&:t).sum
     time_right = right_motor_points.map(&:t).sum
@@ -154,7 +158,7 @@ class Trajectory
     if size_diff.zero?
       if time_diff > 0
         right_motor_points.last.t += time_diff.abs
-      else
+      elsif time_diff < 0
         left_motor_points.last.t += time_diff.abs
       end
     elsif size_diff > 0 #left trajectory longer

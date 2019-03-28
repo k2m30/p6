@@ -1,6 +1,6 @@
 require "minitest/autorun"
 
-class TestMeme < Minitest::Test
+class TestBuild < Minitest::Test
   def setup
   end
 
