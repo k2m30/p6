@@ -21,7 +21,7 @@ def do_it
       element.map!(&:to_f)
       left_belt = element[0] * Math::PI * diameter / 360.0
       right_belt = element[1] * Math::PI * diameter / 360.0
-      point = Point.new(left_belt, right_belt).to_decart
+      point = Point.new(left_belt, right_belt).to_decart(width, dm, dy)
       points_str << "#{point.x},#{point.y} "
     rescue => e
       p e.message

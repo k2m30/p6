@@ -15,15 +15,15 @@ class Point
     to_s
   end
 
-  def inverse(width = Config.canvas_size_x, dm = Config.dm, dy = Config.dy)
-    lx = Math.sqrt((x - dm / 2) ** 2 + (y - dy) ** 2)
-    ly = Math.sqrt((width - x - dm / 2) ** 2 + (y - dy) ** 2)
+  def inverse(width, dm, dy)
+    lx = Math.sqrt((x - dm / 2.0) ** 2 + (y - dy) ** 2)
+    ly = Math.sqrt((width - x - dm / 2.0) ** 2 + (y - dy) ** 2)
     Point.new lx, ly
   end
 
-  def to_decart(width = Config.canvas_size_x, dm = Config.dm, dy = Config.dy)
-    mx = (@x ** 2 - @y ** 2 + (width - dm) ** 2) / 2 / (width - dm)
-    xx = mx + dm / 2
+  def to_decart(width, dm, dy)
+    mx = (@x ** 2 - @y ** 2 + (width - dm) ** 2) / 2.0 / (width - dm)
+    xx = mx + dm / 2.0
     yy = Math.sqrt(@x ** 2 - mx ** 2) + dy
 
     Point.new xx, yy

@@ -67,7 +67,7 @@ class VelocitySpline
 
   def time_at(s:)
     return 0 if s.zero?
-    return 2 * @t1 + @t2 if s == 2 * @l1 + @l2
+    return 2 * @t1 + @t2 if s >= 2 * @l1 + @l2 and (s - (2 * @l1 + @l2)) < 0.00001
     fail 'S cannot be less than zero' if s < 0
 
     if s <= @l1

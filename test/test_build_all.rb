@@ -2,6 +2,7 @@ require "minitest/autorun"
 
 class TestBuild < Minitest::Test
   def setup
+    Redis.new.flushall
   end
 
   def test_builds_risovaka

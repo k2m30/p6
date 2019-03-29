@@ -78,7 +78,7 @@ class Layer
     width = Config.canvas_size_x
     dm = Config.dm
     dy = Config.dy
-    initial_point = Point.new(Config.initial_x, Config.initial_y).to_decart
+    initial_point = Point.new(Config.initial_x, Config.initial_y).to_decart(width, dm, dy)
     layer.paths.first.elements.first.start_point = initial_point
     # layer.paths[Config.start_from].elements.first.start_point = initial_point
 

@@ -64,11 +64,7 @@ class Trajectory
       r.right_deg = 360.0 * r.right_mm / (Math::PI * diameter)
       r.l = prev_r.l + r.dl
 
-      begin
-        r.t = velocity_spline.time_at(s: r.l)
-      rescue => e
-        p ''
-      end
+      r.t = velocity_spline.time_at(s: r.l)
       r.linear_velocity = velocity_spline.v(t: r.t)
 
       r.dt = r.t - prev_r.t
