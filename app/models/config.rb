@@ -203,11 +203,11 @@ class Config
     end
 
     def start_point
-      Point.new(initial_x, initial_y).to_decart(canvas_size_x, dm, dy)
+      Point.new(initial_x, initial_y).to_decart
     end
 
     def keys
-      YAML.load(File.open(file_name)).keep_if{|k,v| v['hidden'].nil?}.keys
+      YAML.load(File.open(file_name)).keep_if{|_,v| v['hidden'].nil?}.keys
     end
 
     def description(name)

@@ -74,6 +74,7 @@ class Loop
     loop do
       loop {break unless @redis.get('running').nil?}
 
+      @trajectory = Config.start_from.to_i
       move_to_initial_point
 
       loop do
@@ -94,6 +95,7 @@ class Loop
       end
       puts 'Done. Stopped'
       @trajectory = 0
+      @redis.set(:current_trajectory, 0)
       @trajectory_point_index = 1
       @zero_time = Time.now # Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
@@ -122,6 +124,7 @@ class Loop
       else
         @trajectory_point_index = 1
         @trajectory += 1
+        @redis.incr(:current_trajectory)
         puts @trajectory
       end
 
@@ -131,6 +134,7 @@ class Loop
       puts @left_motor.get_errors
       puts "trajectory: #{@trajectory}"
       puts "trajectory point: #{@trajectory_point_index}"
+      @redis.set(:current_trajectory, 0)
       pp [{'prev_left': PVAT.from_json(path['left_motor_points'][@trajectory_point_index - 1]), next_left: next_left_point}]
       # pp [{'prev_right': PVAT.from_json(path['right_motor_points'][@trajectory_point_index - 1]), next_left: next_right_point}]
 

@@ -93,14 +93,12 @@ class Plot
       y = []
       diameter = Config.motor_pulley_diameter
       width = Config.canvas_size_x
-      dm = Config.dm
-      dy = Config.dy
       height = Config.canvas_size_y
 
       position_left.size.times do |i|
         xx = position_left[i] * Math::PI * diameter / 360.0
         yy = position_right[i] * Math::PI * diameter / 360.0
-        point = Point.new(xx, yy).to_decart(width, dm, dy)
+        point = Point.new(xx, yy).to_decart
         x << point.x
         y << height - point.y
       end

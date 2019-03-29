@@ -27,3 +27,4 @@ app/models/*.svg
 /app/models/rr_servo_library.so
 *.rdb
 config/credentials.yml.enc
+*.cr

@@ -29,7 +29,7 @@ class PagesController < ApplicationController
   end
 
   def trajectory
-    timestamp = Time.now.to_i
+    timestamp = Time.now.to_f
     file_name = Rails.root.join('tmp', "#{file_name}_#{params[:id]}_#{timestamp}.html")
     Plot.trajectory n: params[:id], file_name: file_name
     render file: file_name, layout: nil

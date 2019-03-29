@@ -78,8 +78,9 @@ class Layer
     width = Config.canvas_size_x
     dm = Config.dm
     dy = Config.dy
-    initial_point = Point.new(Config.initial_x, Config.initial_y).to_decart(width, dm, dy)
+    initial_point = Point.new(Config.initial_x, Config.initial_y).to_decart
     layer.paths.first.elements.first.start_point = initial_point
+    # layer.paths[Config.start_from].elements.first.start_point = initial_point
 
     unless layer.paths.first.start_point == layer.paths.last.end_point
       layer.paths << Path.new([MoveTo.new([layer.paths.last.end_point, initial_point])])

@@ -1,6 +1,6 @@
 ---
 linear_velocity:
-  value: 230.0
+  value: 250.0
   description: линейная скорость окраски, мм/с, g01
 idling_velocity:
   value: 400.0
@@ -77,6 +77,6 @@ image_name:
   description: имя файла
   hidden: true
 version:
-  value: 1.0
+  value: 0.0
   description: версия данных в кэше
   hidden: true

@@ -64,7 +64,11 @@ class Trajectory
       r.right_deg = 360.0 * r.right_mm / (Math::PI * diameter)
       r.l = prev_r.l + r.dl
 
-      r.t = velocity_spline.time_at(s: r.l)
+      begin
+        r.t = velocity_spline.time_at(s: r.l)
+      rescue => e
+        p ''
+      end
       r.linear_velocity = velocity_spline.v(t: r.t)
 
       r.dt = r.t - prev_r.t
@@ -181,8 +185,8 @@ class Trajectory
 
     fail "Trajectories time is different ##{id}" unless time_left.truncate(4) == time_right.truncate(4)
 
-
-    data[1..-1].each do |r|
+    start_index = (left_motor_points.empty? and right_motor_points.empty?) ? 0 : 1
+    data[start_index..-1].each do |r|
       dt = (r.dt * 1000)
       left_motor_points.push PVAT.new(r.left_deg, r.v_left, r.a_left, dt, true)
       right_motor_points.push PVAT.new(r.right_deg, r.v_right, r.a_right, dt, true)

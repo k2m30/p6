@@ -13,6 +13,7 @@ function onAccelerationChange(layer) {
 function onRun() {
     $('#run').hide();
     $('#stop').show();
+    $('#start-from-block').hide();
     $.post('run', {});
     poll(300);
 }
@@ -42,13 +43,14 @@ function update_current_point(data) {
 
     p.setAttribute("cx", data.x);
     p.setAttribute("cy", data.y);
-    $("#x")[0].textContent = data.x.toFixed(2);
-    $("#y")[0].textContent = data.y.toFixed(2);
+    $("#x")[0].textContent = data.x.toFixed(0);
+    $("#y")[0].textContent = data.y.toFixed(0);
 }
 
 function onStop() {
     $('#run').show();
     $('#stop').hide();
+    $('#start-from-block').show();
     $.post('stop', {});
 }
 
@@ -77,7 +79,7 @@ function update_start_point(data) {
 }
 
 function update_trajectory(url) {
-    var trajectories_count = $('path.s').length;
+    var trajectories_count = $('path.d').length;
     var start_from = parseInt($('#start-from')[0].text);
     // console.log(start_from);
     if (start_from < trajectories_count) {
