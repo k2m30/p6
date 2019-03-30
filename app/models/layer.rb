@@ -109,7 +109,11 @@ class Layer
       end
     }
     Config.cleanup
-    layer.build_trajectories
+
+    puts "\nBuild trajectories:"
+    puts Benchmark.ms {
+      layer.build_trajectories
+    }
 
     fail if layer.paths.size != layer.splitted_paths.size or layer.tpaths.size != layer.trajectories.size or layer.splitted_paths.size != layer.tpaths.size
     layer.to_redis
@@ -145,15 +149,15 @@ class Layer
     redis = Redis.new
     prefix = Config.version + 1
     Rack::MiniProfiler.step('build trajectories') do
-      puts "\nBuild trajectories"
       @trajectories = []
       id = 0
       @splitted_paths.zip @tpaths do |spath, tpath|
-        puts Benchmark.ms {
+        time = Benchmark.ms {
           t = Trajectory.build(spath, tpath, id)
           @trajectories.push t
           redis.set "#{prefix}_#{t.id}", t.to_json
         }.to_s << ' #' << id.to_s
+        puts time if Rails.env.development?
         id += 1
       end
 

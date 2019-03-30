@@ -2,6 +2,7 @@ require "minitest/autorun"
 
 class TestBuild < Minitest::Test
   def setup
+    puts '____________________________________________________________________________'
     Redis.new.flushall
   end
 
@@ -12,13 +13,9 @@ class TestBuild < Minitest::Test
     @image.get_layer_names
     @image.layers.keys.each do |name|
       p 'Layer name: ' + name
-      p '---------------'
-
       @image.get_layer(name)
       Layer.build(name)
-
-      p name + ' tested'
-      p '---------------'
+      puts '____________________________________________________________________________'
     end
   end
 
@@ -29,13 +26,9 @@ class TestBuild < Minitest::Test
     @image.get_layer_names
     @image.layers.keys.each do |name|
       p 'Layer name: ' + name
-      p '---------------'
-
       @image.get_layer(name)
       Layer.build(name)
-
-      p name + ' tested'
-      p '---------------'
+      puts '____________________________________________________________________________'
     end
   end
 

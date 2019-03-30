@@ -2,10 +2,17 @@ require "minitest/benchmark"
 
 class TestLayerBuild < Minitest::Benchmark
   def setup
+    puts '____________________________________________________________________________'
+    Redis.new.flushall
+    file_name = 'risovaka007_003.svg'
+    name = 'yellow_('
+    path = Rails.root.join('public')
+    @image = SVG.new(file_name, path)
+    @image.get_layer(name)
     @proc = Proc.new do |max_segment_length|
       old_segment_length = Config.max_segment_length
       Config.max_segment_length = max_segment_length
-      Layer.build('yellow_(')
+      Layer.build(name)
       Config.max_segment_length = old_segment_length
     end
   end
