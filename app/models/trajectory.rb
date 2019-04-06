@@ -227,4 +227,17 @@ class Trajectory
       # end
     end
   end
+
+  def self.next
+    (Config.start_from += 1).to_i
+  end
+
+  def self.prev
+    start_from = Config.start_from.to_i
+    if start_from > 0
+      start_from -= 1
+      Config.start_from -= 1
+    end
+    start_from
+  end
 end

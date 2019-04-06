@@ -98,8 +98,6 @@ class Layer
         layer.splitted_paths << path.split(dl)
       end
     }
-    # puts "\nAdding key points:"
-    # puts Benchmark.ms {layer.add_key_points}
 
     puts "\nMake tpaths:"
     puts Benchmark.ms {
@@ -118,31 +116,6 @@ class Layer
     fail if layer.paths.size != layer.splitted_paths.size or layer.tpaths.size != layer.trajectories.size or layer.splitted_paths.size != layer.tpaths.size
     layer.to_redis
     layer
-  end
-
-  def add_key_points
-    max_linear_velocity = Config.linear_velocity
-    linear_acceleration = Config.linear_acceleration
-
-    @splitted_paths.each do |path|
-
-      l = path.length
-      t1 = max_linear_velocity / linear_acceleration
-      l1 = linear_acceleration * t1 ** 2 / 2
-
-
-      l2 = l - 2 * l1
-      if l2 <= 0
-        l1 = l / 2
-        l2 = 0
-      end
-
-      path.add_key_point(l1)
-      unless l2.zero?
-        path.add_key_point(l1 + l2)
-      end
-    end
-
   end
 
   def build_trajectories

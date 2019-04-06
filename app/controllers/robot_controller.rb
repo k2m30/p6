@@ -27,16 +27,11 @@ class RobotController < ApplicationController
   end
 
   def next_trajectory
-    render plain: (Config.start_from += 1).to_i
+    render plain: Trajectory.next
   end
 
   def prev_trajectory
-    start_from = Config.start_from.to_i
-    if start_from > 0
-      start_from -= 1
-      Config.start_from -= 1
-    end
-    render plain: start_from
+    render plain: Trajectory.prev
   end
 
   def running
