@@ -191,6 +191,14 @@ class Trajectory
     Trajectory.new left_motor_points, right_motor_points, id
   end
 
+  def self.get(id)
+    from_json JSON(Redis.new.get("#{Config.version}_#{id}"))
+  end
+
+  def empty?
+    @left_motor_points.empty? and @right_motor_points.empty?
+  end
+
   def self.from_json(json)
     left_motor_points = []
     right_motor_points = []

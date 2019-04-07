@@ -70,15 +70,15 @@ class Layer
     end
   end
 
-  def self.build(layer_raw)
-    layer = from_redis layer_raw
+  def self.build(name)
+    layer = from_redis name
     return layer if layer.paths.empty?
     layer.optimize_paths
 
     width = Config.canvas_size_x
     dm = Config.dm
     dy = Config.dy
-    initial_point = Point.new(Config.initial_x, Config.initial_y).to_decart(width, dm, dy)
+    initial_point = Point.new(Config.initial_x, Config.initial_y).to_decart
     layer.paths.first.elements.first.start_point = initial_point
     # layer.paths[Config.start_from].elements.first.start_point = initial_point
 
@@ -121,13 +121,24 @@ class Layer
   def build_trajectories
     redis = Redis.new
     prefix = Config.version + 1
+    start_from = Config.start_from.to_i
     Rack::MiniProfiler.step('build trajectories') do
-      @trajectories = []
+      self.trajectories = []
       id = 0
       @splitted_paths.zip @tpaths do |spath, tpath|
         time = Benchmark.ms {
-          t = Trajectory.build(spath, tpath, id)
-          @trajectories.push t
+          if start_from == id
+            point = Point.new(Config.initial_x, Config.initial_y)
+            spath.elements.first.start_point = point.to_decart
+            tpath.elements.first.start_point = point
+          end
+
+          t = if id < start_from
+                Trajectory.new([], [], id)
+              else
+                Trajectory.build(spath, tpath, id)
+              end
+          self.trajectories.push t
           redis.set "#{prefix}_#{t.id}", t.to_json
         }.to_s << ' #' << id.to_s
         puts time if Rails.env.development?
@@ -136,8 +147,7 @@ class Layer
 
       redis.del "#{prefix}_#{@trajectories.size}"
       Config.version += 1
-      Config.start_from = 0
-
+      # Config.start_from = 0
     end
   end
 
