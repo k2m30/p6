@@ -62,7 +62,7 @@ class PrevNext < Minitest::Test
     assert t2_after.left_motor_points.first.p == 360.0 * Config.initial_x / (Math::PI * Config.motor_pulley_diameter)
     assert t2_after.right_motor_points.first.p == 360.0 * Config.initial_y / (Math::PI * Config.motor_pulley_diameter)
 
-    assert t2_before.left_motor_points != t2_after.left_motor_points and t2_before.right_motor_points != t2_after.right_motor_points
+    assert t2_before.left_motor_points[1..-1] != t2_after.left_motor_points[1..-1] and t2_before.right_motor_points[1..-1] != t2_after.right_motor_points[1..-1]
   ensure
     Config.start_from = 0
 
