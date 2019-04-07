@@ -33,6 +33,15 @@ class PrevNext < Minitest::Test
     assert(!t1_before.empty?)
     assert(!t2_before.empty?)
 
+    assert t0_before.left_motor_points.first.p == 360.0 * Config.initial_x / (Math::PI * Config.motor_pulley_diameter)
+    assert t0_before.right_motor_points.first.p == 360.0 * Config.initial_y / (Math::PI * Config.motor_pulley_diameter)
+
+    assert t1_before.left_motor_points.first.p != 360.0 * Config.initial_x / (Math::PI * Config.motor_pulley_diameter)
+    assert t1_before.right_motor_points.first.p != 360.0 * Config.initial_y / (Math::PI * Config.motor_pulley_diameter)
+
+    assert t2_before.left_motor_points.first.p != 360.0 * Config.initial_x / (Math::PI * Config.motor_pulley_diameter)
+    assert t2_before.right_motor_points.first.p != 360.0 * Config.initial_y / (Math::PI * Config.motor_pulley_diameter)
+
     Trajectory.next
 
     assert Config.start_from - start_from == 1, 'Start_form must be changed after next action'
@@ -53,6 +62,7 @@ class PrevNext < Minitest::Test
     assert t2_after.left_motor_points.first.p == 360.0 * Config.initial_x / (Math::PI * Config.motor_pulley_diameter)
     assert t2_after.right_motor_points.first.p == 360.0 * Config.initial_y / (Math::PI * Config.motor_pulley_diameter)
 
+    assert t2_before.left_motor_points != t2_after.left_motor_points and t2_before.right_motor_points != t2_after.right_motor_points
   ensure
     Config.start_from = 0
 
