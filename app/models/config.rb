@@ -4,6 +4,10 @@ require_relative 'point'
 class Config
   class << self
 
+    def redis
+      @redis ||= Redis.new
+    end
+
     def linear_velocity
       get_value('linear_velocity')
     end
@@ -207,7 +211,7 @@ class Config
     end
 
     def keys
-      YAML.load(File.open(file_name)).keep_if{|_,v| v['hidden'].nil?}.keys
+      YAML.load(File.open(file_name)).keep_if {|_, v| v['hidden'].nil?}.keys
     end
 
     def description(name)
@@ -232,23 +236,22 @@ class Config
 
     def set_value(name, value)
       value = Float(value) rescue value
-      Redis.new.set name, value
+      redis.set name, value
       hash = YAML.load_file(file_name)
       hash[name]['value'] = value
       File.write(file_name, hash.to_yaml)
     end
 
     def get_value(name)
-      value = Redis.new.get(name)
+      value = redis.get(name)
       if value.nil?
         value = YAML::load_file(file_name)[name]['value']
-        Redis.new.set name, value
+        redis.set name, value
       end
       Float(value) rescue value
     end
 
     def cleanup
-      redis = Redis.new
       self.version.to_i.downto 0 do |i|
         j = 0
         begin

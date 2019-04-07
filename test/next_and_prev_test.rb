@@ -4,6 +4,7 @@ class PrevNext < Minitest::Test
   def setup
     puts '____________________________________________________________________________'
     Redis.new.flushall
+    Config.start_from = 0
     file_name = 'risovaka007_003.svg'
     path = Rails.root.join('public')
     @image = SVG.new(file_name, path)
@@ -48,13 +49,6 @@ class PrevNext < Minitest::Test
     assert(t0_after.empty?)
     assert(t1_after.empty?)
     assert(!t2_after.empty?)
-
-    p 'xx'
-    point = Point.new(Config.initial_x, Config.initial_y)
-    p t2_after.left_motor_points.first.p
-    p Config.initial_x
-    p point
-    p 'xx'
 
     assert t2_after.left_motor_points.first.p == 360.0 * Config.initial_x / (Math::PI * Config.motor_pulley_diameter)
     assert t2_after.right_motor_points.first.p == 360.0 * Config.initial_y / (Math::PI * Config.motor_pulley_diameter)

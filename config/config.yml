@@ -77,6 +77,6 @@ image_name:
   description: имя файла
   hidden: true
 version:
-  value: 0.0
+  value: 1.0
   description: версия данных в кэше
   hidden: true
