@@ -72,7 +72,7 @@ typedef enum
 
 /**
  * @brief Device parameter and source indices
- *
+ * 
  */
 typedef enum
 {
@@ -139,10 +139,10 @@ typedef enum
 
 /**
  * @brief Network management (NMT) states
- *
- * @image html "nmt_states.png"
- * @image latex "nmt_states.png"
- *
+ * 
+ * @image html "nmt_states.png" 
+ * @image latex "nmt_states.png" 
+ * 
  */
 typedef enum
 {
@@ -156,7 +156,7 @@ typedef enum
 
 /**
  * @brief Device information source instance
- *
+ * 
  */
 typedef struct
 {
@@ -178,7 +178,7 @@ typedef struct
 
 /**
  * @brief Device instance structure
- *
+ * 
  */
 typedef struct
 {
@@ -188,7 +188,7 @@ typedef struct
 
 /**
  * @brief Interface instance structure
- *
+ * 
  */
 typedef struct
 {
@@ -209,7 +209,7 @@ typedef struct
  * @param interface Descriptor of the interface (see ::rr_init_interface) where the NMT event occured
  * @param servo_id Descriptor of the servo (see ::rr_init_servo) where the NMT event occured
  * @param nmt_state Network management state (::rr_nmt_state_t) that the servo entered
- *
+ * 
  */
 typedef void (*rr_nmt_cb_t)(rr_can_interface_t *interface, int servo_id, rr_nmt_state_t nmt_state);
 
@@ -284,12 +284,12 @@ rr_ret_status_t rr_set_duty(const rr_servo_t *servo, float duty_percent);
 
 rr_ret_status_t rr_add_motion_point(const rr_servo_t *servo, const float position_deg, const float velocity_deg, const uint32_t time_ms);
 rr_ret_status_t rr_add_motion_point_pvat(
-    const rr_servo_t *servo,
-    const float position_deg,
-    const float velocity_deg_per_sec,
-    const float accel_deg_per_sec2,
+    const rr_servo_t *servo, 
+    const float position_deg, 
+    const float velocity_deg_per_sec, 
+    const float accel_deg_per_sec2, 
     const uint32_t time_ms);
-
+    
 rr_ret_status_t rr_start_motion(rr_can_interface_t *interface, uint32_t timestamp_ms);
 
 rr_ret_status_t rr_read_error_status(const rr_servo_t *servo, uint32_t *const error_count, uint8_t *const error_array);
@@ -318,6 +318,8 @@ rr_ret_status_t rr_get_max_velocity(const rr_servo_t *servo, float *velocity_deg
 rr_ret_status_t rr_set_max_velocity(const rr_servo_t *servo, const float max_velocity_deg_per_sec);
 
 rr_ret_status_t rr_change_id_and_save(rr_can_interface_t *interface, rr_servo_t **servo, uint8_t new_can_id);
+
+rr_ret_status_t rr_clear_errors(const rr_servo_t *servo);
 
 rr_ret_status_t rr_get_hardware_version(const rr_servo_t *servo, char *version_string, int *version_string_size);
 rr_ret_status_t rr_get_software_version(const rr_servo_t *servo, char *version_string, int *version_string_size);
