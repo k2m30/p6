@@ -70,7 +70,6 @@ function update_svg(data) {
 }
 
 function update_start_point(data) {
-    console.log(data);
     first_point = $('path#path_' + data)[0].attributes['d'].value.split(/ [LC]/)[0];
     cx = first_point.split(',')[0].split('M')[1];
     cy = first_point.split(',')[1];
