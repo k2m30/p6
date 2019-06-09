@@ -23,13 +23,14 @@ end
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 # gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
-gem 'haml', '~> 5.0'
-gem 'haml-rails', '~> 1.0'
-gem 'bootstrap', '~> 4.3'
-gem 'jquery-rails', '~> 4.3'
+gem 'haml', '~> 5.0', require: false
+gem 'haml-rails', '~> 1.0', require: false
+gem 'bootstrap', '~> 4.3', require: false
+gem 'jquery-rails', '~> 4.3', require: false
 gem 'redis', '~> 4.0'
-gem 'rack-mini-profiler', '~> 1.0'
-gem 'numo-gnuplot'
+gem 'rack-mini-profiler', '~> 1.0'#, require: false
+gem 'numo-gnuplot', require: false
+
 group :test do
   gem 'minitest','~> 5.11'
   gem "minitest-rails"

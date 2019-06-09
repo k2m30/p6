@@ -1,10 +1,5 @@
 require 'test_helper'
 
-require "minitest/autorun"
-require 'minitest/reporters'
-
-MiniTest::Reporters.use!
-
 class BuildTest < Minitest::Test
   def setup
     puts '____________________________________________________________________________'

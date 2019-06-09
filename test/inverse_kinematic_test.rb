@@ -1,7 +1,4 @@
-require "minitest/autorun"
-require 'minitest/reporters'
-
-MiniTest::Reporters.use!
+require 'test_helper'
 
 class InverseKinematicTest < Minitest::Test
   N = 100000
