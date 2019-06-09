@@ -30,4 +30,9 @@ gem 'jquery-rails', '~> 4.3'
 gem 'redis', '~> 4.0'
 gem 'rack-mini-profiler', '~> 1.0'
 gem 'numo-gnuplot'
-gem 'minitest','~> 5.11'
+group :test do
+  gem 'minitest','~> 5.11'
+  gem "minitest-rails"
+  gem 'minitest-reporters'
+  gem 'simplecov'
+end

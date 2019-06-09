@@ -1,6 +1,7 @@
+
 require "minitest/autorun"
 
-class PrevNext < Minitest::Test
+class PrevNextTest < Minitest::Test
   def setup
     puts '____________________________________________________________________________'
     Redis.new.flushall

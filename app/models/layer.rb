@@ -42,9 +42,11 @@ class Layer
 
   def to_redis
     redis = Redis.new
-    @splitted_paths = []
-    @tpaths = []
-    @trajectories = []
+    unless Rails.env.test?
+      @splitted_paths = []
+      @tpaths = []
+      @trajectories = []
+    end
     json = to_json
     redis.set(@name, json)
   end
