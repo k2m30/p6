@@ -73,9 +73,9 @@ simulation_velocity:
   value: 1500.1
   description: скорость симуляции, mm/sec
 image_name:
-  value: risovaka007_003.svg
+  value: test.svg
   description: имя файла
-  hidden: true
+#  hidden: true
 version:
   value: 1.0
   description: версия данных в кэше
