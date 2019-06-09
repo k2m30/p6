@@ -92,28 +92,28 @@ class Layer
       path_next.elements.first.start_point = path_current.elements.last.end_point
     end
 
-    puts "\nSplit paths:"
-    puts Benchmark.ms {
+    # puts "\nSplit paths:"
+    # puts Benchmark.ms {
       dl = Config.max_segment_length
       layer.splitted_paths = []
       layer.paths.each do |path|
         layer.splitted_paths << path.split(dl)
       end
-    }
+    # }
 
-    puts "\nMake tpaths:"
-    puts Benchmark.ms {
+    # puts "\nMake tpaths:"
+    # puts Benchmark.ms {
       layer.tpaths = []
       layer.splitted_paths.each do |spath|
         layer.tpaths.push Path.make_tpath(spath, width, dm, dy)
       end
-    }
+    # }
     Config.cleanup
 
-    puts "\nBuild trajectories:"
-    puts Benchmark.ms {
+    # puts "\nBuild trajectories:"
+    # puts Benchmark.ms {
       layer.build_trajectories
-    }
+    # }
 
     fail if layer.paths.size != layer.splitted_paths.size or layer.tpaths.size != layer.trajectories.size or layer.splitted_paths.size != layer.tpaths.size
     layer.to_redis

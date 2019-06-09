@@ -75,7 +75,6 @@ simulation_velocity:
 image_name:
   value: risovaka007_003.svg
   description: имя файла
-#  hidden: true
 version:
   value: 1.0
   description: версия данных в кэше
