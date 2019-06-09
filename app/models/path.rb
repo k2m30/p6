@@ -86,6 +86,14 @@ class Path
     d
   end
 
+  def inspect
+    to_s
+  end
+
+  def ==(path)
+    self.d == path.d
+  end
+
   def length
     return @length unless @length.nil?
     @length = 0

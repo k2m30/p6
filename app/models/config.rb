@@ -272,8 +272,7 @@ class Config
 
     def pop
       keys.each do |key|
-        p key
-        eval "self.#{key}= #{redis.get("stack_#{key}")}"
+        eval "self.#{key}= \"#{redis.get("stack_#{key}")}\""
       end
     end
   end

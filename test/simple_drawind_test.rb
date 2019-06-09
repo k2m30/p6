@@ -14,6 +14,9 @@ class SimpleDrawingTest < Minitest::Test
     Config.dm = 20
     Config.dy = 10
     Config.max_segment_length = 2
+    Config.initial_x = Math.sqrt(30**2 + 20**2)
+    Config.initial_y = Math.sqrt(70**2 + 20**2)
+
 
     file_name = Config.image_name
     path = Rails.root.join("app", "assets", "images")
@@ -40,10 +43,15 @@ class SimpleDrawingTest < Minitest::Test
       @image.get_layer(name)
       layer = Layer.build(name)
 
+      pp layer.paths
+      p "----"
+      pp layer.splitted_paths
+      p "----"
+      pp layer.tpaths
+
     end
 
   ensure
-    p "popping"
     Config.pop
   end
 end
