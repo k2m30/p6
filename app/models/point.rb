@@ -36,4 +36,8 @@ class Point
   def ==(point)
     x == point.x and y == point.y
   end
+
+  def get_motors_deg(diameter = Config.motor_pulley_diameter)
+    [x * 360.0 / (diameter * Math::PI), y * 360.0 / (diameter * Math::PI)]
+  end
 end
