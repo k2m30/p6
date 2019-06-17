@@ -29,7 +29,7 @@ gem 'bootstrap', '~> 4.3', require: false
 gem 'jquery-rails', '~> 4.3', require: false
 gem 'redis', '~> 4.0'
 gem 'rack-mini-profiler', '~> 1.0'#, require: false
-gem 'numo-gnuplot', require: false
+gem 'numo-gnuplot'
 
 group :test do
   gem 'minitest','~> 5.11'

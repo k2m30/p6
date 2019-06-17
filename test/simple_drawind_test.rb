@@ -41,10 +41,18 @@ class SimpleDrawingTest < Minitest::Test
       check_splitted_paths
       check_tpaths
       check_trajectories
+      check_trajectories_in_browser
     end
 
   ensure
     Config.pop
+  end
+
+  def check_trajectories_in_browser
+    @layer.trajectories.each_index do |i|
+      file_name = Plot.trajectory(n: i)
+      `open -a Safari #{file_name}`
+    end
   end
 
   def check_trajectories

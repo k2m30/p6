@@ -69,12 +69,14 @@ class RRServoMotor
   end
 
   def go_to(pos:, max_velocity: 180.0, acceleration: 250.0, start_immediately: false)
-    RRServoMotor.get_move_to_points(
+    points = RRServoMotor.get_move_to_points(
         from: position, to: pos, max_velocity: max_velocity, acceleration: acceleration
-    )[1..-1].each do |point|
+    )
+    points[1..-1].each do |point|
       add_point(point)
     end
     @interface.start_motion if start_immediately
+    points.map(&:t).reduce(&:+)
   end
 
   def set_state_operational

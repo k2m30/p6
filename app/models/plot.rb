@@ -114,6 +114,7 @@ class Plot
       # plot [x[0..index - 1], y[0..index - 1], w: 'l', title: 'move-to'], [x[index + 1..-1], y[index + 1..-1], w: 'lp', pt: 7, pi: 1, ps: 0.2, title: 'paint']
       plot [x, y, w: 'l']
     end
+    file_name
   end
 
   def self.html(y:, x:, file_name: 'data.html')

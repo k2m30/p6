@@ -1,4 +1,5 @@
 require_relative 'array'
+require_relative 'pvat'
 
 class VelocitySpline
   attr_accessor :l1, :l2, :t1, :t2, :max_linear_velocity, :linear_acceleration
@@ -6,8 +7,8 @@ class VelocitySpline
   STEP = 0.1
 
   def initialize(length:, max_linear_velocity:, linear_acceleration:, t: nil)
-    @max_linear_velocity = max_linear_velocity
-    @linear_acceleration = linear_acceleration
+    @max_linear_velocity = max_linear_velocity.to_f
+    @linear_acceleration = linear_acceleration.to_f
     @t1 = @max_linear_velocity / @linear_acceleration
     @l1 = @linear_acceleration * @t1 ** 2 / 2
 
