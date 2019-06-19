@@ -40,4 +40,8 @@ class Point
   def get_motors_deg(diameter = Config.motor_pulley_diameter)
     [x * 360.0 / (diameter * Math::PI), y * 360.0 / (diameter * Math::PI)]
   end
+
+  def get_belts_length(diameter = Config.motor_pulley_diameter)
+    [x * (diameter * Math::PI) / 360.0, y * (diameter * Math::PI) / 360.0]
+  end
 end

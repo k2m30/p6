@@ -42,16 +42,52 @@ class SimpleDrawingTest < Minitest::Test
       check_tpaths
       check_trajectories
       check_trajectories_in_browser
+      check_linear_velocity
     end
 
   ensure
     Config.pop
   end
 
+  def check_linear_velocity
+    linear_velocities = []
+    # positions = [Point.new(Config.initial_x, Config.initial_y).to_decart]
+    positions = []
+    distances = []
+    dts = []
+    @layer.trajectories.each_with_index do |t, i|
+      positions[i] = []
+      dts[i] = []
+      t.left_motor_points.zip(t.right_motor_points) do |r, l|
+        positions[i] << Point.new(*Point.new(r.p, l.p).get_belts_length).to_decart
+        dts[i] << (r.t + l.t) / 2.0
+      end
+    end
+
+    positions.each_with_index do |trajectory_positions, i|
+      distances[i] = [0]
+      trajectory_positions.each_cons(2) do |prev, curr|
+        distances[i] << Point.distance(prev, curr)
+      end
+    end
+
+    distances.each_with_index do |trajectory_distance, i|
+      linear_velocities[i] = [0]
+      trajectory_distance.zip(dts[i])[1..-1].each do |distance, dt|
+        linear_velocities[i] << distance / dt
+      end
+    end
+
+    linear_velocities.each_with_index do |linear_velocity, i|
+      file_name = "linear_velocity_#{i}.html"
+      Plot.html(x: dts[i].cumsum, y: linear_velocity, file_name: file_name)
+    end
+  end
+
   def check_trajectories_in_browser
     @layer.trajectories.each_index do |i|
       file_name = Plot.trajectory(n: i)
-      `open -a Safari #{file_name}`
+      # `open -a Safari #{file_name}`
     end
   end
 
@@ -68,7 +104,8 @@ class SimpleDrawingTest < Minitest::Test
       points_left.zip(points_right).zip(tpath.elements).each do |points, te|
         assert(points == te.end_point.get_motors_deg(diameter), 'Trajectories calculations wrong')
       end
-
+      assert trajectory.left_motor_points.map(&:t).sum.round(6) == trajectory.right_motor_points.map(&:t).sum.round(6)
+      # assert trajectory.left_motor_points.map(&:t).map{|t| t.round(6)} == trajectory.right_motor_points.map(&:t).map{|t| t.round(6)}
     end
   end
 
