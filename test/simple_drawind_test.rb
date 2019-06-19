@@ -14,7 +14,7 @@ class SimpleDrawingTest < Minitest::Test
     Config.max_segment_length = 20
     Config.initial_x = Math.sqrt(300 ** 2 + 200 ** 2)
     Config.initial_y = Math.sqrt(700 ** 2 + 200 ** 2)
-    Config.motor_pulley_diameter = 100.0 / Math::PI # 100mm per one turn
+    # Config.motor_pulley_diameter = 100.0 / Math::PI # 100mm per one turn
 
 
     file_name = Config.image_name
@@ -87,7 +87,7 @@ class SimpleDrawingTest < Minitest::Test
   def check_trajectories_in_browser
     @layer.trajectories.each_index do |i|
       file_name = Plot.trajectory(n: i)
-      # `open -a Safari #{file_name}`
+      `open -a Safari #{file_name}`
     end
   end
 
