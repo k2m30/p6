@@ -1,5 +1,5 @@
 require 'csv'
-require 'array'
+require_relative 'array'
 
 class Trajectory
   attr_accessor :left_motor_points, :right_motor_points, :id
@@ -247,5 +247,10 @@ class Trajectory
       Config.start_from -= 1
     end
     start_from
+  end
+
+  def to_hash
+    {left_motor_points: @left_motor_points.map {|pvat| pvat.to_hash}, right_motor_points: @right_motor_points.map {|pvat| pvat.to_hash}, id: id}
+    # {'left_motor_points' => @left_motor_points.map{|pvat| pvat.to_hash}, 'right_motor_points' => @right_motor_points.map{|pvat| pvat.to_hash}, 'id' => id}
   end
 end

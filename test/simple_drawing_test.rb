@@ -41,7 +41,7 @@ class SimpleDrawingTest < Minitest::Test
       check_splitted_paths
       check_tpaths
       check_trajectories
-      check_trajectories_in_browser
+      # check_trajectories_in_browser
       check_linear_velocity
     end
 
@@ -80,7 +80,7 @@ class SimpleDrawingTest < Minitest::Test
 
     linear_velocities.each_with_index do |linear_velocity, i|
       file_name = "linear_velocity_#{i}.html"
-      Plot.html(x: dts[i].cumsum, y: linear_velocity, file_name: file_name)
+      # Plot.html(x: dts[i].cumsum, y: linear_velocity, file_name: file_name)
     end
   end
 

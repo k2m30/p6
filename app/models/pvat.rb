@@ -23,4 +23,12 @@ class PVAT
     new(json['p'], json['v'], json['a'], json['t'], json['paint'])
   end
 
+  def to_hash
+    {p: p, v: v, a: a, t: t, paint: paint}
+  end
+
+  def to_json
+    to_hash.to_json
+  end
+
 end

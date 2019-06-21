@@ -72,6 +72,9 @@ class RRServoMotor
     points = RRServoMotor.get_move_to_points(
         from: position, to: pos, max_velocity: max_velocity, acceleration: acceleration
     )
+    t = Trajectory.new(points[0..30], points[0..30], 100)
+    Plot.trajectory(trajectory: t, n: 100)
+
     points[1..-1].each do |point|
       add_point(point)
     end
@@ -82,6 +85,13 @@ class RRServoMotor
   def set_state_operational
     ret_code = RRServoModule.rr_servo_set_state_operational(@servo_handle)
     check_errors(ret_code)
+  end
+
+  def position=(position, velocity: 120, acceleration: 250)
+    value_ptr = Fiddle::Pointer.malloc(Fiddle::SIZEOF_INT)
+    ret_code = RRServoModule.rr_set_position_with_limits(@servo_handle, position, velocity, acceleration, value_ptr)
+    check_errors(ret_code)
+    value_ptr[0, Fiddle::SIZEOF_INT].unpack('C').first
   end
 
   def check_errors(ret_code)
