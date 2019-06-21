@@ -18,6 +18,7 @@ class Loop
   # RIGHT_MOTOR_ID = 32
   #
   NO_POINTS_IN_QUEUE_LEFT = 0
+  @log_data = []
 
   def initialize
     @redis = Redis.new
@@ -26,13 +27,14 @@ class Loop
 
     @trajectory = 0
     @trajectory_point_index = 1
-    @zero_time = Time.now # Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
     @left_motor = initialize_motor(LEFT_MOTOR_ID)
     @right_motor = initialize_motor(RIGHT_MOTOR_ID)
     p [@left_motor.position, @right_motor.position]
     @left_motor.clear_points_queue
     @right_motor.clear_points_queue
+
+    @log_data = []
     @redis.set(:state, {left: @left_motor.position, right: @right_motor.position}.to_json)
     run
   rescue => e
@@ -41,9 +43,6 @@ class Loop
   ensure
     turn_off_painting
     @redis.del 'running'
-    # @left_motor.deinitialize
-    # @right_motor.deinitialize
-    # @servo_interface&.deinitialize
   end
 
   def move_to_initial_point
@@ -52,10 +51,10 @@ class Loop
     # sleep 100
     @left_motor.clear_points_queue
     @right_motor.clear_points_queue
-    left_point = 360.0 * Config.initial_x / (Math::PI * Config.motor_pulley_diameter)
-    right_point = 360.0 * Config.initial_y / (Math::PI * Config.motor_pulley_diameter)
+    point = Point.new(Config.initial_x, Config.initial_y).get_motors_deg
+    left_point = point.x
+    right_point = point.y
     p [left_point, right_point]
-    p Point.new(Config.initial_x, Config.initial_y).get_motors_deg
 
     @left_motor.go_to(pos: left_point, max_velocity: Config.max_angular_velocity, acceleration: Config.max_angular_acceleration)
     @right_motor.go_to(pos: right_point, max_velocity: Config.max_angular_velocity, acceleration: Config.max_angular_acceleration)
@@ -82,7 +81,6 @@ class Loop
   end
 
   def run
-    data = []
     loop do
       loop {break unless @redis.get('running').nil?}
 
@@ -100,9 +98,6 @@ class Loop
         if queue_size <= MIN_QUEUE_SIZE
           add_points(QUEUE_SIZE)
         end
-        # data << [@left_motor.position, 0, Time.now - @zero_time]
-        # data << [@left_motor.position, @right_motor.position, Time.now - @zero_time]
-        # p [@left_motor.current, @right_motor.current]
         @redis.set(:state, {left: @left_motor.position, right: @right_motor.position}.to_json)
       end
       puts 'Done. Stopped'
@@ -112,12 +107,13 @@ class Loop
       @zero_time = Time.now # Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
       @redis.del 'running'
-      @redis.set(:log, data)
+      @redis.set(:log, @log_data)
       puts 'Waiting for next paint task'
     end
   end
 
   def add_points(queue_size)
+    @log_data << [@left_motor.position, @left_motor.position_set_point, @right_motor.position, @right_motor.position_set_point, Time.now.to_f]
     begin
       path = @redis.get("#{Config.version}_#{@trajectory}")
 
@@ -166,4 +162,4 @@ class Loop
   end
 end
 
-# Loop.new
+Loop.new

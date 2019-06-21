@@ -101,9 +101,7 @@ class Plot
         height = Config.canvas_size_y
 
         position_left.size.times do |i|
-          xx = position_left[i] * Math::PI * diameter / 360.0
-          yy = position_right[i] * Math::PI * diameter / 360.0
-          point = Point.new(xx, yy).to_decart(width, dm, dy)
+          point = Point.new(position_left[i], position_right[i]).get_belts_length(diameter).to_decart(width, dm, dy)
           x << point.x
           y << height - point.y
         end

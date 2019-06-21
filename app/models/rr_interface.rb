@@ -32,7 +32,7 @@ class RRInterface
           motor_velocity = velocity ? self.velocity : nil
           motor_current = current ? self.current : nil
           motor_error = (position and set_point) ? motor_position - set_point : nil
-          data << [motor_position,  motor_set_point, Time.now.to_f - start_time, motor_set_point, motor_error, motor_velocity, motor_current]
+          data << [motor_position, motor_set_point, Time.now.to_f - start_time, motor_set_point, motor_error, motor_velocity, motor_current]
         end
       end
 

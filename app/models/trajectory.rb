@@ -28,8 +28,9 @@ class Trajectory
     r.dl = 0.0
     r.left_mm = tpath.elements.first.end_point.x
     r.right_mm = tpath.elements.first.end_point.y
-    r.left_deg = 360.0 * tpath.elements.first.end_point.x / (Math::PI * diameter)
-    r.right_deg = 360.0 * tpath.elements.first.end_point.y / (Math::PI * diameter)
+    first_point = Point.new(tpath.elements.first.end_point.x, tpath.elements.first.end_point.y).get_motors_deg(diameter)
+    r.left_deg = first_point.x
+    r.right_deg = first_point.y
     r.l = 0.0
     r.linear_velocity = 0.0
     r.t = 0.0
@@ -60,8 +61,9 @@ class Trajectory
       r.left_mm = curr.end_point.x
       r.right_mm = curr.end_point.y
 
-      r.left_deg = 360.0 * r.left_mm / (Math::PI * diameter)
-      r.right_deg = 360.0 * r.right_mm / (Math::PI * diameter)
+      point = Point.new(r.left_mm, r.right_mm).get_motors_deg
+      r.left_deg = point.x
+      r.right_deg = point.y
       r.l = prev_r.l + r.dl
 
       r.t = velocity_spline.time_at(s: r.l)
@@ -136,8 +138,9 @@ class Trajectory
     end
 
     # first add move_to commands
-    move_to_left_deg = 360.0 * tpath.elements.first.start_point.x / (Math::PI * diameter)
-    move_to_right_deg = 360.0 * tpath.elements.first.start_point.y / (Math::PI * diameter)
+    point = Point.new(tpath.elements.first.start_point.x, tpath.elements.first.start_point.y).get_motors_deg(diameter)
+    move_to_left_deg = point.x
+    move_to_right_deg = point.y
 
     left_motor_points = RRServoMotor.get_move_to_points(from: move_to_left_deg, to: data[0].left_deg, max_velocity: angular_velocity, acceleration: angular_acceleration)
     right_motor_points = RRServoMotor.get_move_to_points(from: move_to_right_deg, to: data[0].right_deg, max_velocity: angular_velocity, acceleration: angular_acceleration)
@@ -251,6 +254,6 @@ class Trajectory
 
   def to_hash
     {left_motor_points: @left_motor_points.map {|pvat| pvat.to_hash}, right_motor_points: @right_motor_points.map {|pvat| pvat.to_hash}, id: id}
-    # {'left_motor_points' => @left_motor_points.map{|pvat| pvat.to_hash}, 'right_motor_points' => @right_motor_points.map{|pvat| pvat.to_hash}, 'id' => id}
+      # {'left_motor_points' => @left_motor_points.map{|pvat| pvat.to_hash}, 'right_motor_points' => @right_motor_points.map{|pvat| pvat.to_hash}, 'id' => id}
   end
 end

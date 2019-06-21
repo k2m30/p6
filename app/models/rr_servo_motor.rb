@@ -73,7 +73,7 @@ class RRServoMotor
         from: position, to: pos, max_velocity: max_velocity, acceleration: acceleration
     )
     t = Trajectory.new(points[0..30], points[0..30], 100)
-    Plot.trajectory(trajectory: t, n: 100)
+    # Plot.trajectory(trajectory: t, n: 100)
 
     points[1..-1].each do |point|
       add_point(point)

@@ -16,8 +16,7 @@ class RobotController < ApplicationController
   def state
     redis = Redis.new
     state = JSON[redis.get(:state) || {left: 0, right: 0}.to_json, symbolize_names: true]
-    pd = Math::PI * Config.motor_pulley_diameter / 360.0
-    point = Point.new(state[:left] * pd , state[:right] * pd).to_decart rescue Point.new(0,0)
+    point = Point.new(state[:left], state[:right]).get_belts_length.to_decart rescue Point.new(0,0)
     render json: state.merge(x: point&.x, y: point&.y, running: redis.get('running') || false)
   end
 

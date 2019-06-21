@@ -14,7 +14,6 @@ class SimpleDrawingTest < Minitest::Test
     Config.max_segment_length = 20
     Config.initial_x = Math.sqrt(300 ** 2 + 200 ** 2)
     Config.initial_y = Math.sqrt(700 ** 2 + 200 ** 2)
-    # Config.motor_pulley_diameter = 100.0 / Math::PI # 100mm per one turn
 
 
     file_name = Config.image_name
@@ -59,7 +58,7 @@ class SimpleDrawingTest < Minitest::Test
       positions[i] = []
       dts[i] = []
       t.left_motor_points.zip(t.right_motor_points) do |r, l|
-        positions[i] << Point.new(*Point.new(r.p, l.p).get_belts_length).to_decart
+        positions[i] << Point.new(r.p, l.p).get_belts_length.to_decart
         dts[i] << (r.t + l.t) / 2.0
       end
     end
@@ -102,7 +101,8 @@ class SimpleDrawingTest < Minitest::Test
       assert(points_left.size == points_right.size, "Trajectories size must be equal")
 
       points_left.zip(points_right).zip(tpath.elements).each do |points, te|
-        assert(points == te.end_point.get_motors_deg(diameter), 'Trajectories calculations wrong')
+        point = te.end_point.get_motors_deg(diameter)
+        assert(points == [point.x, point.y], 'Trajectories calculations wrong')
       end
       assert trajectory.left_motor_points.map(&:t).sum.round(6) == trajectory.right_motor_points.map(&:t).sum.round(6)
       # assert trajectory.left_motor_points.map(&:t).map{|t| t.round(6)} == trajectory.right_motor_points.map(&:t).map{|t| t.round(6)}

@@ -52,18 +52,3 @@ class PositionSpline
   end
 end
 
-# data = CSV.read('1.csv', headers: true, converters: :numeric, header_converters: :symbol)
-# p = data[:p]#.map {|dp| dp * Math::PI / 180}
-# v = data[:v]#.map {|dv| dv * Math::PI / 180}
-# a = Array[0] * v.size
-# t = data[:t].map {|dt| dt / 1000.0}
-#
-# dt = 0.01
-#
-# st, q, vq = PositionSpline.qupsample(p, v, a, t, dt)
-# q#.map! {|q_rad| q_rad / Math::PI * 180.0}
-# vq#.map! {|vq_rad| vq_rad / Math::PI * 180.0}
-#
-# Plot.html(x: st, y: q, file_name: 'p.html')
-# Plot.html(x: st, y: vq, file_name: 'v.html')
-
