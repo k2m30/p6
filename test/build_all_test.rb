@@ -8,33 +8,26 @@ class BuildTest < Minitest::Test
   end
 
   def test_builds_risovaka
-    file_name = 'risovaka007_003.svg'
-    path = Rails.root.join('public')
-    @image = SVG.new(file_name, path)
-    @image.get_layer_names
+    @image = build_image 'risovaka007_003.svg'
+    build_all_layers
+  ensure
+    Config.pop
+  end
+
+  def test_builds_flying
+    @image = build_image 'flying.svg'
+    build_all_layers
+  ensure
+    Config.pop
+  end
+
+  def build_all_layers
     @image.layers.keys.each do |name|
       p 'Building: ' + name
       @image.get_layer(name)
       Layer.build(name)
       puts '____________________________________________________________________________'
     end
-  ensure
-    Config.pop
-  end
-
-  def test_builds_flying
-    file_name = 'flying.svg'
-    path = Rails.root.join('public')
-    @image = SVG.new(file_name, path)
-    @image.get_layer_names
-    @image.layers.keys.each do |name|
-      p 'Layer name: ' + name
-      @image.get_layer(name)
-      Layer.build(name)
-      puts '____________________________________________________________________________'
-    end
-  ensure
-    Config.pop
   end
 
 end

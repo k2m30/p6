@@ -17,3 +17,10 @@ MiniTest::Reporters.use!
 #   # fixtures :all
 #   # Add more helper methods to be used by all tests here...
 # end
+
+def build_image(file_name = Config.image_name)
+  path = Rails.root.join("app", "assets", "images")
+  image = SVG.new(file_name, path)
+  image.get_layer_names
+  image
+end

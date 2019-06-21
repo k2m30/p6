@@ -6,39 +6,42 @@ class TestLayerBuild < Minitest::Benchmark
     puts '____________________________________________________________________________'
     Redis.new.flushall
     file_name = 'risovaka007_003.svg'
-    name = 'yellow_('
-    path = Rails.root.join('public')
-    @image = SVG.new(file_name, path)
-    @image.get_layer(name)
+    layer_name = 'yellow_('
+    @image = build_image file_name
+    @image.get_layer(layer_name)
     @proc = Proc.new do |max_segment_length|
-      old_segment_length = Config.max_segment_length
       Config.max_segment_length = max_segment_length
-      Layer.build(name)
-      Config.max_segment_length = old_segment_length
+      Layer.build(layer_name)
     end
   end
 
-  def bench_build_1
+  def bench_build_20
+    Config.push
     puts 'Segment length 1: ' <<
              Benchmark.ms {
-               @proc.call(1.0)
+               @proc.call(20.0)
              }.to_s <<
              ' ms'
+    Config.pop
   end
 
   def bench_build_10
+    Config.push
     puts 'Segment length 10: ' <<
              Benchmark.ms {
                @proc.call(10.0)
              }.to_s <<
              ' ms'
+    Config.pop
   end
 
   def bench_build_30
+    Config.push
     puts 'Segment length 30: ' <<
              Benchmark.ms {
                @proc.call(30.0)
              }.to_s <<
              ' ms'
   end
+  Config.pop
 end

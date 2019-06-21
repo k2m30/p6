@@ -5,11 +5,7 @@ class PrevNextTest < Minitest::Test
     puts '____________________________________________________________________________'
     Redis.new.flushall
     Config.start_from = 0
-    file_name = 'risovaka007_003.svg'
-    path = Rails.root.join('public')
-    @image = SVG.new(file_name, path)
-    @image.get_layer_names
-    p @image.layers.keys
+    @image = build_image 'risovaka007_003.svg'
     name = @image.layers.keys[rand(1..@image.layers.keys.size)]
     @layer = build_layer(name)
   end

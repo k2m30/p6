@@ -16,10 +16,7 @@ class SimpleDrawingTest < Minitest::Test
     Config.initial_y = Math.sqrt(700 ** 2 + 200 ** 2)
 
 
-    file_name = Config.image_name
-    path = Rails.root.join("app", "assets", "images")
-    @image = SVG.new(file_name, path)
-    @image.get_layer_names
+    @image = build_image
     @image.layers.keys.each do |name|
       p 'Layer name: ' + name
       @image.get_layer(name)

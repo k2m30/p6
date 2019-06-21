@@ -1,7 +1,7 @@
 require 'test_helper'
 
 class InverseKinematicTest < Minitest::Test
-  N = 100000
+  N = 1000
 
   def setup
     Redis.new.flushall
