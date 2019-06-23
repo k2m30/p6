@@ -228,15 +228,18 @@ class Trajectory
 
   def self.to_csv(t = 0)
     trajectory = JSON.parse(self.to_json, symbolize_names: true).select {|trajectory| trajectory[:id] == t}.first
+    output = []
     CSV.open("./#{t}.csv", 'wb') do |csv|
-      csv << %w(id motor p v t)
-      trajectory[:left_motor_points].each do |point|
-        csv << [t, :left, point[:p], point[:v], point[:t]]
+      csv << %w(id pl pr tl tr)
+      # csv << %w(id motor p v t)
+      trajectory[:left_motor_points].zip(trajectory[:right_motor_points]).each do |point_left, point_right|
+        decart_point = Point.new(point_left[:p], point_right[:p]).get_belts_length.to_decart
+        csv << [t, point_left[:p], point_right[:p], point_left[:t], point_right[:t], decart_point.x, decart_point.y]
+        # csv << [t, :left, point[:p], point[:v], point[:t]]
+        output << [decart_point.x, decart_point.y]
       end
-      # trajectory[:right_motor_points].each do |point|
-      #   csv << [t, :right, point[:p], point[:v], point[:t]]
-      # end
     end
+    puts "output = #{output}"
   end
 
   def self.next
@@ -254,6 +257,6 @@ class Trajectory
 
   def to_hash
     {left_motor_points: @left_motor_points.map {|pvat| pvat.to_hash}, right_motor_points: @right_motor_points.map {|pvat| pvat.to_hash}, id: id}
-      # {'left_motor_points' => @left_motor_points.map{|pvat| pvat.to_hash}, 'right_motor_points' => @right_motor_points.map{|pvat| pvat.to_hash}, 'id' => id}
+    # {'left_motor_points' => @left_motor_points.map{|pvat| pvat.to_hash}, 'right_motor_points' => @right_motor_points.map{|pvat| pvat.to_hash}, 'id' => id}
   end
 end
