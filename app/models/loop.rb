@@ -50,7 +50,7 @@ class Loop
 
     tl = @left_motor.set_position(left_point, velocity: @idling_speed, acceleration: @acceleration)
     tr = @right_motor.set_position(right_point, velocity: @idling_speed, acceleration: @acceleration)
-    sleep max[tl, tr] + 0.5
+    sleep [tl, tr].max + 0.5
 
   end
 
@@ -161,4 +161,4 @@ class Loop
 
 end
 
-# Loop.new
+Loop.new
