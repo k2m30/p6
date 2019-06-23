@@ -55,6 +55,7 @@ class Loop
 
     tl = @left_motor.go_to(pos: point.x, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
     tr = @right_motor.go_to(pos: point.y, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
+    @servo_interface.start_motion
     sleep [tl, tr].max / 1000 + 0.5
   end
 
