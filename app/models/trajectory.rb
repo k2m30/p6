@@ -132,7 +132,7 @@ class Trajectory
     @left_motor_points = []
     @right_motor_points = []
 
-    calculate_move_to_points(tpath)
+    # calculate_move_to_points(tpath)
 
     start_index = (@left_motor_points.empty? and @right_motor_points.empty?) ? 0 : 1
     @data[start_index..-1].each do |r|
@@ -198,7 +198,7 @@ class Trajectory
   end
 
   def self.get(id)
-    from_json JSON(Redis.new.get("#{Config.version}_#{id}"))
+    from_json JSON(Redis.new.get("#{Config.version}_#{id}")) rescue nil
   end
 
   def empty?
@@ -261,5 +261,9 @@ class Trajectory
   def to_hash
     {left_motor_points: @left_motor_points.map {|pvat| pvat.to_hash}, right_motor_points: @right_motor_points.map {|pvat| pvat.to_hash}, id: id}
     # {'left_motor_points' => @left_motor_points.map{|pvat| pvat.to_hash}, 'right_motor_points' => @right_motor_points.map{|pvat| pvat.to_hash}, 'id' => id}
+  end
+
+  def size
+    @left_motor_points.size
   end
 end
