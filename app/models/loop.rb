@@ -43,15 +43,19 @@ class Loop
   end
 
   def move_to(point)
-    @left_motor.clear_points_queue
-    @right_motor.clear_points_queue
-    left_point = point.x
-    right_point = point.y
+    # @left_motor.clear_points_queue
+    # @right_motor.clear_points_queue
+    # left_point = point.x
+    # right_point = point.y
+    #
+    # tl = @left_motor.set_position(left_point, velocity: @idling_speed, acceleration: @acceleration)
+    # tr = @right_motor.set_position(right_point, velocity: @idling_speed, acceleration: @acceleration)
+    # sleep [tl, tr].max + 0.5
+    #
 
-    tl = @left_motor.set_position(left_point, velocity: @idling_speed, acceleration: @acceleration)
-    tr = @right_motor.set_position(right_point, velocity: @idling_speed, acceleration: @acceleration)
-    sleep [tl, tr].max + 0.5
-
+    tl = @left_motor.go_to(pos: point.x, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
+    tr = @right_motor.go_to(pos: point.y, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
+    sleep [tl, tr].max / 1000 + 0.5
   end
 
   def initialize_motor(id)
