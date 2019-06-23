@@ -25,12 +25,8 @@ class Loop
 
     fail 'Already running' unless @redis.get('running').nil?
 
-    @trajectory = 0
-    @trajectory_point_index = 1
-
     @left_motor = initialize_motor(LEFT_MOTOR_ID)
     @right_motor = initialize_motor(RIGHT_MOTOR_ID)
-    p [@left_motor.position, @right_motor.position]
     @left_motor.clear_points_queue
     @right_motor.clear_points_queue
 

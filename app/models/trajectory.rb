@@ -42,7 +42,7 @@ class Trajectory
     r.a_left = 0.0
     r.a_right = 0.0
 
-    data = [r]
+    @data = [r]
 
     velocity_spline = VelocitySpline.new(length: spath.length,
                                          linear_acceleration: linear_acceleration,
@@ -51,7 +51,7 @@ class Trajectory
 
     tpath.elements.each_with_index do |curr, i|
       next if i.zero?
-      prev_r = data[i - 1]
+      prev_r = @data[i - 1]
 
       r = Row.new
       r.x = spath.elements[i].end_point.x
@@ -81,31 +81,23 @@ class Trajectory
       prev_r.a_left = (r.v_left - prev_r.v_left) / r.dt
       prev_r.a_right = (r.v_right - prev_r.v_right) / r.dt
 
-      data << r
+      @data << r
     end
 
-    data.each_cons(2) do |r, r_next|
+    @data.each_cons(2) do |r, r_next|
       r.v_left = (r.v_average_left + r_next.v_average_left) / 2
       r.v_right = (r.v_average_right + r_next.v_average_right) / 2
     end
 
     # fail 'Wrong time calculation' if data[1..-1].map(&:dt).sum - (t1 + t2 + t3) > 0.0001
-    data.first.v_left = 0.0
-    data.first.v_right = 0.0
-    data.last.v_left = 0.0
-    data.last.v_right = 0.0
-    data.last.a_left = 0.0
-    data.last.a_right = 0.0
+    @data.first.v_left = 0.0
+    @data.first.v_right = 0.0
+    @data.last.v_left = 0.0
+    @data.last.v_right = 0.0
+    @data.last.a_left = 0.0
+    @data.last.a_right = 0.0
 
-    # fail 'nil values found during trajectory calculation' if data.any? {|d| d.left_deg.nil? or d.right_deg.nil? or d.v_left.nil? or d.v_right.nil? or d.dt.nil?}
-    # Plot.html x: data.map(&:t), y: data.map(&:v_left), file_name: 'v_left.html'
-    # Plot.html x: data.map(&:t), y: data.map(&:v_average_left), file_name: 'v_average_left.html'
-    # Plot.html x: data.map(&:t), y: data.map(&:dt), file_name: 'dt.html'
-    # Plot.html x: data.map(&:t), y: data.map(&:linear_velocity), file_name: 'linear_velocity.html'
-    # Plot.html x: (0..data.size).to_a, y: data.map(&:dt), file_name: 'dt2.html'
-    # Plot.html x: (0..data.map(&:t).size).to_a, y: data.map(&:t), file_name: 't.html'
-
-    data[1..-1].each_cons(3) do |first, second, third|
+    @data[1..-1].each_cons(3) do |first, second, third|
       if (first.left_deg < second.left_deg and third.left_deg < second.left_deg) or (first.left_deg > second.left_deg and third.left_deg > second.left_deg)
         second.v_left = 0
       end
@@ -115,7 +107,7 @@ class Trajectory
       end
     end
 
-    data.each_cons(2) do |first, second|
+    @data.each_cons(2) do |first, second|
       if (second.left_deg - first.left_deg) > 0
         if second.v_left < 0
           # fail 'Over zero velocity move failed'
@@ -137,61 +129,72 @@ class Trajectory
       end
     end
 
+    @left_motor_points = []
+    @right_motor_points = []
+
+    calculate_move_to_points(tpath)
+
+    start_index = (@left_motor_points.empty? and @right_motor_points.empty?) ? 0 : 1
+    @data[start_index..-1].each do |r|
+      dt = (r.dt * 1000)
+      @left_motor_points.push PVAT.new(r.left_deg, r.v_left, r.a_left, dt, true)
+      @right_motor_points.push PVAT.new(r.right_deg, r.v_right, r.a_right, dt, true)
+    end
+
+    Trajectory.new @left_motor_points, @right_motor_points, id
+  end
+
+  def self.calculate_move_to_points(tpath)
+    angular_velocity = Config.max_angular_velocity
+    angular_acceleration = Config.max_angular_acceleration
+    diameter = Config.motor_pulley_diameter
+
     # first add move_to commands
     point = Point.new(tpath.elements.first.start_point.x, tpath.elements.first.start_point.y).get_motors_deg(diameter)
     move_to_left_deg = point.x
     move_to_right_deg = point.y
 
-    left_motor_points = RRServoMotor.get_move_to_points(from: move_to_left_deg, to: data[0].left_deg, max_velocity: angular_velocity, acceleration: angular_acceleration)
-    right_motor_points = RRServoMotor.get_move_to_points(from: move_to_right_deg, to: data[0].right_deg, max_velocity: angular_velocity, acceleration: angular_acceleration)
+    @left_motor_points = RRServoMotor.get_move_to_points(from: move_to_left_deg, to: @data[0].left_deg, max_velocity: angular_velocity, acceleration: angular_acceleration)
+    @right_motor_points = RRServoMotor.get_move_to_points(from: move_to_right_deg, to: @data[0].right_deg, max_velocity: angular_velocity, acceleration: angular_acceleration)
 
-    unless left_motor_points.empty?
-      fail "Wrong left motor move_to calculation ##{id}" unless left_motor_points.first.v.zero? and left_motor_points.last.v.zero?
+    unless @left_motor_points.empty?
+      fail "Wrong left motor move_to calculation ##{id}" unless @left_motor_points.first.v.zero? and @left_motor_points.last.v.zero?
     end
-    unless right_motor_points.empty?
-      fail "Wrong left motor move_to calculation ##{id}" unless right_motor_points.first.v.zero? and right_motor_points.last.v.zero?
+    unless @right_motor_points.empty?
+      fail "Wrong left motor move_to calculation ##{id}" unless @right_motor_points.first.v.zero? and @right_motor_points.last.v.zero?
     end
 
-    time_left = left_motor_points.map(&:t).sum
-    time_right = right_motor_points.map(&:t).sum
+    time_left = @left_motor_points.map(&:t).sum
+    time_right = @right_motor_points.map(&:t).sum
 
     time_diff = time_left - time_right
-    size_diff = left_motor_points.size - right_motor_points.size
+    size_diff = @left_motor_points.size - @right_motor_points.size
 
     if size_diff.zero?
       if time_diff > 0
-        right_motor_points.last.t += time_diff.abs
+        @right_motor_points.last.t += time_diff.abs
       elsif time_diff < 0
-        left_motor_points.last.t += time_diff.abs
+        @left_motor_points.last.t += time_diff.abs
       end
     elsif size_diff > 0 #left trajectory longer
-      position = right_motor_points.last.p
+      position = @right_motor_points.last.p
       dt = (time_diff / size_diff).abs
       size_diff.times do
-        right_motor_points << PVAT.new(position, 0.0, 0.0, dt)
+        @right_motor_points << PVAT.new(position, 0.0, 0.0, dt)
       end
     else #right trajectory longer
-      position = left_motor_points.last.p
+      position = @left_motor_points.last.p
       dt = (time_diff / size_diff).abs
       size_diff.abs.times do
-        left_motor_points << PVAT.new(position, 0.0, 0.0, dt)
+        @left_motor_points << PVAT.new(position, 0.0, 0.0, dt)
       end
     end
 
-    fail 'Left and right motors trajectory have different size' unless left_motor_points.size == right_motor_points.size
-    time_left = left_motor_points.map(&:t).sum
-    time_right = right_motor_points.map(&:t).sum
+    fail 'Left and right motors trajectory have different size' unless @left_motor_points.size == @right_motor_points.size
+    time_left = @left_motor_points.map(&:t).sum
+    time_right = @right_motor_points.map(&:t).sum
 
     fail "Trajectories time is different ##{id}" unless time_left.truncate(4) == time_right.truncate(4)
-
-    start_index = (left_motor_points.empty? and right_motor_points.empty?) ? 0 : 1
-    data[start_index..-1].each do |r|
-      dt = (r.dt * 1000)
-      left_motor_points.push PVAT.new(r.left_deg, r.v_left, r.a_left, dt, true)
-      right_motor_points.push PVAT.new(r.right_deg, r.v_right, r.a_right, dt, true)
-    end
-
-    Trajectory.new left_motor_points, right_motor_points, id
   end
 
   def self.get(id)
