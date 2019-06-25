@@ -1,6 +1,9 @@
 class Row
-  attr_accessor :left_deg,
-                :right_deg,
+  attr_accessor :end_left_deg,
+                :end_right_deg,
+
+                :start_left_deg,
+                :start_right_deg,
 
                 :v_left,
                 :v_right,
@@ -26,7 +29,7 @@ class Row
                 :a_right
 
   def to_s
-    "#{left_deg}, #{v_left}, #{dt} | #{right_deg}, #{v_right}, #{dt}"
+    "#{start_left_deg}, #{v_left}, #{a_left}, #{dt} | #{start_right_deg}, #{v_right}, #{a_right}, #{dt}"
   end
 
   def inspect

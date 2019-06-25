@@ -22,109 +22,109 @@ class Trajectory
     linear_acceleration = Config.linear_acceleration
     diameter = Config.motor_pulley_diameter
 
-    r = Row.new
-    r.x = spath.elements.first.end_point.x
-    r.y = spath.elements.first.end_point.y
-    r.dl = 0.0
-    r.left_mm = tpath.elements.first.end_point.x
-    r.right_mm = tpath.elements.first.end_point.y
-    first_point = Point.new(tpath.elements.first.end_point.x, tpath.elements.first.end_point.y).get_motors_deg(diameter)
-    r.left_deg = first_point.x
-    r.right_deg = first_point.y
-    r.l = 0.0
-    r.linear_velocity = 0.0
-    r.t = 0.0
-    r.dt = 0.0
-    r.v_average_left = 0.0
-    r.v_average_right = 0.0
-    r.v_left = 0.0
-    r.v_right = 0.0
-    r.a_left = 0.0
-    r.a_right = 0.0
-
-    @data = [r]
+    @data = []
+    return Trajectory.new([], [], id) if spath.length.zero?
 
     velocity_spline = VelocitySpline.new(length: spath.length,
                                          linear_acceleration: linear_acceleration,
-                                         max_linear_velocity: max_linear_velocity) unless spath.length.zero?
-    # velocity_spline.plot(file_name: 'spline.html')
+                                         max_linear_velocity: max_linear_velocity)
 
-    tpath.elements.each_with_index do |curr, i|
-      next if i.zero?
-      prev_r = @data[i - 1]
+    tpath.elements[1..-1].each_with_index do |curr, i|
+      # next if i.zero?
+      # prev_r = @data[i - 1]
 
       r = Row.new
-      r.x = spath.elements[i].end_point.x
-      r.y = spath.elements[i].end_point.y
-      r.dl = spath.elements[i].length
+      # r.x = spath.elements[i].end_point.x
+      # r.y = spath.elements[i].end_point.y
+      r.dl = spath.elements[i + 1].length
 
-      r.left_mm = curr.end_point.x
-      r.right_mm = curr.end_point.y
+      # r.left_mm = curr.end_point.x
+      # r.right_mm = curr.end_point.y
 
-      point = Point.new(r.left_mm, r.right_mm).get_motors_deg
-      r.left_deg = point.x
-      r.right_deg = point.y
-      r.l = prev_r.l + r.dl
+      start_point_deg = curr.start_point.get_motors_deg(diameter)
+      r.start_left_deg = start_point_deg.x
+      r.start_right_deg = start_point_deg.y
 
+      end_point_deg = curr.end_point.get_motors_deg(diameter)
+      r.end_left_deg = end_point_deg.x
+      r.end_right_deg = end_point_deg.y
+
+      prev_l = i.zero? ? 0 : @data[i - 1].l
+      r.l = prev_l + r.dl
       r.t = velocity_spline.time_at(s: r.l)
-      r.linear_velocity = velocity_spline.v(t: r.t)
+      # r.linear_velocity = velocity_spline.v(t: r.t)
 
-      r.dt = r.t - prev_r.t
+      prev_t = i.zero? ? 0 : @data[i - 1].t
+      r.dt = r.t - prev_t
       fail 'spath discretization is too small' if r.dt.zero?
 
-      r.v_average_left = (r.left_deg - prev_r.left_deg) / r.dt
-      r.v_average_right = (r.right_deg - prev_r.right_deg) / r.dt
-
-      r.v_left = r.v_average_left
-      r.v_right = r.v_average_right
-
-      prev_r.a_left = (r.v_left - prev_r.v_left) / r.dt
-      prev_r.a_right = (r.v_right - prev_r.v_right) / r.dt
+      r.v_average_left = (r.end_left_deg - r.start_left_deg) / r.dt
+      r.v_average_right = (r.end_right_deg - r.start_right_deg) / r.dt
 
       @data << r
     end
 
+    @data.first.v_left = 0
+    @data.first.v_right = 0
+
     @data.each_cons(2) do |r, r_next|
-      r.v_left = (r.v_average_left + r_next.v_average_left) / 2
-      r.v_right = (r.v_average_right + r_next.v_average_right) / 2
+      r_next.v_left = (r.v_average_left + r_next.v_average_left) / 2
+      r_next.v_right = (r.v_average_right + r_next.v_average_right) / 2
     end
 
-    # fail 'Wrong time calculation' if data[1..-1].map(&:dt).sum - (t1 + t2 + t3) > 0.0001
-    @data.first.v_left = 0.0
-    @data.first.v_right = 0.0
-    @data.last.v_left = 0.0
-    @data.last.v_right = 0.0
-    @data.last.a_left = 0.0
-    @data.last.a_right = 0.0
+    dts = [0] + @data.map(&:dt)
 
-    @data[1..-1].each_cons(3) do |first, second, third|
-      if (first.left_deg < second.left_deg and third.left_deg < second.left_deg) or (first.left_deg > second.left_deg and third.left_deg > second.left_deg)
+    r = Row.new
+    r.v_left = 0
+    r.v_right = 0
+    r.a_left = 0
+    r.a_right = 0
+    last_point = tpath.elements.last.end_point.get_motors_deg(diameter)
+    r.start_left_deg = last_point.x
+    r.start_right_deg = last_point.y
+
+    @data.push r
+
+    @data.each_with_index {|r, i| r.dt = dts[i]}
+
+    @data.each_cons(3) do |first, second, third|
+      if (first.start_left_deg < second.start_left_deg and third.start_left_deg < second.start_left_deg) or (first.start_left_deg > second.start_left_deg and third.start_left_deg > second.start_left_deg)
         second.v_left = 0
       end
 
-      if (first.right_deg < second.right_deg and third.right_deg < second.right_deg) or (first.right_deg > second.right_deg and third.right_deg > second.right_deg)
+      if (first.start_right_deg < second.start_right_deg and third.start_right_deg < second.start_right_deg) or (first.start_right_deg > second.start_right_deg and third.start_right_deg > second.start_right_deg)
         second.v_right = 0
       end
     end
 
+    @data.each_cons(2) do |r, r_next|
+      r.a_left = (r_next.v_left - r.v_left) / r_next.dt
+      r.a_right = (r_next.v_right - r.v_right) / r_next.dt
+    end
+
+
+    # Plot.html y: [0, *@data.map(&:v_left).compact, 0], x: [0, *@data.map(&:t)], file_name: 'traj.html'
+    # fail 'Wrong time calculation' if data[1..-1].map(&:dt).sum - (t1 + t2 + t3) > 0.0001
+
+
     @data.each_cons(2) do |first, second|
-      if (second.left_deg - first.left_deg) > 0
+      if (second.start_left_deg - first.start_left_deg) > 0
         if second.v_left < 0
-          # fail 'Over zero velocity move failed'
+          fail 'Over zero velocity move failed'
         end
       else
         if second.v_left > 0
-          # fail 'Over zero velocity move failed'
+          fail 'Over zero velocity move failed'
         end
       end
 
-      if (second.right_deg - first.right_deg) > 0
+      if (second.start_right_deg - first.start_right_deg) > 0
         if second.v_right < 0
-          # fail 'Over zero velocity move failed'
+          fail 'Over zero velocity move failed'
         end
       else
         if second.v_right > 0
-          # fail 'Over zero velocity move failed'
+          fail 'Over zero velocity move failed'
         end
       end
     end
@@ -134,11 +134,10 @@ class Trajectory
 
     # calculate_move_to_points(tpath)
 
-    start_index = (@left_motor_points.empty? and @right_motor_points.empty?) ? 0 : 1
-    @data[start_index..-1].each do |r|
+    @data.each do |r|
       dt = (r.dt * 1000)
-      @left_motor_points.push PVAT.new(r.left_deg, r.v_left, r.a_left, dt, true)
-      @right_motor_points.push PVAT.new(r.right_deg, r.v_right, r.a_right, dt, true)
+      @left_motor_points.push PVAT.new(r.start_left_deg, r.v_left, r.a_left, dt, true)
+      @right_motor_points.push PVAT.new(r.start_right_deg, r.v_right, r.a_right, dt, true)
     end
 
     Trajectory.new @left_motor_points, @right_motor_points, id
@@ -231,18 +230,14 @@ class Trajectory
 
   def self.to_csv(t = 0)
     trajectory = JSON.parse(self.to_json, symbolize_names: true).select {|trajectory| trajectory[:id] == t}.first
-    output = []
     CSV.open("./#{t}.csv", 'wb') do |csv|
-      csv << %w(id pl pr tl tr)
+      csv << %w(pl vl al pr vr ar dt)
       # csv << %w(id motor p v t)
       trajectory[:left_motor_points].zip(trajectory[:right_motor_points]).each do |point_left, point_right|
-        decart_point = Point.new(point_left[:p], point_right[:p]).get_belts_length.to_decart
-        csv << [t, point_left[:p], point_right[:p], point_left[:t], point_right[:t], decart_point.x, decart_point.y]
-        # csv << [t, :left, point[:p], point[:v], point[:t]]
-        output << [decart_point.x, decart_point.y]
+        # decart_point = Point.new(point_left[:p], point_right[:p]).get_belts_length.to_decart
+        csv << [point_left[:p], point_left[:v], point_left[:a], point_right[:p], point_right[:v], point_right[:a], point_right[:t]]
       end
     end
-    puts "output = #{output}"
   end
 
   def self.next

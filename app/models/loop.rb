@@ -11,11 +11,11 @@ require_relative 'trajectory'
 class Loop
   MIN_QUEUE_SIZE = 15
   QUEUE_SIZE = 33
-  # LEFT_MOTOR_ID = 32
-  # RIGHT_MOTOR_ID = 36
+  LEFT_MOTOR_ID = 32
+  RIGHT_MOTOR_ID = 36
 
-  LEFT_MOTOR_ID = 19
-  RIGHT_MOTOR_ID = 32
+  # LEFT_MOTOR_ID = 19
+  # RIGHT_MOTOR_ID = 32
   #
   NO_POINTS_IN_QUEUE_LEFT = 0
 
@@ -68,8 +68,8 @@ class Loop
              else
                'unknown_os'
              end
-    @servo_interface ||= RRInterface.new(device)
-    # @servo_interface ||= RRInterface.new('192.168.0.50:17700')
+    # @servo_interface ||= RRInterface.new(device)
+    @servo_interface ||= RRInterface.new('192.168.0.50:17700')
     RRServoMotor.new(@servo_interface, id)
   end
 
