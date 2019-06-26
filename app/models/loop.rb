@@ -87,7 +87,7 @@ class Loop
       @trajectory = Trajectory.get @trajectory_index
       @redis.set(:current_trajectory, @trajectory_index)
 
-      break if @trajectory.nil? or @trajectory.size.zero?
+      break if @trajectory.empty?
 
       start_point = Point.new(@trajectory.left_motor_points.first.p, @trajectory.right_motor_points.first.p)
       move_to(start_point)

@@ -29,14 +29,15 @@ class PrevNextTest < Minitest::Test
     assert(!t1_before.empty?)
     assert(!t2_before.empty?)
 
-    assert t0_before.left_motor_points.first.p == 360.0 * Config.initial_x / (Math::PI * Config.motor_pulley_diameter)
-    assert t0_before.right_motor_points.first.p == 360.0 * Config.initial_y / (Math::PI * Config.motor_pulley_diameter)
+    point_0 = @layer.tpaths[0].elements.first.end_point.get_motors_deg
+    assert t0_before.left_motor_points.first.p == point_0.x
+    assert t0_before.right_motor_points.first.p == point_0.y
 
-    assert t1_before.left_motor_points.first.p != 360.0 * Config.initial_x / (Math::PI * Config.motor_pulley_diameter)
-    assert t1_before.right_motor_points.first.p != 360.0 * Config.initial_y / (Math::PI * Config.motor_pulley_diameter)
+    assert t1_before.left_motor_points.first.p != point_0.x
+    assert t1_before.right_motor_points.first.p != point_0.y
 
-    assert t2_before.left_motor_points.first.p != 360.0 * Config.initial_x / (Math::PI * Config.motor_pulley_diameter)
-    assert t2_before.right_motor_points.first.p != 360.0 * Config.initial_y / (Math::PI * Config.motor_pulley_diameter)
+    assert t2_before.left_motor_points.first.p != point_0.x
+    assert t2_before.right_motor_points.first.p != point_0.y
 
     Trajectory.next
 
@@ -46,7 +47,7 @@ class PrevNextTest < Minitest::Test
 
     assert Config.start_from == 2, 'start from must be 2'
 
-    new_layer = Layer.build(@layer.name)
+    Layer.build(@layer.name)
     t0_after = Trajectory.get 0
     t1_after = Trajectory.get 1
     t2_after = Trajectory.get 2
@@ -54,9 +55,6 @@ class PrevNextTest < Minitest::Test
     assert(t0_after.empty?)
     assert(t1_after.empty?)
     assert(!t2_after.empty?)
-
-    assert t2_after.left_motor_points.first.p == 360.0 * Config.initial_x / (Math::PI * Config.motor_pulley_diameter)
-    assert t2_after.right_motor_points.first.p == 360.0 * Config.initial_y / (Math::PI * Config.motor_pulley_diameter)
 
     assert t2_before.left_motor_points[1..-1] != t2_after.left_motor_points[1..-1] and t2_before.right_motor_points[1..-1] != t2_after.right_motor_points[1..-1]
   ensure
