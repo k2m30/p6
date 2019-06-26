@@ -37,9 +37,9 @@ class Loop
     puts e.message
     puts e.backtrace
   ensure
+    @redis.del 'running'
     soft_stop
     turn_painting_off
-    @redis.del 'running'
   end
 
   def move_to(point)
@@ -48,11 +48,13 @@ class Loop
     # left_point = point.x
     # right_point = point.y
     #
-    # tl = @left_motor.set_position(left_point, velocity: @idling_speed, acceleration: @acceleration)
-    # tr = @right_motor.set_position(right_point, velocity: @idling_speed, acceleration: @acceleration)
-    # sleep [tl, tr].max + 0.5
+    # tl = @left_motor.set_position(point.x, velocity: @idling_speed, acceleration: @acceleration)
+    # sleep tl / 1000 + 0.2
+    # tr = @right_motor.set_position(point.y, velocity: @idling_speed, acceleration: @acceleration)
+    # sleep tr / 1000 + 0.2
     #
 
+    # p [point, @left_motor.position, @right_motor.position]
     tl = @left_motor.go_to(pos: point.x, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
     tr = @right_motor.go_to(pos: point.y, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
     @servo_interface.start_motion
@@ -85,7 +87,7 @@ class Loop
       @trajectory = Trajectory.get @trajectory_index
       @redis.set(:current_trajectory, @trajectory_index)
 
-      break if @trajectory.nil?
+      break if @trajectory.nil? or @trajectory.size.zero?
 
       start_point = Point.new(@trajectory.left_motor_points.first.p, @trajectory.right_motor_points.first.p)
       move_to(start_point)
@@ -119,6 +121,9 @@ class Loop
   end
 
   def finalize
+    puts 'Finalizing'
+    initial_point = Point.new(Config.initial_x, Config.initial_y).get_motors_deg
+    move_to(initial_point)
     puts 'Done. Stopped'
     @trajectory = nil
     @redis.set(:current_trajectory, 0)
@@ -130,12 +135,13 @@ class Loop
 
   def add_points(queue_size)
     queue_size.times do
-      @point_index += 1
       left_point = @trajectory.left_motor_points[@point_index]
       right_point = @trajectory.right_motor_points[@point_index]
       break if right_point.nil? or left_point.nil?
+      p [@trajectory.id, @trajectory_index, @point_index, @left_motor.position, @right_motor.position, left_point, right_point]
       @left_motor.add_point(left_point)
       @right_motor.add_point(right_point)
+      @point_index += 1
     end
 
 
