@@ -98,10 +98,10 @@ class Trajectory
     end
 
     @data.each_cons(2) do |r, r_next|
-      r.a_left = 0
-      r.a_right = 0
-      # r.a_left = (r_next.v_left - r.v_left) / r_next.dt
-      # r.a_right = (r_next.v_right - r.v_right) / r_next.dt
+      # r.a_left = 0
+      # r.a_right = 0
+      r.a_left = (r_next.v_left - r.v_left) / r_next.dt
+      r.a_right = (r_next.v_right - r.v_right) / r_next.dt
     end
 
 
