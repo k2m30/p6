@@ -2,23 +2,22 @@ require 'csv'
 require_relative 'array'
 
 class Trajectory
-  attr_accessor :left_motor_points, :right_motor_points, :id
+  attr_accessor :left_motor_points, :right_motor_points, :id, :d
 
-  def initialize(left_motor_points, right_motor_points, id)
+  def initialize(left_motor_points, right_motor_points, id, d = nil)
     fail unless left_motor_points.is_a? Array and right_motor_points.is_a? Array
     fail if left_motor_points.size != right_motor_points.size
 
     @left_motor_points = left_motor_points
     @right_motor_points = right_motor_points
     @id = id
+    @d = d
   end
 
   def self.build(spath, tpath, id)
     fail if spath.elements.size != tpath.elements.size
 
     max_linear_velocity = Config.linear_velocity
-    angular_velocity = Config.max_angular_velocity
-    angular_acceleration = Config.max_angular_acceleration
     linear_acceleration = Config.linear_acceleration
     diameter = Config.motor_pulley_diameter
 
@@ -30,16 +29,8 @@ class Trajectory
                                          max_linear_velocity: max_linear_velocity)
 
     tpath.elements[1..-1].each_with_index do |curr, i|
-      # next if i.zero?
-      # prev_r = @data[i - 1]
-
       r = Row.new
-      # r.x = spath.elements[i].end_point.x
-      # r.y = spath.elements[i].end_point.y
       r.dl = spath.elements[i + 1].length
-
-      # r.left_mm = curr.end_point.x
-      # r.right_mm = curr.end_point.y
 
       start_point_deg = curr.start_point.get_motors_deg(diameter)
       r.start_left_deg = start_point_deg.x
@@ -51,8 +42,7 @@ class Trajectory
 
       prev_l = i.zero? ? 0 : @data[i - 1].l
       r.l = prev_l + r.dl
-      r.t = velocity_spline.time_at(s: r.l)
-      # r.linear_velocity = velocity_spline.v(t: r.t)
+      r.t = velocity_spline.time_at(s: r.l).round(3)
 
       prev_t = i.zero? ? 0 : @data[i - 1].t
       r.dt = r.t - prev_t
@@ -105,10 +95,6 @@ class Trajectory
     end
 
 
-    # Plot.html y: [0, *@data.map(&:v_left).compact, 0], x: [0, *@data.map(&:t)], file_name: 'traj.html'
-    # fail 'Wrong time calculation' if data[1..-1].map(&:dt).sum - (t1 + t2 + t3) > 0.0001
-
-
     @data.each_cons(2) do |first, second|
       if (second.start_left_deg - first.start_left_deg) > 0
         if second.v_left < 0
@@ -137,12 +123,12 @@ class Trajectory
     # calculate_move_to_points(tpath)
 
     @data.each do |r|
-      dt = (r.dt * 1000)
+      dt = (r.dt * 1000).to_i
       @left_motor_points.push PVAT.new(r.start_left_deg, r.v_left, r.a_left, dt, true)
       @right_motor_points.push PVAT.new(r.start_right_deg, r.v_right, r.a_right, dt, true)
     end
 
-    Trajectory.new @left_motor_points, @right_motor_points, id
+    Trajectory.new @left_motor_points, @right_motor_points, id, spath.d
   end
 
   def self.calculate_move_to_points(tpath)
@@ -211,24 +197,24 @@ class Trajectory
     right_motor_points = []
     json['left_motor_points'].each {|e| left_motor_points.push PVAT.new(e['p'], e['v'], e['a'], e['t'], e['paint'])}
     json['right_motor_points'].each {|e| right_motor_points.push PVAT.new(e['p'], e['v'], e['a'], e['t'], e['paint'])}
-    Trajectory.new(left_motor_points, right_motor_points, json['id'])
+    Trajectory.new(left_motor_points, right_motor_points, json['id'], json['d'])
   end
 
-  def self.to_json
-    i = 0
-    r = Redis.new
-    json = ''
-    json << '['
-    while (s = r.get("#{Config.version}_#{i}")).present?
-      t = Trajectory.from_json(JSON.parse(s))
-      t.id = i
-      json << t.to_json << ','
-      i += 1
-    end
-    json << ']'
-    json.sub!(/,\]$/, ']')
-    json
-  end
+  # def self.to_json
+  #   i = 0
+  #   r = Redis.new
+  #   json = ''
+  #   json << '['
+  #   while (s = r.get("#{Config.version}_#{i}")).present?
+  #     t = Trajectory.from_json(JSON.parse(s))
+  #     t.id = i
+  #     json << t.to_json << ','
+  #     i += 1
+  #   end
+  #   json << ']'
+  #   json.sub!(/,\]$/, ']')
+  #   json
+  # end
 
   def self.to_csv(t = 0)
     trajectory = JSON.parse(self.to_json, symbolize_names: true).select {|trajectory| trajectory[:id] == t}.first
@@ -256,11 +242,10 @@ class Trajectory
   end
 
   def to_hash
-    {left_motor_points: @left_motor_points.map {|pvat| pvat.to_hash}, right_motor_points: @right_motor_points.map {|pvat| pvat.to_hash}, id: id}
-    # {'left_motor_points' => @left_motor_points.map{|pvat| pvat.to_hash}, 'right_motor_points' => @right_motor_points.map{|pvat| pvat.to_hash}, 'id' => id}
+    {left_motor_points: @left_motor_points.map(&:to_hash), right_motor_points: @right_motor_points.map(&:to_hash), id: id, d: d}
   end
 
   def size
-    @left_motor_points.size
+    @left_motor_points.size #or right_motor_points
   end
 end

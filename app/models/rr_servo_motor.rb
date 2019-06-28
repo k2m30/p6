@@ -18,7 +18,7 @@ class RRServoMotor
   end
 
   def add_point(point)
-    fail 'Point is not of PVT type' unless point.is_a? PVAT
+    fail 'Point is not of PVAT type' unless point.is_a? PVAT
     add_motion_point(point.p, point.v, point.a, point.t)
   end
 
@@ -59,7 +59,12 @@ class RRServoMotor
     return [] if to == from
 
     velocity_spline = VelocitySpline.new(length: (to - from).abs, max_linear_velocity: max_velocity, linear_acceleration: acceleration)
-    points = velocity_spline.pvat_points
+    dt = VelocitySpline::STEP
+    begin
+      points = velocity_spline.pvat_points(dt: dt)
+      dt = dt *1.5
+    end while points.size > 200
+
     points.each do |point|
       point.p = from + sign * point.p
       point.v *= sign
@@ -68,11 +73,12 @@ class RRServoMotor
     points
   end
 
-  def go_to(pos:, max_velocity: 180.0, acceleration: 250.0, start_immediately: false)
+  def go_to(from: nil, to:, max_velocity: 180.0, acceleration: 250.0, start_immediately: false)
+    from ||= position
     points = RRServoMotor.get_move_to_points(
-        from: position, to: pos, max_velocity: max_velocity, acceleration: acceleration
+        from: from, to: to, max_velocity: max_velocity, acceleration: acceleration
     )
-    t = Trajectory.new(points[0..30], points[0..30], 100)
+    # t = Trajectory.new(points[0..30], points[0..30], 100)
     # Plot.trajectory(trajectory: t, n: 100)
 
     points[1..-1].each do |point|

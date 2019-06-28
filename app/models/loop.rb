@@ -17,7 +17,11 @@ class Loop
   # LEFT_MOTOR_ID = 19
   # RIGHT_MOTOR_ID = 32
   #
-  NO_POINTS_IN_QUEUE_LEFT = 0
+  NO_POINTS_IN_QUEUE_LEFT = 0 # RIGHT
+
+  def set_status
+    @redis.set(:state, {left: @left_motor.position, right: @right_motor.position}.to_json)
+  end
 
   def initialize
     @redis = Redis.new
@@ -31,7 +35,7 @@ class Loop
     @right_motor = initialize_motor(RIGHT_MOTOR_ID)
 
     @log_data = []
-    @redis.set(:state, {left: @left_motor.position, right: @right_motor.position}.to_json)
+    set_status
     run
   rescue => e
     puts e.message
@@ -42,7 +46,7 @@ class Loop
     turn_painting_off
   end
 
-  def move_to(point)
+  def move(from: nil, to:)
     # @left_motor.clear_points_queue
     # @right_motor.clear_points_queue
     # left_point = point.x
@@ -55,10 +59,18 @@ class Loop
     #
 
     # p [point, @left_motor.position, @right_motor.position]
-    tl = @left_motor.go_to(pos: point.x, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
-    tr = @right_motor.go_to(pos: point.y, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
+
+    from ||= Point.new(@left_motor.position, @right_motor.position)
+
+    tl = @left_motor.go_to(from: from.x, to: to.x, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
+    tr = @right_motor.go_to(from: from.y, to: to.y, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
     @servo_interface.start_motion
-    sleep [tl, tr].max / 1000 + 0.5
+    t = [tl, tr].max / 1000.0 + 0.5
+    time_start = Time.now
+    begin
+      sleep 0.1
+      set_status
+    end while Time.now - time_start < t
   end
 
   def initialize_motor(id)
@@ -78,8 +90,10 @@ class Loop
   def run
     loop {break unless @redis.get('running').nil?}
 
-    initial_point = Point.new(Config.initial_x, Config.initial_y).get_motors_deg
-    move_to(initial_point)
+    @zero_time = Time.now
+    end_point = Point.new(Config.initial_x, Config.initial_y).get_motors_deg
+    move(to: end_point)
+    # @trajectory_index = 55
     @trajectory_index = Config.start_from.to_i
     @point_index = 0
 
@@ -90,7 +104,7 @@ class Loop
       break if @trajectory.empty?
 
       start_point = Point.new(@trajectory.left_motor_points.first.p, @trajectory.right_motor_points.first.p)
-      move_to(start_point)
+      move(from: end_point, to: start_point)
       @point_index += 1
       add_points(QUEUE_SIZE)
 
@@ -103,7 +117,7 @@ class Loop
           fail 'Stopped outside'
         end
 
-        queue_size = @left_motor.queue_size
+        queue_size = @left_motor.queue_size #or @right_motor.queue_size
         break if queue_size.zero?
 
         if queue_size <= MIN_QUEUE_SIZE
@@ -112,9 +126,11 @@ class Loop
         end
         @redis.set(:state, {left: @left_motor.position, right: @right_motor.position}.to_json)
       end
+      end_point = Point.new(@trajectory.left_motor_points.last.p, @trajectory.right_motor_points.last.p)
       @trajectory_index += 1
       @point_index = 0
       turn_painting_off
+
     end
 
     finalize
@@ -123,8 +139,8 @@ class Loop
   def finalize
     puts 'Finalizing'
     initial_point = Point.new(Config.initial_x, Config.initial_y).get_motors_deg
-    move_to(initial_point)
-    puts 'Done. Stopped'
+    move(to: initial_point)
+    puts "Done. Stopped. It took #{(Time.now - @zero_time).round(1)} secs"
     @trajectory = nil
     @redis.set(:current_trajectory, 0)
     @point_index = 0

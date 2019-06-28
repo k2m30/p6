@@ -9,9 +9,8 @@ require_relative 'position_spline'
 class Plot
   DT = 0.01
 
-  def self.trajectory(n:, file_name: "#{n}.html", trajectory: nil)
-    v = Config.version
-    trajectory = JSON.parse(trajectory&.to_hash&.to_s || Redis.new.get("#{v}_#{n}"))
+  def self.trajectory(n:, file_name: "#{n}.html", trajectory: nil) v = Config.version
+    trajectory ||= Trajectory.get n
 
     file_name = "#{file_name.to_s}"
 
@@ -32,12 +31,12 @@ class Plot
       set :grid
       # left
       t = []
-      time_deltas = trajectory['left_motor_points'].map {|e| e['t']}
+      time_deltas = trajectory.left_motor_points.map(&:t)
       time_deltas.size.times {|i| t << time_deltas[0..i].sum}
 
-      position = trajectory['left_motor_points'].map {|e| e['p']}
-      velocity = trajectory['left_motor_points'].map {|e| e['v']}
-      acceleration = trajectory['left_motor_points'].map {|e| e['a']}
+      position = trajectory.left_motor_points.map(&:p)
+      velocity = trajectory.left_motor_points.map(&:v)
+      acceleration = trajectory.left_motor_points.map(&:a)
 
 
       tt, q, vq, aq = PositionSpline.qupsample(position, velocity, acceleration, time_deltas.map {|td| td / 1000.0}, DT)
@@ -63,11 +62,11 @@ class Plot
 
       set title: "trajectory #{n}, right motor position"
       t = []
-      time_deltas = trajectory['right_motor_points'].map {|e| e['t']}
+      time_deltas = trajectory.right_motor_points.map(&:t)
       time_deltas.size.times {|i| t << time_deltas[0..i].sum}
-      position = trajectory['right_motor_points'].map {|e| e['p']}
-      velocity = trajectory['right_motor_points'].map {|e| e['v']}
-      acceleration = trajectory['right_motor_points'].map {|e| e['a']}
+      position = trajectory.right_motor_points.map(&:p)
+      velocity = trajectory.right_motor_points.map(&:v)
+      acceleration = trajectory.right_motor_points.map(&:a)
 
       tt, q, vq, aq = PositionSpline.qupsample(position, velocity, acceleration, time_deltas.map {|td| td / 1000.0}, DT)
       tt.map! {|t| t * 1000.0}
@@ -90,8 +89,8 @@ class Plot
       # figure
       ##########################################################
       begin
-        position_left = trajectory['left_motor_points'].map {|e| e['p']}
-        position_right = trajectory['right_motor_points'].map {|e| e['p']}
+        position_left = trajectory.left_motor_points.map(&:p)
+        position_right = trajectory.right_motor_points.map(&:p)
         x = []
         y = []
         diameter = Config.motor_pulley_diameter
@@ -109,7 +108,7 @@ class Plot
         set xrange: "[0:#{width}]"
         set yrange: "[0:#{height}]"
         set size: 'ratio -1'
-        set title: "trajectory #{n}, figure"
+        set title: "trajectory #{n}, figure, #{trajectory.d}"
         unset :xlabel
 
         # plot [x[0..index - 1], y[0..index - 1], w: 'l', title: 'move-to'], [x[index + 1..-1], y[index + 1..-1], w: 'lp', pt: 7, pi: 1, ps: 0.2, title: 'paint']
