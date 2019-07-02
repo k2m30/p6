@@ -45,6 +45,8 @@ function update_current_point(data) {
     p.setAttribute("cy", data.y);
     $("#x")[0].textContent = data.x.toFixed(0);
     $("#y")[0].textContent = data.y.toFixed(0);
+    $("#current_trajectory")[0].textContent = data.current_trajectory;
+    $("#start-from")[0].textContent = data.current_trajectory;
 }
 
 function onStop() {

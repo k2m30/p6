@@ -20,7 +20,7 @@ class Loop
   NO_POINTS_IN_QUEUE_LEFT = 0 # RIGHT
 
   def set_status
-    @redis.set(:state, {left: @left_motor.position, right: @right_motor.position}.to_json)
+    @redis.set(:state, {left: @left_motor.position, right: @right_motor.position}.to_json) rescue puts 'Unable to set status'
   end
 
   def initialize
@@ -43,23 +43,10 @@ class Loop
   ensure
     @redis.del 'running'
     soft_stop
-    turn_painting_off
+    finalize
   end
 
   def move(from: nil, to:)
-    # @left_motor.clear_points_queue
-    # @right_motor.clear_points_queue
-    # left_point = point.x
-    # right_point = point.y
-    #
-    # tl = @left_motor.set_position(point.x, velocity: @idling_speed, acceleration: @acceleration)
-    # sleep tl / 1000 + 0.2
-    # tr = @right_motor.set_position(point.y, velocity: @idling_speed, acceleration: @acceleration)
-    # sleep tr / 1000 + 0.2
-    #
-
-    # p [point, @left_motor.position, @right_motor.position]
-
     from ||= Point.new(@left_motor.position, @right_motor.position)
 
     tl = @left_motor.go_to(from: from.x, to: to.x, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
@@ -68,7 +55,7 @@ class Loop
     t = [tl, tr].max / 1000.0 + 0.5
     time_start = Time.now
     begin
-      sleep 0.1
+      sleep 0.2
       set_status
     end while Time.now - time_start < t
   end
@@ -100,6 +87,7 @@ class Loop
     loop do
       @trajectory = Trajectory.get @trajectory_index
       @redis.set(:current_trajectory, @trajectory_index)
+      Config.start_from = @trajectory_index
 
       break if @trajectory.empty?
 
@@ -113,8 +101,8 @@ class Loop
 
       loop do
         if @redis.get('running').nil?
-          soft_stop
-          fail 'Stopped outside'
+          puts 'Stopped outside'
+          finalize
         end
 
         queue_size = @left_motor.queue_size #or @right_motor.queue_size
@@ -124,7 +112,7 @@ class Loop
           # @trajectory = Trajectory.get @trajectory_index
           add_points(QUEUE_SIZE)
         end
-        @redis.set(:state, {left: @left_motor.position, right: @right_motor.position}.to_json)
+        set_status
       end
       end_point = Point.new(@trajectory.left_motor_points.last.p, @trajectory.right_motor_points.last.p)
       @trajectory_index += 1
@@ -132,17 +120,17 @@ class Loop
       turn_painting_off
 
     end
-
+    @redis.set(:current_trajectory, 0)
     finalize
   end
 
   def finalize
     puts 'Finalizing'
+    turn_painting_off
     initial_point = Point.new(Config.initial_x, Config.initial_y).get_motors_deg
     move(to: initial_point)
     puts "Done. Stopped. It took #{(Time.now - @zero_time).round(1)} secs"
     @trajectory = nil
-    @redis.set(:current_trajectory, 0)
     @point_index = 0
     @redis.del 'running'
     @redis.set(:log, @log_data)
@@ -166,9 +154,9 @@ class Loop
     puts e.backtrace
     puts "trajectory: #{@trajectory}"
     puts "trajectory point: #{@point_index}"
-    @redis.set(:current_trajectory, 0)
+    puts 'Cannot send point'
     soft_stop
-    fail 'Cannot send point'
+    finalize
 
   end
 

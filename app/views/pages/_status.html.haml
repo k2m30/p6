@@ -14,6 +14,10 @@
     %span#speed
       = velocity.round
     mm/s
+  %dt.col-sm-4
+    Trajectory
+  %dd.col-sm-8
+    %span#current_trajectory
   %dt.col-sm-12
     =range_field_tag 'speed_range', velocity, class: 'custom-range', in: 0..500, step: 10, onchange: "onVelocityChange('#{layer_id}')"
   %hr
