@@ -62,7 +62,6 @@ class CubicCurve < Element
     end
 
     #### detecting proper differentiation value
-    max_length = nil
 
     begin
       last_x = x0
@@ -105,6 +104,14 @@ class CubicCurve < Element
     result << dl = Line.new([sp, Point.new(x, y)])
     fail 'Wrong curve split' if dl.length > size
     result
+  end
+
+  def move!(dx, dy)
+    @control_point_1.x += dx
+    @control_point_1.y += dy
+    @control_point_2.x += dx
+    @control_point_2.y += dy
+    super
   end
 
   private

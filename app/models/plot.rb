@@ -21,9 +21,9 @@ class Plot
       set autoscale: :fix
       set xlabel: 'time, ms'
 
-      set terminal: ['svg', 'size 1200,2600']
+      set terminal: ['svg', 'size 1200,2000']
       set output: file_name
-      set multiplot: 'layout 8,1'
+      set multiplot: 'layout 3,3'
 
       set grid: 'ytics mytics' # draw lines for each ytics and mytics
       set grid: 'xtics mytics' # draw lines for each ytics and mytics
@@ -46,7 +46,7 @@ class Plot
       set xrange: "[0:#{t.last.ceil(-3)}]"
 
       set yrange: "[#{[position.min.floor(-2), q.min.floor(-2)].min}:#{[position.max.ceil(-2), q.max.ceil(-2)].max}]"
-      plot [t, position, with: 'lp', title: 'Left Motor position'], [tt, q, with: 'l', title: 'Left Motor real Position']
+      plot [t, position, with: 'l', title: 'Left Motor position'], [tt, q, with: 'l', title: 'Left Motor real Position']
 
       set title: "trajectory #{n}, left motor velocity"
       set yrange: "[#{[velocity.min.floor(-2), vq.min.floor(-2)].min}:#{[velocity.max.ceil(-2), vq.max.ceil(-2)].max}]"
@@ -109,10 +109,8 @@ class Plot
         set yrange: "[0:#{height}]"
         set size: 'ratio -1'
         set title: "trajectory #{n}, figure"
-        # set label: "#{trajectory.d.split(' ').join("\n")}", at: "0, #{width}"
         unset :xlabel
 
-        # plot [x[0..index - 1], y[0..index - 1], w: 'l', title: 'move-to'], [x[index + 1..-1], y[index + 1..-1], w: 'lp', pt: 7, pi: 1, ps: 0.2, title: 'paint']
         plot [x, y, w: 'l']
       rescue
       end
@@ -141,7 +139,8 @@ class Plot
 
         set xrange: "[0:#{t.last.ceil(-3)}]"
         set title: "trajectory #{n}, linear velocity"
-        set yrange: "[#{velocities.min.floor(-3)}:#{velocities.max.ceil(-3)}]"
+        set yrange: "[0:300]"
+        set size: 'ratio -20'
         unset :xlabel
 
         plot [t, velocities, w: 'l']

@@ -46,11 +46,11 @@ crop_h:
   description: высота прямоугольника обрезки
   hidden: true
 move_x:
-  value: 0.0
+  value: 100.0
   description: смещение рисунка, если надо
   hidden: true
 move_y:
-  value: 0.0
+  value: 100.0
   description: смещение рисунка, если надо
   hidden: true
 max_spray_length:
@@ -58,7 +58,7 @@ max_spray_length:
   description: длина окраски одним баллончиком краски, мм
   hidden: true
 canvas_size_x:
-  value: 5800.0
+  value: 6800.0
   description: ширина холста
 canvas_size_y:
   value: 2500.0

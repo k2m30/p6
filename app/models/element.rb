@@ -41,6 +41,14 @@ class Element
     inverse
   end
 
+  def move!(dx, dy)
+    @start_point.x += dx
+    @start_point.y += dy
+    @end_point.x += dx
+    @end_point.y += dy
+    self
+  end
+
   def to_s
     "#{@command_code}#{@end_point} "
   end

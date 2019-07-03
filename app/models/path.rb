@@ -63,6 +63,12 @@ class Path
     Path.new(@elements.map {|e| e.split(size)}.flatten)
   end
 
+  def move!(dx, dy)
+    @elements.map! do |e|
+      e.move!(dx, dy)
+    end
+  end
+
   def self.make_tpath(path, width, dm, dy)
     tpath = path.deep_dup
     elements = []

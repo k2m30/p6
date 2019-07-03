@@ -75,6 +75,8 @@ class Layer
   def self.build(name)
     layer = from_redis name
     return layer if layer.paths.empty?
+    layer.paths.each {|path| path.move!(Config.move_x, Config.move_y)}
+
     layer.optimize_paths
 
     width = Config.canvas_size_x
@@ -94,25 +96,25 @@ class Layer
 
     # puts "\nSplit paths:"
     # puts Benchmark.ms {
-      dl = Config.max_segment_length
-      layer.splitted_paths = []
-      layer.paths.each do |path|
-        layer.splitted_paths << path.split(dl)
-      end
+    dl = Config.max_segment_length
+    layer.splitted_paths = []
+    layer.paths.each do |path|
+      layer.splitted_paths << path.split(dl)
+    end
     # }
 
     # puts "\nMake tpaths:"
     # puts Benchmark.ms {
-      layer.tpaths = []
-      layer.splitted_paths.each do |spath|
-        layer.tpaths.push Path.make_tpath(spath, width, dm, dy)
-      end
+    layer.tpaths = []
+    layer.splitted_paths.each do |spath|
+      layer.tpaths.push Path.make_tpath(spath, width, dm, dy)
+    end
     # }
     Config.cleanup
 
     # puts "\nBuild trajectories:"
     # puts Benchmark.ms {
-      layer.build_trajectories
+    layer.build_trajectories
     # }
 
     fail if layer.paths.size != layer.splitted_paths.size or layer.tpaths.size != layer.trajectories.size or layer.splitted_paths.size != layer.tpaths.size
