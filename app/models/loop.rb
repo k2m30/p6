@@ -105,7 +105,13 @@ class Loop
           finalize
         end
 
-        queue_size = @left_motor.queue_size #or @right_motor.queue_size
+        begin
+          queue_size = @left_motor.queue_size #or @right_motor.queue_size
+        rescue RetError
+          puts "RET_ERROR on left motor during queue size check"
+          retry
+        end
+
         break if queue_size.zero?
 
         if queue_size <= MIN_QUEUE_SIZE
@@ -121,7 +127,7 @@ class Loop
 
     end
     @redis.set(:current_trajectory, 0)
-    finalize
+    Config.start_from = 0
   end
 
   def finalize
@@ -142,9 +148,21 @@ class Loop
       left_point = @trajectory.left_motor_points[@point_index]
       right_point = @trajectory.right_motor_points[@point_index]
       break if right_point.nil? or left_point.nil?
-      p [@trajectory.id, @trajectory_index, @point_index, @left_motor.position, @right_motor.position, left_point, right_point]
-      @left_motor.add_point(left_point)
-      @right_motor.add_point(right_point)
+      p [@trajectory.id, @point_index, left_point, right_point]
+
+      begin
+        @left_motor.add_point(left_point)
+      rescue RetError
+        puts "RET_ERROR on left motor"
+        retry
+      end
+
+      begin
+        @right_motor.add_point(right_point)
+      rescue RetError
+        puts "RET_ERROR on right motor"
+        retry
+      end
       @point_index += 1
     end
 

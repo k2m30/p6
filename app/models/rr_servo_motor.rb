@@ -2,6 +2,11 @@ require_relative 'rr_servo_module'
 require_relative 'rr_interface'
 require_relative 'velocity_spline'
 
+class RetError < StandardError;
+end
+class WrongTrajectoryError < StandardError;
+end
+
 class RRServoMotor
   attr_accessor :id, :servo_handle
 
@@ -82,7 +87,16 @@ class RRServoMotor
     # Plot.trajectory(trajectory: t, n: 100)
 
     points[1..-1].each do |point|
-      add_point(point)
+      begin
+        add_point(point)
+      rescue RetError
+        puts "RET_ERROR on #{@id}, move_to"
+        retry
+      rescue WrongTrajectoryError => e
+        t = Trajectory.new(points, points, 1000)
+        Plot.trajectory(trajectory: t, n: 1000)
+        fail WrongTrajectoryError, e
+      end
     end
     @interface.start_motion if start_immediately
     points.map(&:t).reduce(&:+)
@@ -102,7 +116,14 @@ class RRServoMotor
 
   def check_errors(ret_code)
     unless ret_code == RRServoModule::RET_OK
-      raise "Error from motor #{@id}: #{RRServoMotor.get_error_value(ret_code)}"
+      case ret_code
+      when RRServoModule::RET_ERROR
+        raise RetError, "Ret Error from motor #{@id}: #{RRServoMotor.get_error_value(ret_code)}"
+      when RRServoModule::RET_WRONG_TRAJ
+        raise WrongTrajectoryError, "Wrong trajectory from motor #{@id}: #{RRServoMotor.get_error_value(ret_code)}"
+      else
+        raise "Error from motor #{@id}: #{RRServoMotor.get_error_value(ret_code)}"
+      end
     end
   end
 

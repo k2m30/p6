@@ -9,7 +9,7 @@ require_relative 'position_spline'
 class Plot
   DT = 0.01
 
-  def self.trajectory(n:, file_name: "#{n}.html", trajectory: nil) v = Config.version
+  def self.trajectory(n:, file_name: "#{n}.html", trajectory: nil)
     trajectory ||= Trajectory.get n
 
     file_name = "#{file_name.to_s}"
@@ -23,7 +23,7 @@ class Plot
 
       set terminal: ['svg', 'size 1200,2600']
       set output: file_name
-      set multiplot: 'layout 7,1'
+      set multiplot: 'layout 8,1'
 
       set grid: 'ytics mytics' # draw lines for each ytics and mytics
       set grid: 'xtics mytics' # draw lines for each ytics and mytics
@@ -108,11 +108,43 @@ class Plot
         set xrange: "[0:#{width}]"
         set yrange: "[0:#{height}]"
         set size: 'ratio -1'
-        set title: "trajectory #{n}, figure, #{trajectory.d}"
+        set title: "trajectory #{n}, figure"
+        # set label: "#{trajectory.d.split(' ').join("\n")}", at: "0, #{width}"
         unset :xlabel
 
         # plot [x[0..index - 1], y[0..index - 1], w: 'l', title: 'move-to'], [x[index + 1..-1], y[index + 1..-1], w: 'lp', pt: 7, pi: 1, ps: 0.2, title: 'paint']
         plot [x, y, w: 'l']
+      rescue
+      end
+
+      ##########################################################
+      # linear velocity
+      ##########################################################
+      begin
+        points = []
+        velocities = [0]
+
+        position_left.size.times do |i|
+          points << Point.new(position_left[i], position_right[i]).get_belts_length(diameter).to_decart(width, dm, dy)
+        end
+
+        i = 0
+        points.each_cons(2) do |p1, p2|
+          d = Point.distance p1, p2
+          velocities << d / time_deltas[i+1]
+          i += 1
+        end
+        velocities.map!{|v| v * 1000}
+        p time_deltas.size
+        p velocities.size
+
+
+        set xrange: "[0:#{t.last.ceil(-3)}]"
+        set title: "trajectory #{n}, linear velocity"
+        set yrange: "[#{velocities.min.floor(-3)}:#{velocities.max.ceil(-3)}]"
+        unset :xlabel
+
+        plot [t, velocities, w: 'l']
       rescue
       end
     end
