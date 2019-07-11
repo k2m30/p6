@@ -11,11 +11,9 @@ require_relative 'trajectory'
 class Loop
   MIN_QUEUE_SIZE = 15
   QUEUE_SIZE = 33
-  # LEFT_MOTOR_ID = 32
-  # RIGHT_MOTOR_ID = 36
 
-  LEFT_MOTOR_ID = 19
-  RIGHT_MOTOR_ID = 32
+  LEFT_MOTOR_ID = Config.rpi? ? 19 : 32
+  RIGHT_MOTOR_ID = Config.rpi? ? 32 : 36
   #
   NO_POINTS_IN_QUEUE_LEFT = 0 # RIGHT
 
@@ -69,8 +67,7 @@ class Loop
              else
                'unknown_os'
              end
-    @servo_interface ||= RRInterface.new(device)
-    # @servo_interface ||= RRInterface.new('192.168.0.50:17700')
+    @servo_interface ||= Config.rpi? ? RRInterface.new(device) : RRInterface.new('192.168.0.50:17700')
     RRServoMotor.new(@servo_interface, id)
   end
 
@@ -185,17 +182,11 @@ class Loop
   end
 
   def turn_painting_off
-    unless RUBY_PLATFORM[/arm/].nil?
-      `gpio write 7 0`
-    end
+    `gpio write 7 0` if Config.rpi?
   end
 
   def turn_painting_on
-    unless RUBY_PLATFORM[/arm/].nil?
-      `gpio write 7 1`
-    end
+    `gpio write 7 1` if Config.rpi?
   end
 
 end
-
-Loop.new

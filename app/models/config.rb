@@ -275,5 +275,13 @@ class Config
         eval "self.#{key}= \"#{redis.get("stack_#{key}")}\""
       end
     end
+
+    def local?
+      RUBY_PLATFORM[/arm/].nil?
+    end
+
+    def rpi?
+      !local?
+    end
   end
 end
