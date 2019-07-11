@@ -30,19 +30,19 @@ start_from:
   value: 0.0
   description: с какой траектории начать рисование
 crop_x:
-  value: 0
+  value: 400
   description: левый верхний угол для обрезки
   hidden: true
 crop_y:
-  value: 0
+  value: 400
   description: левый верхний угол для обрезки
   hidden: true
 crop_w:
-  value: 0
+  value: 1000
   description: ширина прямоугольника обрезки
   hidden: true
 crop_h:
-  value: 2450
+  value: 2000
   description: высота прямоугольника обрезки
   hidden: true
 move_x:
@@ -59,7 +59,7 @@ max_spray_length:
   hidden: true
 canvas_size_x:
   value: 6800.0
-  description: ширина холста
+  description: ширина холста (между креплениями моторов)
 canvas_size_y:
   value: 2500.0
   description: высота холста

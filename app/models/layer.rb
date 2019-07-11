@@ -158,11 +158,11 @@ class Layer
   def optimize_paths
     optimized_paths = []
 
-    path = @paths.first
+    path = find_closest(Point.new(Config.initial_x, Config.initial_y).to_decart)
     until @paths.empty?
       optimized_paths.push path
       @paths.delete path
-      closest = find_closest(path)
+      closest = find_closest(path.end_point)
       @paths.delete closest
       path = closest
     end
@@ -170,12 +170,10 @@ class Layer
     @paths = optimized_paths.compact
   end
 
-  def find_closest(path)
+  def find_closest(point)
     distance = Float::INFINITY
-    point = path.end_point
     closest = nil
     @paths.each do |p|
-      next if p == path
       tmp_distance = [Point.distance(point, p.start_point), Point.distance(point, p.end_point)].min
       if distance > tmp_distance
         distance = tmp_distance
@@ -203,6 +201,8 @@ class Layer
         end
 
         xml.circle(cx: Config.start_point.x, cy: Config.start_point.y, r: @width, fill: 'green', opacity: 0.4)
+        xml.rect(x: Config.move_x, y: Config.move_y, width: [Config.crop_w, Config.canvas_size_x].max, height: [Config.crop_h, Config.canvas_size_y].max, 'fill-opacity': 0, 'stroke-width': @width, 'stroke-linecap': :round, opacity: 1.0, stroke: 'darkred')
+        # xml.rect(x: Config.crop_x + Config.move_x, y: Config.crop_y + Config.move_y, width: Config.crop_w, height: Config.crop_h, 'fill-opacity': 0, 'stroke-width': @width, 'stroke-linecap': :round, opacity: 1.0, stroke: 'darkred')
 
         xml.style do
           xml.text ".d {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 1.0}\n"
@@ -247,8 +247,11 @@ class Layer
   end
 
   def to_svg(header)
+    x0, y0, x1, y1 = header['viewBox']&.to_s&.split&.map {|s| s.sub(',', '')}&.map(&:to_f)
+    x1 = [x1, Config.canvas_size_x].max
+    y1 = [y1, Config.canvas_size_y].max
     <<EOL
-    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="#{header['x']&.to_s}" y="#{header['y']&.to_s}" width="100%" height="100%" viewBox="#{header['viewBox']&.to_s}" preserveAspectRatio="xMinYMin meet" id="#{@name}">
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="#{header['x']&.to_s}" y="#{header['y']&.to_s}" width="100%" height="100%" viewBox="#{x0}, #{y0}, #{x1}, #{y1}" preserveAspectRatio="xMinYMin meet" id="#{@name}">
     #{to_xml}
     </svg>
 EOL
