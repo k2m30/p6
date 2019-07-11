@@ -198,4 +198,4 @@ class Loop
 
 end
 
-Loop.new if RUBY_PLATFORM[/arm/].present?
+Loop.new
