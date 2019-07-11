@@ -69,8 +69,8 @@ class Loop
              else
                'unknown_os'
              end
-    # @servo_interface ||= RRInterface.new(device)
-    @servo_interface ||= RRInterface.new('192.168.0.50:17700')
+    @servo_interface ||= RRInterface.new(device)
+    # @servo_interface ||= RRInterface.new('192.168.0.50:17700')
     RRServoMotor.new(@servo_interface, id)
   end
 
