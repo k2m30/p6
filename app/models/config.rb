@@ -203,7 +203,7 @@ class Config
     #################################################
 
     def file_name
-      Rails.root.join('config', 'config.yml') rescue ENV['CONFIG_PATH']
+      Rails.root.join('config', 'config.yml') rescue local? ? '/Users/user/projects/p6/config/config.yml' : '/home/pi/p6/config/config.yml'
     end
 
     def start_point
