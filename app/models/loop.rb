@@ -185,11 +185,15 @@ class Loop
   end
 
   def turn_painting_off
-    # code here
+    if RUBY_PLATFORM[/arm/].present?
+      `gpio write 7 0`
+    end
   end
 
   def turn_painting_on
-
+    if RUBY_PLATFORM[/arm/].present?
+      `gpio write 7 1`
+    end
   end
 
 end
