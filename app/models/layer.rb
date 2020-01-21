@@ -1,5 +1,5 @@
 class Layer
-  attr_accessor :paths, :name, :xml, :splitted_paths, :tpaths, :color, :trajectories
+  attr_accessor :paths, :name, :xml, :splitted_paths, :tpaths, :color, :trajectories, :total_time
 
   def initialize(name, paths, splitted_paths, tpaths, trajectories, color, width)
     @name = name
@@ -112,10 +112,8 @@ class Layer
     # }
     Config.cleanup
 
-    # puts "\nBuild trajectories:"
-    # puts Benchmark.ms {
     layer.build_trajectories
-    # }
+    layer.calculate_time
 
     fail if layer.paths.size != layer.splitted_paths.size or layer.tpaths.size != layer.trajectories.size or layer.splitted_paths.size != layer.tpaths.size
     layer.to_redis
@@ -267,6 +265,31 @@ EOL
 
   def inspect
     @name
+  end
+
+  def calculate_time
+    @total_time = 0
+    current_point = Point.new(Config.initial_x, Config.initial_y).get_motors_deg
+    acceleration = Config.max_angular_acceleration
+    max_velocity = Config.max_angular_velocity
+
+    @trajectories.each do |t|
+      next if t.left_motor_points.empty? or t.right_motor_points.empty?
+      from = current_point.x
+      to = t.left_motor_points.first.p
+      time_left = RRServoMotor.get_move_to_points(from: from, to: to, max_velocity: max_velocity, acceleration: acceleration).map(&:t).reduce(&:+)
+
+      from = current_point.y
+      to = t.right_motor_points.first.p
+      time_right = RRServoMotor.get_move_to_points(from: from, to: to, max_velocity: max_velocity, acceleration: acceleration).map(&:t).reduce(&:+)
+
+      @total_time += [time_left, time_right].max
+      @total_time += t.total_time
+      current_point = Point.new(t.left_motor_points.last.p, t.right_motor_points.last.p)
+    end
+    @total_time = (@total_time / 1000.0).round(1)
+    p @total_time
+    @total_time
   end
 
 end

@@ -241,6 +241,10 @@ class Trajectory
     start_from
   end
 
+  def total_time
+    @right_motor_points.map(&:t).reduce(&:+)
+  end
+
   def to_hash
     {left_motor_points: @left_motor_points.map(&:to_hash), right_motor_points: @right_motor_points.map(&:to_hash), id: id, d: d}
   end
