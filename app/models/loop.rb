@@ -31,8 +31,8 @@ class Loop
 
     fail 'Already running' unless @redis.get('running').nil?
 
-    @left_motor = initialize_motor(LEFT_MOTOR_ID)
-    @right_motor = initialize_motor(RIGHT_MOTOR_ID)
+    @left_motor = initialize_motor(LEFT_MOTOR_ID, :left)
+    @right_motor = initialize_motor(RIGHT_MOTOR_ID, :right)
 
     @log_data = []
     set_status
@@ -55,12 +55,12 @@ class Loop
     t = ([tl, tr].max || 0) / 1000.0 + 0.5
     time_start = Time.now
     begin
-      sleep 0.2
+      sleep 0.2 if Config.rpi?
       set_status
     end while Time.now - time_start < t
   end
 
-  def initialize_motor(id)
+  def initialize_motor(id, name = nil)
     device = case RUBY_PLATFORM
              when 'x86_64-darwin16'
                '/dev/cu.usbmodem301'
@@ -70,7 +70,7 @@ class Loop
                'unknown_os'
              end
     @servo_interface ||= Config.rpi? ? RRInterface.new(device) : RRInterfaceDummy.new(device) #RRInterface.new('192.168.0.50:17700')
-    Config.rpi? ? RRServoMotor.new(@servo_interface, id) : RRServoMotorDummy.new(@servo_interface, id)
+    Config.rpi? ? RRServoMotor.new(@servo_interface, id) : RRServoMotorDummy.new(@servo_interface, id, name)
   end
 
   def run
@@ -78,8 +78,8 @@ class Loop
 
     @zero_time = Time.now
     end_point = Point.new(Config.initial_x, Config.initial_y).get_motors_deg
-    move(to: end_point)
-    # @trajectory_index = 55
+    start_point = Config.rpi? ? nil : end_point
+    move(from: start_point, to: end_point)
     @trajectory_index = Config.start_from.to_i
     @point_index = 0
 
@@ -192,3 +192,5 @@ class Loop
   end
 
 end
+
+Loop.new

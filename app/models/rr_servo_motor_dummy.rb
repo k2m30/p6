@@ -4,19 +4,24 @@ require_relative 'plot'
 
 class RRServoMotorDummy
   attr_accessor :position
-  def initialize(interface, servo_id = 123)
+  def initialize(interface, servo_id = 123, name)
     @interface = interface
     @id = servo_id
     @position = 0
+    @queue_size = 0
+    @trajectory_n = 0
+    @name = name
   end
 
   def deinitialize
   end
 
-  def add_point(point)
+  def add_point(_)
+    @queue_size += 1
   end
 
   def queue_size
+    @queue_size -= 1
   end
 
   def get_errors
@@ -28,18 +33,31 @@ class RRServoMotorDummy
   def self.get_move_to_points(from:, to:, max_velocity: 180.0, acceleration: 250.0)
   end
 
-  def go_to(pos:, max_velocity: 180.0, acceleration: 250.0, start_immediately: false)
+  def go_to(from: nil, to:, max_velocity: 180.0, acceleration: 250.0, start_immediately: false)
+    fail 'from position is nil' if from.nil?
+
     points = RRServoMotor.get_move_to_points(
-        from: position, to: pos, max_velocity: max_velocity, acceleration: acceleration
+        from: from, to: to, max_velocity: max_velocity, acceleration: acceleration
     )
     return 0 if points.empty?
+
+    t_id = "move_#{@trajectory_n}_#{@name}"
+    t = Trajectory.new(points, points, t_id)
+    Plot.trajectory(trajectory: t, n: t_id)
+
     points[1..-1].each do |point|
-      add_point(point)
+      begin
+        add_point(point)
+      rescue RetError
+        puts "RET_ERROR on #{@id}, move_to"
+        retry
+      rescue WrongTrajectoryError => e
+        t = Trajectory.new(points, points, 1000)
+        Plot.trajectory(trajectory: t, n: 1000)
+        fail WrongTrajectoryError, e
+      end
     end
     @interface.start_motion if start_immediately
-    @position = points.last.p
-    # Plot.html(x: points.map(&:t).cumsum, y: points.map(&:p), file_name: 'position.html')
-    # Plot.html(x: points.map(&:t).cumsum, y: points.map(&:v), file_name: 'velocity.html')
     points.map(&:t).reduce(&:+)
   end
 
