@@ -178,9 +178,9 @@ class Loop
   end
 
   def set_status
-    @redis.set(:state, {left: @left_motor.position, right: @right_motor.position}.to_json) rescue puts 'Unable to set status'
+    @redis.set(:state, {left: @left_motor.position, right: -1* @right_motor.position}.to_json) rescue puts 'Unable to set status'
   end
 
 end
 
-Loop.new
+# Loop.new
