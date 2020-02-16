@@ -31,8 +31,9 @@ class Loop
 
     fail 'Already running' unless @redis.get('running').nil?
 
-    @left_motor = initialize_motor(LEFT_MOTOR_ID, :left)
-    @right_motor = initialize_motor(RIGHT_MOTOR_ID, :right)
+    @servo_interface = Config.rpi? ? RRInterface.instance : RRInterfaceDummy.instance
+    @left_motor = Config.rpi? ? RRServoMotor.new(LEFT_MOTOR_ID) : RRServoMotorDummy.new(LEFT_MOTOR_ID, :left)
+    @right_motor = Config.rpi? ? RRServoMotor.new(RIGHT_MOTOR_ID) : RRServoMotorDummy.new(RIGHT_MOTOR_ID, :right)
 
     @log_data = []
     set_status
@@ -60,19 +61,6 @@ class Loop
         set_status
       end while Time.now - time_start < t
     end
-  end
-
-  def initialize_motor(id, name = nil)
-    device = case RUBY_PLATFORM
-             when 'x86_64-darwin16'
-               '/dev/cu.usbmodem301'
-             when 'armv7l-linux-eabihf'
-               '/dev/serial/by-id/usb-Rozum_Robotics_USB-CAN_Interface_301-if00'
-             else
-               'unknown_os'
-             end
-    @servo_interface ||= Config.rpi? ? RRInterface.new(device) : RRInterfaceDummy.new(device) #RRInterface.new('192.168.0.50:17700')
-    Config.rpi? ? RRServoMotor.new(@servo_interface, id) : RRServoMotorDummy.new(@servo_interface, id, name)
   end
 
   def run
@@ -195,4 +183,4 @@ class Loop
 
 end
 
-# Loop.new 
+Loop.new

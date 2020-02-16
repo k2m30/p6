@@ -10,11 +10,17 @@ end
 class RRServoMotor
   attr_accessor :id, :servo_handle
 
-  def initialize(interface, servo_id = 123)
-    @interface = interface
-    @servo_handle = RRServoModule.rr_init_servo(@interface.handle, servo_id)
+  # def initialize(interface, servo_id = 123)
+  #   @interface = interface
+  #   @servo_handle = RRServoModule.rr_init_servo(@interface.handle, servo_id)
+  #   set_state_operational unless state == RRServoModule::RR_NMT_OPERATIONAL
+  #   @id = servo_id
+  # end
+  #
+  def initialize(id)
+    @servo_handle = RRServoModule.rr_init_servo(RRInterface.instance.handle, id)
     set_state_operational unless state == RRServoModule::RR_NMT_OPERATIONAL
-    @id = servo_id
+    @id = id
   end
 
   def deinitialize
@@ -147,7 +153,7 @@ class RRServoMotor
     end
 
     CSV.open(file_name, 'wb') do |csv|
-      data.each {|row| csv << row}
+      data.each { |row| csv << row }
     end
   end
 
@@ -215,6 +221,6 @@ class RRServoMotor
   end
 
   def self.ret_codes
-    RRServoModule.constants.select {|e| e.to_s.include?('RET')}
+    RRServoModule.constants.select { |e| e.to_s.include?('RET') }
   end
 end

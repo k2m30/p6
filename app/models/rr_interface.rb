@@ -1,9 +1,19 @@
 require_relative 'rr_servo_module'
+require 'singleton'
 
 class RRInterface
+  include Singleton
   attr_reader :handle
 
-  def initialize(device)
+  def initialize
+    device = case RUBY_PLATFORM
+             when 'x86_64-darwin16'
+               '/dev/cu.usbmodem301'
+             when 'armv7l-linux-eabihf'
+               '/dev/serial/by-id/usb-Rozum_Robotics_USB-CAN_Interface_301-if00'
+             else
+               'unknown_os'
+             end
     @handle = RRServoModule.rr_init_interface(device)
     raise "Error initializing USB-CAN interface \"#{device}\"" if @handle.null?
   end
@@ -39,7 +49,7 @@ class RRInterface
     end
 
     CSV.open(file_name + '.csv', 'wb') do |csv|
-      data.each {|row| csv << row}
+      data.each { |row| csv << row }
     end
   end
 

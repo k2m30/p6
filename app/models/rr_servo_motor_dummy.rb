@@ -4,8 +4,7 @@ require_relative 'plot'
 
 class RRServoMotorDummy
   attr_accessor :position
-  def initialize(interface, servo_id = 123, name)
-    @interface = interface
+  def initialize(servo_id = 123, name)
     @id = servo_id
     @position = 0
     @queue_size = 0
