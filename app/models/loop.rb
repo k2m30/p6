@@ -25,9 +25,9 @@ class Loop
 
     fail 'Already running' unless @redis.get('running').nil?
 
-    @servo_interface = Config.rpi? ? RRInterface.instance : RRInterfaceDummy.instance
-    @left_motor = Config.rpi? ? RRServoMotor.new(LEFT_MOTOR_ID) : RRServoMotorDummy.new(LEFT_MOTOR_ID, :left)
-    @right_motor = Config.rpi? ? RRServoMotor.new(RIGHT_MOTOR_ID) : RRServoMotorDummy.new(RIGHT_MOTOR_ID, :right)
+    @servo_interface = Config.rpi? ? RRInterface.new : RRInterfaceDummy.new
+    @left_motor = Config.rpi? ? RRServoMotor.new(@servo_interface, LEFT_MOTOR_ID) : RRServoMotorDummy.new(@servo_interface, LEFT_MOTOR_ID, :left)
+    @right_motor = Config.rpi? ? RRServoMotor.new(@servo_interface, RIGHT_MOTOR_ID) : RRServoMotorDummy.new(@servo_interface, RIGHT_MOTOR_ID, :right)
 
     @log_data = []
     set_status

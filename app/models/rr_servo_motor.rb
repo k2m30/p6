@@ -10,17 +10,11 @@ end
 class RRServoMotor
   attr_accessor :id, :servo_handle
 
-  # def initialize(interface, servo_id = 123)
-  #   @interface = interface
-  #   @servo_handle = RRServoModule.rr_init_servo(@interface.handle, servo_id)
-  #   set_state_operational unless state == RRServoModule::RR_NMT_OPERATIONAL
-  #   @id = servo_id
-  # end
-  #
-  def initialize(id)
-    @servo_handle = RRServoModule.rr_init_servo(RRInterface.instance.handle, id)
+  def initialize(interface, servo_id = 123)
+    @interface = interface
+    @servo_handle = RRServoModule.rr_init_servo(@interface.handle, servo_id)
     set_state_operational unless state == RRServoModule::RR_NMT_OPERATIONAL
-    @id = id
+    @id = servo_id
   end
 
   def deinitialize

@@ -1,8 +1,6 @@
 require_relative 'rr_servo_module'
-require 'singleton'
 
 class RRInterface
-  include Singleton
   attr_reader :handle
 
   def initialize
