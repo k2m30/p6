@@ -13,8 +13,8 @@ require_relative 'trajectory'
 class Loop
   MIN_QUEUE_SIZE = 15
   QUEUE_SIZE = 33
-  LEFT_MOTOR_ID = Config.rpi? ? 32 : 32
-  RIGHT_MOTOR_ID = Config.rpi? ? 19 : 36
+  LEFT_MOTOR_ID = Config.rpi? ? 32 : 32 # CCW – down, positive, jet looking towards the wall
+  RIGHT_MOTOR_ID = Config.rpi? ? 19 : 36 # CCW – up, positive, jet looking towards the wall, to inverse
   NO_POINTS_IN_QUEUE_LEFT = 0 # RIGHT
 
   def initialize
@@ -45,7 +45,7 @@ class Loop
     loop { break unless @redis.get('running').nil? }
 
     @zero_time = Time.now
-    end_point = Point.new(Config.initial_x, Config.initial_y).get_motors_deg
+    end_point = Point.new(Config.initial_x, -1 * Config.initial_y).get_motors_deg
     start_point = Config.rpi? ? nil : end_point
     move(from: start_point, to: end_point)
     @trajectory_index = Config.start_from.to_i
@@ -57,6 +57,8 @@ class Loop
       Config.start_from = @trajectory_index
 
       break if @trajectory.empty?
+
+      @trajectory.right_motor_points.map(&:inverse!)
 
       start_point = Point.new(@trajectory.left_motor_points.first.p, @trajectory.right_motor_points.first.p)
       move(from: end_point, to: start_point)
@@ -116,7 +118,7 @@ class Loop
   def finalize
     puts 'Finalizing'
     turn_painting_off
-    initial_point = Point.new(Config.initial_x, Config.initial_y).get_motors_deg
+    initial_point = Point.new(Config.initial_x, -1 * Config.initial_y).get_motors_deg
     move(to: initial_point)
     puts "Done. Stopped. It took #{(Time.now - @zero_time).round(1)} secs"
     @trajectory = nil

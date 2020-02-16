@@ -11,6 +11,12 @@ class PVAT
     @paint = paint
   end
 
+  def inverse!
+    @p = -@p
+    @v = -@v
+    @a = -@a
+  end
+
   def to_s
     "[#{@p.round(1)}, #{@v.round(1)}, #{@a.round(1)}, #{@t.round(2)}, #{@paint ? :paint : :iddle}] "
   end
