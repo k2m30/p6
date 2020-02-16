@@ -179,8 +179,8 @@ class Loop
 
   def soft_stop
     turn_painting_off
-    @left_motor.soft_stop
-    @right_motor.soft_stop
+    @left_motor&.soft_stop
+    @right_motor&.soft_stop
   end
 
   def turn_painting_off

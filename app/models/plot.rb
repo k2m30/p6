@@ -9,10 +9,10 @@ require_relative 'position_spline'
 class Plot
   DT = 0.01
 
-  def self.trajectory(n:, file_name: "#{n}.html", trajectory: nil)
+  def self.trajectory(n:, file_name: "#{n}.html", trajectory: nil, folder: './')
     trajectory ||= Trajectory.get n
 
-    file_name = "#{file_name.to_s}"
+    file_name = "#{folder}#{file_name.to_s}"
 
     Numo.gnuplot do
       reset

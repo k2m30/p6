@@ -44,6 +44,7 @@ class RRServoMotorDummy
     t_id = "move_#{@trajectory_n}_#{@name}"
     t = Trajectory.new(points, points, t_id)
     Plot.trajectory(trajectory: t, n: t_id)
+    @trajectory_n +=1
 
     points[1..-1].each do |point|
       begin
