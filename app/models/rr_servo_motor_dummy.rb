@@ -33,7 +33,7 @@ class RRServoMotorDummy
   def self.get_move_to_points(from:, to:, max_velocity: 180.0, acceleration: 250.0)
   end
 
-  def go_to(from: nil, to:, max_velocity: 180.0, acceleration: 250.0, start_immediately: false)
+  def go(from: nil, to:, max_velocity: 180.0, acceleration: 250.0, start_immediately: false)
     fail 'from position is nil' if from.nil?
 
     points = RRServoMotor.get_move_to_points(

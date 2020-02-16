@@ -13,8 +13,8 @@ require_relative 'trajectory'
 class Loop
   MIN_QUEUE_SIZE = 15
   QUEUE_SIZE = 33
-  LEFT_MOTOR_ID = Config.rpi? ? 19 : 32
-  RIGHT_MOTOR_ID = Config.rpi? ? 32 : 36
+  LEFT_MOTOR_ID = Config.rpi? ? 32 : 32
+  RIGHT_MOTOR_ID = Config.rpi? ? 19 : 36
   NO_POINTS_IN_QUEUE_LEFT = 0 # RIGHT
 
   def initialize
@@ -100,8 +100,8 @@ class Loop
   def move(from: nil, to:)
     from ||= Point.new(@left_motor.position, @right_motor.position)
 
-    tl = @left_motor.go_to(from: from.x, to: to.x, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
-    tr = @right_motor.go_to(from: from.y, to: to.y, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
+    tl = @left_motor.go(from: from.x, to: to.x, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
+    tr = @right_motor.go(from: from.y, to: to.y, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
     @servo_interface.start_motion
     t = ([tl, tr].max || 0) / 1000.0 + 0.5
     time_start = Time.now
