@@ -54,10 +54,12 @@ class Loop
     @servo_interface.start_motion
     t = ([tl, tr].max || 0) / 1000.0 + 0.5
     time_start = Time.now
-    begin
-      sleep 0.2 if Config.rpi?
-      set_status
-    end while Time.now - time_start < t
+    if Config.rpi?
+      begin
+        sleep 0.2
+        set_status
+      end while Time.now - time_start < t
+    end
   end
 
   def initialize_motor(id, name = nil)
@@ -74,7 +76,7 @@ class Loop
   end
 
   def run
-    loop {break unless @redis.get('running').nil?}
+    loop { break unless @redis.get('running').nil? }
 
     @zero_time = Time.now
     end_point = Point.new(Config.initial_x, Config.initial_y).get_motors_deg
