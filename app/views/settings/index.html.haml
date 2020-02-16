@@ -5,4 +5,4 @@
     .row
       .col-4
         = label_tag(key + ' (' + Config.description(key) + ')', nil)
-        = number_field_tag(key, Config.send(key), class: 'form-control', onkeypress: 'validate(event)', onchange: 'leave(event)')
+        = text_field_tag(key, Config.send(key), class: 'form-control', onkeypress: 'validate(event)', onchange: 'leave(event)')
