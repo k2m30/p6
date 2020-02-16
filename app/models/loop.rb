@@ -13,15 +13,9 @@ require_relative 'trajectory'
 class Loop
   MIN_QUEUE_SIZE = 15
   QUEUE_SIZE = 33
-
   LEFT_MOTOR_ID = Config.rpi? ? 19 : 32
   RIGHT_MOTOR_ID = Config.rpi? ? 32 : 36
-  #
   NO_POINTS_IN_QUEUE_LEFT = 0 # RIGHT
-
-  def set_status
-    @redis.set(:state, {left: @left_motor.position, right: @right_motor.position}.to_json) rescue puts 'Unable to set status'
-  end
 
   def initialize
     @redis = Redis.new
@@ -45,22 +39,6 @@ class Loop
     @redis.del 'running'
     soft_stop
     finalize
-  end
-
-  def move(from: nil, to:)
-    from ||= Point.new(@left_motor.position, @right_motor.position)
-
-    tl = @left_motor.go_to(from: from.x, to: to.x, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
-    tr = @right_motor.go_to(from: from.y, to: to.y, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
-    @servo_interface.start_motion
-    t = ([tl, tr].max || 0) / 1000.0 + 0.5
-    time_start = Time.now
-    if Config.rpi?
-      begin
-        sleep 0.2
-        set_status
-      end while Time.now - time_start < t
-    end
   end
 
   def run
@@ -117,6 +95,22 @@ class Loop
     end
     @redis.set(:current_trajectory, 0)
     Config.start_from = 0
+  end
+
+  def move(from: nil, to:)
+    from ||= Point.new(@left_motor.position, @right_motor.position)
+
+    tl = @left_motor.go_to(from: from.x, to: to.x, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
+    tr = @right_motor.go_to(from: from.y, to: to.y, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
+    @servo_interface.start_motion
+    t = ([tl, tr].max || 0) / 1000.0 + 0.5
+    time_start = Time.now
+    if Config.rpi?
+      begin
+        sleep 0.2
+        set_status
+      end while Time.now - time_start < t
+    end
   end
 
   def finalize
@@ -179,6 +173,10 @@ class Loop
 
   def turn_painting_on
     `gpio write 7 1` if Config.rpi?
+  end
+
+  def set_status
+    @redis.set(:state, {left: @left_motor.position, right: @right_motor.position}.to_json) rescue puts 'Unable to set status'
   end
 
 end
