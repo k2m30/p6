@@ -3,7 +3,9 @@ require 'json'
 require_relative 'config'
 require_relative 'pvat'
 require_relative 'rr_interface'
+require_relative 'rr_interface_dummy'
 require_relative 'rr_servo_motor'
+require_relative 'rr_servo_motor_dummy'
 require_relative 'plot'
 require 'numo/gnuplot'
 require_relative 'trajectory'
@@ -50,7 +52,7 @@ class Loop
     tl = @left_motor.go_to(from: from.x, to: to.x, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
     tr = @right_motor.go_to(from: from.y, to: to.y, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
     @servo_interface.start_motion
-    t = [tl, tr].max / 1000.0 + 0.5
+    t = ([tl, tr].max || 0) / 1000.0 + 0.5
     time_start = Time.now
     begin
       sleep 0.2
@@ -67,8 +69,8 @@ class Loop
              else
                'unknown_os'
              end
-    @servo_interface ||= Config.rpi? ? RRInterface.new(device) : RRInterface.new('192.168.0.50:17700')
-    RRServoMotor.new(@servo_interface, id)
+    @servo_interface ||= Config.rpi? ? RRInterface.new(device) : RRInterfaceDummy.new(device) #RRInterface.new('192.168.0.50:17700')
+    Config.rpi? ? RRServoMotor.new(@servo_interface, id) : RRServoMotorDummy.new(@servo_interface, id)
   end
 
   def run

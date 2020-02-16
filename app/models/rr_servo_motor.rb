@@ -85,6 +85,7 @@ class RRServoMotor
     )
     # t = Trajectory.new(points[0..30], points[0..30], 100)
     # Plot.trajectory(trajectory: t, n: 100)
+    return 0 if points.empty?
 
     points[1..-1].each do |point|
       begin

@@ -99,6 +99,7 @@ class Layer
     dl = Config.max_segment_length
     layer.splitted_paths = []
     layer.paths.each do |path|
+      p path.d
       layer.splitted_paths << path.split(dl)
     end
     # }
@@ -277,11 +278,11 @@ EOL
       next if t.left_motor_points.empty? or t.right_motor_points.empty?
       from = current_point.x
       to = t.left_motor_points.first.p
-      time_left = RRServoMotor.get_move_to_points(from: from, to: to, max_velocity: max_velocity, acceleration: acceleration).map(&:t).reduce(&:+)
+      time_left = RRServoMotor.get_move_to_points(from: from, to: to, max_velocity: max_velocity, acceleration: acceleration).map(&:t).reduce(&:+) || 0
 
       from = current_point.y
       to = t.right_motor_points.first.p
-      time_right = RRServoMotor.get_move_to_points(from: from, to: to, max_velocity: max_velocity, acceleration: acceleration).map(&:t).reduce(&:+)
+      time_right = RRServoMotor.get_move_to_points(from: from, to: to, max_velocity: max_velocity, acceleration: acceleration).map(&:t).reduce(&:+) || 0
 
       @total_time += [time_left, time_right].max
       @total_time += t.total_time
