@@ -1,0 +1,33 @@
+%h5
+  = motor
+.row
+  .col-6
+    %h5 Manual control
+    .form-group
+      .row
+        .col-12
+          =link_to 'up', nil, class: 'btn btn-secondary'
+      .row
+        .col-12
+          =text_field_tag "value_#{motor}", '0.0', class: 'form-control'
+      .row
+        .col-12
+          =link_to 'down', manual_path(direction: :down), class: 'btn btn-secondary', method: :post
+
+%hr
+.row
+  .col-12
+    %h5 This position corresponds to, mm
+    = form_tag adjust_path, class: 'form-inline' do
+      .form-group.mb-2
+        =text_field_tag "correction_#{motor}", correction, class: 'form-control'
+      =submit_tag 'adjust', class: 'btn btn-secondary mb-2', method: :post
+%hr
+.row
+  .col-12
+    %h5 Move to, mm
+    %form.form-inline
+      .form-group.mb-2
+        =text_field_tag "value_#{motor}", '110.0', class: 'form-control'
+      =link_to 'move to', nil, class: 'btn btn-secondary mb-2'
+%hr

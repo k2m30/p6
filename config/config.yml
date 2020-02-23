@@ -30,10 +30,10 @@ start_from:
   value: 0.0
   description: с какой траектории начать рисование
 crop_x:
-  value: 0
+  value: 0.0
   description: левый верхний угол для обрезки
 crop_y:
-  value: 0
+  value: 0.0
   description: левый верхний угол для обрезки
 crop_w:
   value: 0.0
@@ -67,9 +67,15 @@ simulation_velocity:
   value: 1500.1
   description: скорость симуляции, mm/sec
 image_name:
-  value: test.svg
+  value: hare_1310.svg
   description: имя файла
 version:
   value: 1.0
   description: версия данных в кэше
   hidden: true
+correction_left:
+  value: 20.3
+  description: корректировка левого ремня
+correction_right:
+  value: 140.0
+  description: корректировка правого ремня

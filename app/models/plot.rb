@@ -12,7 +12,7 @@ class Plot
   def self.trajectory(n:, file_name: "#{n}.html", trajectory: nil, folder: './')
     trajectory ||= Trajectory.get n
 
-    file_name = "#{folder}#{file_name.to_s}"
+    file_name = "#{file_name.to_s}"
 
     Numo.gnuplot do
       reset

@@ -61,7 +61,7 @@
           = link_to 'Simulate', 'javascript:void(0)', class: 'btn btn-info', onclick: "paint(#{@velocity})"
         %hr
         = link_to 'Settings', settings_path, class: 'btn btn-light', target: '_blank'
-        = link_to 'Calibration', nil, class: 'btn btn-secondary'
+        = link_to 'Calibration', calibrate_path, class: 'btn btn-secondary'
     .row
     = render partial: 'status', locals: {layer_id: layer_id}
     .row

@@ -1,0 +1,20 @@
+= javascript_include_tag 'calibrate'
+.row
+  .col-12
+    State:
+    Left:
+    %span#left
+    Right
+    %span#right
+    x:
+    %span#x
+    y:
+    %span#y
+    Running:
+    %span#running
+%hr
+.row
+  .col-6
+    = render partial:'motor', locals: {motor: :left, correction: @correction_left}
+  .col-6
+    = render partial:'motor', locals: {motor: :right, correction: @correction_right}

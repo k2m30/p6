@@ -200,6 +200,22 @@ class Config
       set_value('start_from', value)
     end
 
+    def correction_left
+      get_value('correction_left')
+    end
+
+    def correction_left=(value)
+      set_value('correction_left', value)
+    end
+
+    def correction_right
+      get_value('correction_right')
+    end
+
+    def correction_right=(value)
+      set_value('correction_right', value)
+    end
+
     #################################################
 
     def file_name

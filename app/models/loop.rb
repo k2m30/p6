@@ -101,7 +101,7 @@ class Loop
 
   def move(from: nil, to:)
     from ||= Point.new(@left_motor.position, @right_motor.position)
-
+    p "left from: #{from.x.round(1)} to #{to.x.round(1)}, right from: #{from.y.round(1)}, to: #{to.y.round(1)}"
     tl = @left_motor.go(from: from.x, to: to.x, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
     tr = @right_motor.go(from: from.y, to: to.y, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: false)
     @servo_interface.start_motion
