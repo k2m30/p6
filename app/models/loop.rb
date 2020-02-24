@@ -1,5 +1,7 @@
 require 'redis'
 require 'json'
+require 'numo/gnuplot'
+
 require_relative 'config'
 require_relative 'pvat'
 require_relative 'rr_interface'
@@ -7,7 +9,6 @@ require_relative 'rr_interface_dummy'
 require_relative 'rr_servo_motor'
 require_relative 'rr_servo_motor_dummy'
 require_relative 'plot'
-require 'numo/gnuplot'
 require_relative 'trajectory'
 
 class Loop
@@ -56,7 +57,7 @@ class Loop
       @redis.set(:current_trajectory, @trajectory_index)
       Config.start_from = @trajectory_index
 
-      break if @trajectory.empty?
+      break if @trajectory.nil? or @trajectory.empty?
 
       @trajectory.right_motor_points.map(&:inverse!)
 
@@ -72,6 +73,10 @@ class Loop
         if @redis.get('running').nil?
           puts 'Stopped outside'
           finalize
+        end
+
+        if @redis.get('manual')
+          soft_stop
         end
 
         begin
