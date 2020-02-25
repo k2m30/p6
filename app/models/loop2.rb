@@ -17,7 +17,7 @@ QUEUE_SIZE = 33
 LEFT_MOTOR_ID = Config.rpi? ? 32 : 32 # CCW – down, positive, jet looking towards the wall
 RIGHT_MOTOR_ID = Config.rpi? ? 19 : 36 # CCW – up, positive, jet looking towards the wall, to inverse
 
-def initialize
+def init_system
   @redis = Redis.new
   @idling_speed = Config.max_angular_velocity
   @acceleration = Config.max_angular_acceleration
@@ -65,7 +65,11 @@ end
 def paint_trajectory
   @servo_interface.start_motion(100)
   turn_painting_on
-  add_points(QUEUE_SIZE) while @point_index <= @trajectory.size and @left_motor.queue_size <= MIN_QUEUE_SIZE and @redis.get('running')
+
+  begin
+    add_points(QUEUE_SIZE)
+  end while (0..MIN_QUEUE_SIZE).include? @left_motor.queue_size and @point_index < @trajectory.size and !@redis.get('running').nil?
+
 
   fail unless @redis.get('running')
 
@@ -88,6 +92,7 @@ end
 
 
 def paint
+  @zero_time = Time.now
   @redis.set('running', 'true')
   @trajectory_index = Config.start_from.to_i
   @point_index = 0
@@ -95,6 +100,7 @@ def paint
 
   until (@trajectory = Trajectory.get @trajectory_index).nil? # got through trajectories
     @redis.set('current_trajectory', @trajectory_index.to_s)
+    next if @trajectory.empty?
     @trajectory.right_motor_points.map(&:inverse!)
     move(to: Point.new(@trajectory.left_motor_points.first.p, @trajectory.right_motor_points.first.p))
 
@@ -105,11 +111,10 @@ def paint
     @trajectory_index += 1
     @point_index = 0
   end
-
+  puts 'Done.'
 rescue => e
   puts e.message
   puts e.backtrace
-  retry
 ensure
   @redis.del 'running'
   turn_painting_off
@@ -117,16 +122,29 @@ ensure
   finalize
 end
 
+def finalize
+  puts 'Finalizing'
+  turn_painting_off
+  move(to: Point.new(Config.initial_x, -1 * Config.initial_y).get_motors_deg)
+  puts "Done. Stopped. It took #{(Time.now - @zero_time).round(1)} secs"
+  @trajectory = nil
+  @point_index = 0
+  @redis.del 'running'
+  puts 'Waiting for next paint task'
+end
+
+
 ################################################
 # Main loop
 ################################################
 
-trap(:INT) { puts 'Interrupted'; exit }
+trap(:INT) { puts "\nInterrupted"; exit }
 
-initialize
+redis = Redis.new
+init_system
 
 begin
-  @redis.subscribe(:paint, :move) do |on|
+  redis.subscribe(:paint, :move) do |on|
     on.subscribe do |channel, subscriptions|
       puts "Subscribed to ##{channel} (#{subscriptions} subscriptions)"
     end

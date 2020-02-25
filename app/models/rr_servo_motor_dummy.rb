@@ -4,6 +4,7 @@ require_relative 'plot'
 
 class RRServoMotorDummy
   attr_accessor :position
+
   def initialize(interface, servo_id = 123, name)
     @interface = interface
     @id = servo_id
@@ -18,10 +19,14 @@ class RRServoMotorDummy
 
   def add_point(_)
     @queue_size += 1
+    p [@name, @queue_size]
+    @queue_size
   end
 
   def queue_size
-    @queue_size -= 1
+    @queue_size -= 1 if @queue_size > 0
+    p [@name, @queue_size]
+    @queue_size
   end
 
   def get_errors
@@ -34,7 +39,7 @@ class RRServoMotorDummy
   end
 
   def move(from: nil, to:, max_velocity: 180.0, acceleration: 250.0, start_immediately: false)
-    fail 'from position is nil' if from.nil?
+    from ||= to
 
     points = RRServoMotor.get_move_to_points(
         from: from, to: to, max_velocity: max_velocity, acceleration: acceleration
@@ -42,9 +47,9 @@ class RRServoMotorDummy
     return 0 if points.empty?
 
     t_id = "move_#{@trajectory_n}_#{@name}"
-    t = Trajectory.new(points, points, t_id)
+    # t = Trajectory.new(points, points, t_id)
     # Plot.trajectory(trajectory: t, n: t_id)
-    @trajectory_n +=1
+    @trajectory_n += 1
 
     points[1..-1].each do |point|
       begin

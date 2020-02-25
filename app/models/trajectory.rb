@@ -8,8 +8,8 @@ class Trajectory
     fail unless left_motor_points.is_a? Array and right_motor_points.is_a? Array
     fail if left_motor_points.size != right_motor_points.size
 
-    @left_motor_points = left_motor_points
-    @right_motor_points = right_motor_points
+    @left_motor_points = left_motor_points || []
+    @right_motor_points = right_motor_points || []
     @id = id
     @d = d
   end
