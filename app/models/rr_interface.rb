@@ -23,8 +23,8 @@ class RRInterface
     end
   end
 
-  def start_motion(delay = 0)
-    RRServoModule.rr_start_motion(@handle, delay)
+  def start_motion(delay_ms = 0)
+    RRServoModule.rr_start_motion(@handle, delay_ms)
   end
 
   def log(file_name: './data', log_time:, position: true, velocity: false, current: false, set_point: false, motor_handles: [])

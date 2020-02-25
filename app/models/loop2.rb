@@ -65,10 +65,11 @@ end
 def paint_trajectory
   @servo_interface.start_motion(100)
   turn_painting_on
-  add_points(QUEUE_SIZE) while @point_index <= @trajectory.size and @left_motor.queue_size <= MIN_QUEUE_SIZE
+  add_points(QUEUE_SIZE) while @point_index <= @trajectory.size and @left_motor.queue_size <= MIN_QUEUE_SIZE and @redis.get('running')
+
+  fail unless @redis.get('running')
 
   sleep 0.1 until @left_motor.queue_size.zero?
-
   turn_painting_off
 end
 
@@ -85,30 +86,24 @@ def add_points(queue_size)
   end
 end
 
-initialize
 
-begin
-  loop do #main
+def paint
+  @redis.set('running', 'true')
+  @trajectory_index = Config.start_from.to_i
+  @point_index = 0
+  move(to: Point.new(Config.initial_x, -1 * Config.initial_y).get_motors_deg)
 
-    sleep 0.1 while @redis.get('running').nil?
+  until (@trajectory = Trajectory.get @trajectory_index).nil? # got through trajectories
+    @redis.set('current_trajectory', @trajectory_index.to_s)
+    @trajectory.right_motor_points.map(&:inverse!)
+    move(to: Point.new(@trajectory.left_motor_points.first.p, @trajectory.right_motor_points.first.p))
 
-    @trajectory_index = Config.start_from.to_i
+    turn_painting_on
+    paint_trajectory
+    turn_painting_off
+
+    @trajectory_index += 1
     @point_index = 0
-    move(to: Point.new(Config.initial_x, -1 * Config.initial_y).get_motors_deg)
-
-    until (@trajectory = Trajectory.get @trajectory_index).nil? # got through trajectories
-      @redis.set('current_trajectory', @trajectory_index.to_s)
-      @trajectory.right_motor_points.map(&:inverse!)
-      move(to: Point.new(@trajectory.left_motor_points.first.p, @trajectory.right_motor_points.first.p))
-
-      turn_painting_on
-      paint_trajectory
-      turn_painting_off
-
-      @trajectory_index += 1
-      @point_index = 0
-    end
-
   end
 
 rescue => e
@@ -120,4 +115,36 @@ ensure
   turn_painting_off
   soft_stop
   finalize
+end
+
+################################################
+# Main loop
+################################################
+
+trap(:INT) { puts 'Interrupted'; exit }
+
+initialize
+
+begin
+  @redis.subscribe(:paint, :move) do |on|
+    on.subscribe do |channel, subscriptions|
+      puts "Subscribed to ##{channel} (#{subscriptions} subscriptions)"
+    end
+
+    on.message do |channel, message|
+      case channel
+      when 'paint'
+        paint
+      when 'move'
+        to = JSON.parse(message)
+        move(to: Point.new(to.x, to.y))
+      else
+        puts "##{channel}: #{message}"
+      end
+    end
+  end
+rescue Redis::BaseConnectionError => error
+  puts "#{error}, retrying in 1s"
+  sleep 1
+  retry
 end
