@@ -81,16 +81,12 @@ function update_start_point(data) {
 }
 
 function update_trajectory(url) {
-    var trajectories_count = $('path.d').length;
-    var start_from = parseInt($('#start-from')[0].text);
-    // console.log(start_from);
-    if (start_from < trajectories_count) {
-        $.post(url, {}, function (data) {
-            $('#start-from').text(data);
-            update_svg(data);
-            update_start_point(data);
-        })
-    }
+    $.post(url, {}, function (data) {
+        console.log(data);
+        $('#start-from').text(data);
+        update_svg(data);
+        update_start_point(data);
+    })
 }
 
 $(function () {

@@ -19,5 +19,6 @@ Rails.application.routes.draw do
   post 'stop', to: 'robot#stop'
   post 'next', to: 'robot#next_trajectory'
   post 'prev', to: 'robot#prev_trajectory'
+  post 'reset', to: 'robot#reset_trajectory'
 end
 

@@ -100,6 +100,7 @@ def paint
 
   until (@trajectory = Trajectory.get @trajectory_index).nil? # got through trajectories
     @redis.set('current_trajectory', @trajectory_index.to_s)
+    Config.start_from = @trajectory_index
     next if @trajectory.empty?
     @trajectory.right_motor_points.map(&:inverse!)
     move(to: Point.new(@trajectory.left_motor_points.first.p, @trajectory.right_motor_points.first.p))

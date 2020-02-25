@@ -53,7 +53,7 @@
             %hr
             - @image.layers.keys.each do |layer_name|
               - current = (layer_id == layer_name) ? ' font-weight-bold' : ''
-              = link_to layer_name, root_path(layer: layer_name), class: 'dropdown-item btn btn-sm' + current
+              = link_to layer_name, root_path(layer: layer_name), class: 'dropdown-item btn btn-sm' + current, onclick: "update_trajectory('/reset')"
 
         %hr
         - unless layer_id.nil?
