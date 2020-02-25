@@ -154,9 +154,12 @@ begin
       when 'paint'
         paint
       when 'move'
+        @zero_time = Time.now
+        @redis.set('running', 'true')
         to = JSON[message, symbolize_names: true]
         move(to: Point.new(to[:x], to[:y]))
-        puts "Moved to #{to}"
+        @redis.del 'running'
+        puts "Moved to #{to}. It took #{(Time.now - @zero_time).round(1)} secs"
       else
         puts "##{channel}: #{message}"
       end
