@@ -156,8 +156,10 @@ begin
       when 'move'
         @zero_time = Time.now
         @redis.set('running', 'true')
-        to = JSON[message, symbolize_names: true]
+        to = JSON[message, symbolize_names: true] # @redis.publish('move', {x: 300.0, y: 1400.0}.to_json)
+
         move(to: Point.new(to[:x], to[:y]))
+
         @redis.del 'running'
         puts "Moved to #{to}. It took #{(Time.now - @zero_time).round(1)} secs"
       else
