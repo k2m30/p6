@@ -68,7 +68,7 @@ def paint_trajectory
 
   begin
     add_points(QUEUE_SIZE)
-  end while (0..MIN_QUEUE_SIZE).include? @left_motor.queue_size and @point_index < @trajectory.size and !@redis.get('running').nil?
+  end while @left_motor.queue_size <= MIN_QUEUE_SIZE and @point_index < @trajectory.size and !@redis.get('running').nil?
 
 
   fail unless @redis.get('running')
@@ -154,8 +154,9 @@ begin
       when 'paint'
         paint
       when 'move'
-        to = JSON.parse(message)
-        move(to: Point.new(to.x, to.y))
+        to = JSON[message, symbolize_names: true]
+        move(to: Point.new(to[:x], to[:y]))
+        puts "Moved to #{to}"
       else
         puts "##{channel}: #{message}"
       end
