@@ -24,8 +24,9 @@ function poll(interval) {
             url: "/state",
             type: "GET",
             success: function (data) {
-                // console.log(data);
+                console.log(data);
                 update_current_point(data);
+                update_svg(data.current_trajectory);
                 if (data.running) {
                     poll(interval);
                 } else {
@@ -59,7 +60,7 @@ function onStop() {
 function update_svg(data) {
     // console.log(data);
     var trajectory = parseInt(data);
-
+    console.log(trajectory);
 
     if (trajectory > 0) {
         $('#path_' + (trajectory - 1).toString())[0].classList.add('invisible');

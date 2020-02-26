@@ -36,12 +36,12 @@ def move(from: nil, to:)
   @servo_interface.start_motion
   t = ([tl, tr].max || 0) / 1000.0 + 0.5
   time_start = Time.now
-  if Config.rpi?
-    begin
-      sleep 0.2
-      set_status
-    end while Time.now - time_start < t
-  end
+
+  begin
+    sleep 0.2
+    set_state
+  end while Time.now - time_start < t
+
 end
 
 def soft_stop
@@ -58,7 +58,7 @@ def turn_painting_on
   `gpio write 7 1` if Config.rpi?
 end
 
-def set_status
+def set_state
   @redis.set('state', {left: @left_motor.position, right: -1 * @right_motor.position}.to_json) rescue puts 'Unable to set status'
 end
 
@@ -68,7 +68,7 @@ def paint_trajectory
 
   begin
     add_points(QUEUE_SIZE)
-  end while @left_motor.queue_size <= MIN_QUEUE_SIZE and @point_index < @trajectory.size and !@redis.get('running').nil?
+  end while @left_motor.queue_size <= MIN_QUEUE_SIZE and @right_motor.queue_size <= MIN_QUEUE_SIZE and @point_index < @trajectory.size and !@redis.get('running').nil?
 
 
   fail unless @redis.get('running')
@@ -101,17 +101,18 @@ def paint
   until (@trajectory = Trajectory.get @trajectory_index).nil? # got through trajectories
     @redis.set('current_trajectory', @trajectory_index.to_s)
     Config.start_from = @trajectory_index
-    next if @trajectory.empty?
-    @trajectory.right_motor_points.map(&:inverse!)
-    move(to: Point.new(@trajectory.left_motor_points.first.p, @trajectory.right_motor_points.first.p))
+    unless @trajectory.empty?
+      @trajectory.right_motor_points.map(&:inverse!)
+      move(to: Point.new(@trajectory.left_motor_points.first.p, @trajectory.right_motor_points.first.p))
 
-    turn_painting_on
-    paint_trajectory
-    turn_painting_off
-
+      turn_painting_on
+      paint_trajectory
+      turn_painting_off
+    end
     @trajectory_index += 1
     @point_index = 0
   end
+  Config.start_from = 0
   puts 'Done.'
 rescue => e
   puts e.message

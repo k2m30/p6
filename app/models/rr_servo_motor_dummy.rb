@@ -12,18 +12,22 @@ class RRServoMotorDummy
     @queue_size = 0
     @trajectory_n = 0
     @name = name
+    @queue = []
   end
 
   def deinitialize
   end
 
-  def add_point(_)
+  def add_point(point)
+    @queue.push point
     @queue_size += 1
     p [@name, @queue_size]
     @queue_size
   end
 
   def queue_size
+    point = @queue.shift
+    @position = point.p
     @queue_size -= 1 if @queue_size > 0
     p [@name, @queue_size]
     @queue_size
@@ -44,26 +48,13 @@ class RRServoMotorDummy
     points = RRServoMotor.get_move_to_points(
         from: from, to: to, max_velocity: max_velocity, acceleration: acceleration
     )
+    @position = to
     return 0 if points.empty?
 
-    t_id = "move_#{@trajectory_n}_#{@name}"
+    # t_id = "move_#{@trajectory_n}_#{@name}"
     # t = Trajectory.new(points, points, t_id)
     # Plot.trajectory(trajectory: t, n: t_id)
-    @trajectory_n += 1
-
-    points[1..-1].each do |point|
-      begin
-        add_point(point)
-      rescue RetError
-        puts "RET_ERROR on #{@id}, move_to"
-        retry
-      rescue WrongTrajectoryError => e
-        t = Trajectory.new(points, points, 1000)
-        Plot.trajectory(trajectory: t, n: 1000)
-        fail WrongTrajectoryError, e
-      end
-    end
-    @interface.start_motion if start_immediately
+    # @trajectory_n += 1
     points.map(&:t).reduce(&:+)
   end
 
