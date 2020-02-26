@@ -26,8 +26,11 @@ class RRServoMotorDummy
 
   def queue_size
     point = @queue.shift
-    @position = point&.p || 0
-    p [@name, @queue.size]
+    return 0 if point.nil?
+
+    @position = point.p
+    # p [@name, @position]
+    sleep point.t / 1000.0 / 2.0
     @queue.size
   end
 

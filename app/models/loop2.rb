@@ -59,7 +59,18 @@ def turn_painting_on
 end
 
 def set_state
-  @redis.set('state', {left: @left_motor.position, right: -1 * @right_motor.position}.to_json) rescue puts 'Unable to set status'
+  left_position = @left_motor.position
+  right_position = - @right_motor.position
+  return if left_position.zero? or right_position.zero?
+
+  point = Point.new(left_position, right_position).get_belts_length.to_decart
+  p point
+  @redis.set('state', {left: left_position, right: right_position}.to_json, x: point.x, y: point.y) rescue puts 'Unable to set status'
+end
+
+def motors_queue_size
+  @left_motor.queue_size
+  @right_motor.queue_size
 end
 
 def paint_trajectory
@@ -67,15 +78,18 @@ def paint_trajectory
   turn_painting_on
 
   begin
-    if @left_motor.queue_size <= MIN_QUEUE_SIZE
+    if motors_queue_size <= MIN_QUEUE_SIZE
       add_points(QUEUE_SIZE)
     end
+    set_state
   end while @point_index < @trajectory.size and !@redis.get('running').nil?
 
 
-  fail unless @redis.get('running')
+  fail 'Stopped outside' unless @redis.get('running')
 
-  sleep 0.1 until @left_motor.queue_size.zero?
+  until motors_queue_size.zero?
+    set_state
+  end
   turn_painting_off
 end
 
@@ -115,6 +129,7 @@ def paint
     @point_index = 0
   end
   Config.start_from = 0
+  move(to: Point.new(Config.initial_x, -1 * Config.initial_y).get_motors_deg)
   puts 'Done.'
 rescue => e
   puts e.message
