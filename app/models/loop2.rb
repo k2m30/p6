@@ -64,7 +64,6 @@ def set_state
   return if left_position.zero? or right_position.zero?
 
   point = Point.new(left_position, right_position).get_belts_length.to_decart
-  p point
   @redis.set('state', {left: left_position, right: right_position}.to_json, x: point.x, y: point.y) rescue puts 'Unable to set status'
 end
 
@@ -128,8 +127,8 @@ def paint
     @trajectory_index += 1
     @point_index = 0
   end
-  Config.start_from = 0
   move(to: Point.new(Config.initial_x, -1 * Config.initial_y).get_motors_deg)
+  Config.start_from = 0
   puts 'Done.'
 rescue => e
   puts e.message
@@ -178,7 +177,7 @@ begin
         to = JSON[message, symbolize_names: true] # @redis.publish('move', {x: 300.0, y: 1400.0}.to_json)
 
         move(to: Point.new(to[:x], to[:y]))
-
+        set_state
         @redis.del 'running'
         puts "Moved to #{to}. It took #{(Time.now - @zero_time).round(1)} secs"
       else

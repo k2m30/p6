@@ -44,7 +44,7 @@ class RRServoMotorDummy
   end
 
   def move(from: nil, to:, max_velocity: 180.0, acceleration: 250.0, start_immediately: false)
-    from ||= to
+    from = from || @position || to
 
     points = RRServoMotor.get_move_to_points(
         from: from, to: to, max_velocity: max_velocity, acceleration: acceleration
