@@ -67,8 +67,10 @@ def paint_trajectory
   turn_painting_on
 
   begin
-    add_points(QUEUE_SIZE)
-  end while @left_motor.queue_size <= MIN_QUEUE_SIZE and @right_motor.queue_size <= MIN_QUEUE_SIZE and @point_index < @trajectory.size and !@redis.get('running').nil?
+    if @left_motor.queue_size <= MIN_QUEUE_SIZE
+      add_points(QUEUE_SIZE)
+    end
+  end while @point_index < @trajectory.size and !@redis.get('running').nil?
 
 
   fail unless @redis.get('running')

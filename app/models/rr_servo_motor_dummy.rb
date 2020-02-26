@@ -20,17 +20,15 @@ class RRServoMotorDummy
 
   def add_point(point)
     @queue.push point
-    @queue_size += 1
-    p [@name, @queue_size]
-    @queue_size
+    p [@name, @queue.size]
+    @queue.size
   end
 
   def queue_size
     point = @queue.shift
-    @position = point.p
-    @queue_size -= 1 if @queue_size > 0
-    p [@name, @queue_size]
-    @queue_size
+    @position = point&.p || 0
+    p [@name, @queue.size]
+    @queue.size
   end
 
   def get_errors
