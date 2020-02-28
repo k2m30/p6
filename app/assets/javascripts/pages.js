@@ -61,7 +61,7 @@ const poll = interval => {
         $.ajax({
             url: "/state",
             success: data => {
-                console.log(data);
+                // console.log(data);
                 update_current_point(data);
                 update_svg(data.current_trajectory);
                 if (data.running) {
@@ -94,8 +94,7 @@ $(() => {
     const svg_x = parseInt($('svg')[0].attributes[7].value.split(', ')[2]);
     if (
         (svg_x > canvas_size_x) ||
-        (initial_x * 1.2 <= canvas_size_x) ||
-        (initial_y * 1.2 <= canvas_size_x)
+        ((initial_x + initial_y) * 1.2 <= canvas_size_x)
     ) {
         $('#svg_size').text(svg_x);
         $('#alert').show();

@@ -107,7 +107,9 @@ class SimpleDrawingTest < Minitest::Test
   end
 
   def check_paths
+    #                         d="M400,600 L900,600 L900,1300 L400,1300 L400,600 z"
     assert @layer.paths[0].d == 'M400.0,600.0 L900.0,600.0 L900.0,1300.0 L400.0,1300.0 L400.0,600.0 L400.0,600.0 '
+    # assert @layer.paths[0].d == 'M400.0,600.0 L400.0,600.0 L400.0,1300.0 L900.0,1300.0 L900.0,600.0 L400.0,600.0 '
     assert @layer.paths[1].d == 'M600.0,700.0 L800.0,900.0 '
     assert @layer.paths[2].d == 'M800.0,900.0 L500.0,900.0 '
     assert @layer.paths[3].d == 'M500.0,900.0 L600.0,700.0 '
@@ -141,5 +143,9 @@ class SimpleDrawingTest < Minitest::Test
         assert se.end_point.x.round(4) == decart_point.x.round(4) and se.end_point.y.round(4) == decart_point.y.round(4)
       end
     end
+  end
+
+  def teardown
+    Config.pop
   end
 end

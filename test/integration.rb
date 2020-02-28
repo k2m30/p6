@@ -22,8 +22,9 @@ class IntegrationTest < ActionDispatch::IntegrationTest
 
     get "/trajectory?id=46"
     assert_response :success
+  end
 
-  ensure
+  def teardown
     Config.pop
   end
 end

@@ -9,8 +9,8 @@ class SVG
     @name = file_name
     @path = path
     @xml = Nokogiri::XML open(path + file_name)
-    @xml.root.attributes['width'].value = '100%'
-    @xml.root.attributes['height'].value = '100%'
+    @xml.root.attributes['width'].value ||= '100%'
+    @xml.root.attributes['height'].value ||= '100%'
     @header = @xml.root.attributes
     @redis.set(:header, @header)
     get_layer_names

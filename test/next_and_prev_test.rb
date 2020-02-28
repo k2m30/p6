@@ -4,9 +4,14 @@ class PrevNextTest < Minitest::Test
   def setup
     puts '____________________________________________________________________________'
     Redis.new.flushall
+    Config.push
     Config.start_from = 0
+    Config.canvas_size_x = 6000.0
+    Config.initial_x = 3500.0
+    Config.initial_y = 3500.0
+    Config.max_segment_length = 30.0
     @image = build_image 'risovaka007_003.svg'
-    name = @image.layers.keys[rand(1..@image.layers.keys.size)]
+    name = @image.layers.keys[rand(1..@image.layers.keys.size-1)]
     @layer = build_layer(name)
   end
 
@@ -57,8 +62,9 @@ class PrevNextTest < Minitest::Test
     assert(!t2_after.empty?)
 
     assert t2_before.left_motor_points[1..-1] != t2_after.left_motor_points[1..-1] and t2_before.right_motor_points[1..-1] != t2_after.right_motor_points[1..-1]
-  ensure
-    Config.start_from = 0
+  end
 
+  def teardown
+    Config.pop
   end
 end

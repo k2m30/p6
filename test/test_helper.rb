@@ -19,8 +19,11 @@ MiniTest::Reporters.use!
 # end
 
 def build_image(file_name = Config.image_name)
-  path = Rails.root.join("app", "assets", "images")
+  path = Rails.root.join("public")
   image = SVG.new(file_name, path)
   image.get_layer_names
+  svg_x = image.header['width'].value.to_f
+  fail "Wrong config, check config file or settings" if (svg_x > Config.canvas_size_x) or
+      ((Config.initial_x + Config.initial_y) * 1.2 <= Config.canvas_size_x)
   image
 end
