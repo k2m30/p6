@@ -46,7 +46,8 @@ class Loop
     loop { break unless @redis.get('running').nil? }
 
     @zero_time = Time.now
-    end_point = Point.new(Config.initial_x, -1 * Config.initial_y).get_motors_deg
+    end_point = Config.start_point.get_motors_deg
+    end_point.y *= -1
     start_point = Config.rpi? ? nil : end_point
     move(from: start_point, to: end_point)
     @trajectory_index = Config.start_from.to_i
@@ -123,7 +124,7 @@ class Loop
   def finalize
     puts 'Finalizing'
     turn_painting_off
-    initial_point = Point.new(Config.initial_x, -1 * Config.initial_y).get_motors_deg
+    initial_point = Config.start_point.get_motors_deg
     move(to: initial_point)
     puts "Done. Stopped. It took #{(Time.now - @zero_time).round(1)} secs"
     @trajectory = nil

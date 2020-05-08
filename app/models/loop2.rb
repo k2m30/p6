@@ -111,7 +111,9 @@ def paint
   @redis.set('running', 'true')
   @trajectory_index = Config.start_from.to_i
   @point_index = 0
-  move(to: Point.new(Config.initial_x, -1 * Config.initial_y).get_motors_deg)
+  start_point = Config.start_point
+  start_point.y *= -1
+  move(to: start_point.get_motors_deg)
 
   until (@trajectory = Trajectory.get @trajectory_index).nil? # got through trajectories
     @redis.set('current_trajectory', @trajectory_index.to_s)
@@ -127,7 +129,10 @@ def paint
     @trajectory_index += 1
     @point_index = 0
   end
-  move(to: Point.new(Config.initial_x, -1 * Config.initial_y).get_motors_deg)
+  start_point = Config.start_point
+  start_point.y *= -1
+  move(to: start_point.get_motors_deg)
+
   Config.start_from = 0
   puts 'Done.'
 rescue => e
@@ -143,7 +148,10 @@ end
 def finalize
   puts 'Finalizing'
   turn_painting_off
-  move(to: Point.new(Config.initial_x, -1 * Config.initial_y).get_motors_deg)
+  start_point = Config.start_point
+  start_point.y *= -1
+  move(to: start_point.get_motors_deg)
+
   puts "Done. Stopped. It took #{(Time.now - @zero_time).round(1)} secs"
   @trajectory = nil
   @point_index = 0

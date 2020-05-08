@@ -223,7 +223,7 @@ class Config
     end
 
     def start_point
-      Point.new(initial_x, initial_y).to_decart(canvas_size_x, dm, dy)
+      Point.new(initial_x, initial_y)
     end
 
     def keys

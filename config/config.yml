@@ -21,10 +21,10 @@ motor_pulley_diameter:
   value: 128.92
   description: диаметр шкива
 initial_x:
-  value: 2250.0
+  value: 6000.0
   description: начальная длина левого ремня, мм
 initial_y:
-  value: 2250.0
+  value: 6000.0
   description: начальная длина правого ремня, мм
 start_from:
   value: 0.0
@@ -52,30 +52,30 @@ max_spray_length:
   description: длина окраски одним баллончиком краски, мм
   hidden: true
 canvas_size_x:
-  value: 1310.0
+  value: 1200.0
   description: ширина холста (между креплениями моторов)
 canvas_size_y:
-  value: 2500.0
+  value: 1500.0
   description: высота холста
 dm:
-  value: 205.0
+  value: 200.0
   description: расстояние между моторами
 dy:
-  value: 150.0
+  value: 100.0
   description: насколько сопло ниже линии моторов
 simulation_velocity:
   value: 1500.1
   description: скорость симуляции, mm/sec
 image_name:
-  value: hare_1310.svg
+  value: test.svg
   description: имя файла
 version:
   value: 1.0
   description: версия данных в кэше
   hidden: true
 correction_left:
-  value: 20.3
+  value: 200.0
   description: корректировка левого ремня
 correction_right:
-  value: 140.0
+  value: 250.0
   description: корректировка правого ремня

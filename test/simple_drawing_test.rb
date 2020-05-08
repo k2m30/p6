@@ -25,6 +25,12 @@ class SimpleDrawingTest < Minitest::Test
     end
   end
 
+  def check_trajectories_with_corrections
+    Config.correction_left = 200.0
+    Config.correction_right = 250.0
+    check_trajectories
+  end
+
   def test_drawing
     @image.get_layer_names
     assert @image.layers.keys.size == 1
@@ -37,17 +43,14 @@ class SimpleDrawingTest < Minitest::Test
       check_splitted_paths
       check_tpaths
       check_trajectories
-      # check_trajectories_in_browser
+      check_trajectories_with_corrections
       check_linear_velocity
     end
-
-  ensure
-    Config.pop
   end
 
   def check_linear_velocity
     linear_velocities = []
-    # positions = [Point.new(Config.initial_x, Config.initial_y).to_decart]
+    # positions = [Config.start_point.to_decart]
     positions = []
     distances = []
     dts = []
@@ -80,26 +83,25 @@ class SimpleDrawingTest < Minitest::Test
     end
   end
 
-  def check_trajectories_in_browser
-    @layer.trajectories.each_index do |i|
-      file_name = Plot.trajectory(n: i)
-      `open -a Safari #{file_name}`
-    end
-  end
-
   def check_trajectories
     diameter = Config.motor_pulley_diameter
     assert(@layer.trajectories.size == @layer.tpaths.size, "Trajectories and tpaths size must be equal")
     @layer.tpaths.zip(@layer.trajectories).each do |tpath, trajectory|
 
-      points_left = ([trajectory.left_motor_points.select {|point| !point.paint}.last&.p] + trajectory.left_motor_points.select {|point| point.paint}&.map(&:p)).compact
-      points_right = ([trajectory.right_motor_points.select {|point| !point.paint}.last&.p] + trajectory.right_motor_points.select {|point| point.paint}&.map(&:p)).compact
+      points_left = ([trajectory.left_motor_points.select { |point| !point.paint }.last&.p] + trajectory.left_motor_points.select { |point| point.paint }&.map(&:p)).compact
+      points_right = ([trajectory.right_motor_points.select { |point| !point.paint }.last&.p] + trajectory.right_motor_points.select { |point| point.paint }&.map(&:p)).compact
 
       assert(points_left.size == points_right.size, "Trajectories size must be equal")
 
       points_left.zip(points_right).zip(tpath.elements).each do |points, te|
-        point = te.end_point.get_motors_deg(diameter)
-        assert(points == [point.x, point.y], 'Trajectories calculations wrong')
+        begin
+          point = te.end_point.get_motors_deg(diameter)
+          # p [points, point]
+          assert(points == [point.x, point.y], 'Trajectories calculations wrong')
+        rescue Minitest::Assertion => e
+          p e
+          raise e
+        end
       end
       assert trajectory.left_motor_points.map(&:t).sum.round(6) == trajectory.right_motor_points.map(&:t).sum.round(6)
       # assert trajectory.left_motor_points.map(&:t).map{|t| t.round(6)} == trajectory.right_motor_points.map(&:t).map{|t| t.round(6)}

@@ -37,11 +37,11 @@ class Point
     x == point.x and y == point.y
   end
 
-  def get_motors_deg(diameter = Config.motor_pulley_diameter)
-    Point.new x * 360.0 / (diameter * Math::PI), y * 360.0 / (diameter * Math::PI)
+  def get_motors_deg(diameter = Config.motor_pulley_diameter, correction_left = Config.correction_left, correction_right = Config.correction_right)
+    Point.new (x - correction_left) * 360.0 / (diameter * Math::PI), (y - correction_right) * 360.0 / (diameter * Math::PI)
   end
 
-  def get_belts_length(diameter = Config.motor_pulley_diameter)
-    Point.new x * (diameter * Math::PI) / 360.0, y * (diameter * Math::PI) / 360.0
+  def get_belts_length(diameter = Config.motor_pulley_diameter, correction_left = Config.correction_left, correction_right = Config.correction_right)
+    Point.new x * (diameter * Math::PI) / 360.0 + correction_left, y * (diameter * Math::PI) / 360.0 + correction_right
   end
 end

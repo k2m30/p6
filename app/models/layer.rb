@@ -82,7 +82,7 @@ class Layer
     width = Config.canvas_size_x
     dm = Config.dm
     dy = Config.dy
-    initial_point = Point.new(Config.initial_x, Config.initial_y).to_decart
+    initial_point = Config.start_point.to_decart
     layer.paths.first.elements.first.start_point = initial_point
     # layer.paths[Config.start_from].elements.first.start_point = initial_point
 
@@ -99,7 +99,7 @@ class Layer
     dl = Config.max_segment_length
     layer.splitted_paths = []
     layer.paths.each do |path|
-      p path.d
+      # p path.d
       layer.splitted_paths << path.split(dl)
     end
     # }
@@ -131,7 +131,7 @@ class Layer
       @splitted_paths.zip @tpaths do |spath, tpath|
         time = Benchmark.ms {
           if start_from == id
-            point = Point.new(Config.initial_x, Config.initial_y)
+            point = Config.start_point
             spath.elements.first.start_point = point.to_decart
             tpath.elements.first.start_point = point
           end
@@ -157,7 +157,7 @@ class Layer
   def optimize_paths
     optimized_paths = []
 
-    path = find_closest(Point.new(Config.initial_x, Config.initial_y).to_decart)
+    path = find_closest(Config.start_point.to_decart)
     until @paths.empty?
       optimized_paths.push path
       @paths.delete path
@@ -270,7 +270,7 @@ EOL
 
   def calculate_time
     @total_time = 0
-    current_point = Point.new(Config.initial_x, Config.initial_y).get_motors_deg
+    current_point = Config.start_point.get_motors_deg
     acceleration = Config.max_angular_acceleration
     max_velocity = Config.max_angular_velocity
 
