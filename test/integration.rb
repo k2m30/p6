@@ -18,11 +18,11 @@ class IntegrationTest < ActionDispatch::IntegrationTest
 
     get "/"
     assert_response :success
-    assert_select 'h5', image_name
+    assert_select 'h5', Config.image_name
 
     get "/?layer=#{layer_name}"
     assert_response :success
-    assert_select '#image_name', image_name
+    assert_select '#image_name', Config.image_name
     assert_select '#layer_name', layer_name
 
     get "/trajectory?id=46"
