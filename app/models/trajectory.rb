@@ -19,7 +19,6 @@ class Trajectory
 
     max_linear_velocity = Config.linear_velocity
     linear_acceleration = Config.linear_acceleration
-    diameter = Config.motor_pulley_diameter
 
     @data = []
     return Trajectory.new([], [], id) if spath.length.zero?
@@ -32,11 +31,11 @@ class Trajectory
       r = Row.new
       r.dl = spath.elements[i + 1].length
 
-      start_point_deg = curr.start_point.get_motors_deg(diameter)
+      start_point_deg = curr.start_point.get_motors_deg
       r.start_left_deg = start_point_deg.x
       r.start_right_deg = start_point_deg.y
 
-      end_point_deg = curr.end_point.get_motors_deg(diameter)
+      end_point_deg = curr.end_point.get_motors_deg
       r.end_left_deg = end_point_deg.x
       r.end_right_deg = end_point_deg.y
 
@@ -69,7 +68,7 @@ class Trajectory
     r.v_right = 0
     r.a_left = 0
     r.a_right = 0
-    last_point = tpath.elements.last.end_point.get_motors_deg(diameter)
+    last_point = tpath.elements.last.end_point.get_motors_deg
     r.start_left_deg = last_point.x
     r.start_right_deg = last_point.y
 
@@ -134,10 +133,9 @@ class Trajectory
   def self.calculate_move_to_points(tpath)
     angular_velocity = Config.max_angular_velocity
     angular_acceleration = Config.max_angular_acceleration
-    diameter = Config.motor_pulley_diameter
 
     # first add move_to commands
-    point = Point.new(tpath.elements.first.start_point.x, tpath.elements.first.start_point.y).get_motors_deg(diameter)
+    point = Point.new(tpath.elements.first.start_point.x, tpath.elements.first.start_point.y).get_motors_deg
     move_to_left_deg = point.x
     move_to_right_deg = point.y
 

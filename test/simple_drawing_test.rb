@@ -84,7 +84,7 @@ class SimpleDrawingTest < Minitest::Test
   end
 
   def check_trajectories
-    diameter = Config.motor_pulley_diameter
+
     assert(@layer.trajectories.size == @layer.tpaths.size, "Trajectories and tpaths size must be equal")
     @layer.tpaths.zip(@layer.trajectories).each do |tpath, trajectory|
 
@@ -95,7 +95,7 @@ class SimpleDrawingTest < Minitest::Test
 
       points_left.zip(points_right).zip(tpath.elements).each do |points, te|
         begin
-          point = te.end_point.get_motors_deg(diameter)
+          point = te.end_point.get_motors_deg
           # p [points, point]
           assert(points == [point.x, point.y], 'Trajectories calculations wrong')
         rescue Minitest::Assertion => e

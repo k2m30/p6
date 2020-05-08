@@ -100,7 +100,7 @@ class Plot
         height = Config.canvas_size_y
 
         position_left.size.times do |i|
-          point = Point.new(position_left[i], position_right[i]).get_belts_length(diameter).to_decart(width, dm, dy)
+          point = Point.new(position_left[i], position_right[i]).get_belts_length.to_decart(width, dm, dy)
           x << point.x
           y << height - point.y
         end
@@ -123,7 +123,7 @@ class Plot
         velocities = [0]
 
         position_left.size.times do |i|
-          points << Point.new(position_left[i], position_right[i]).get_belts_length(diameter).to_decart(width, dm, dy)
+          points << Point.new(position_left[i], position_right[i]).get_belts_length.to_decart(width, dm, dy)
         end
 
         i = 0

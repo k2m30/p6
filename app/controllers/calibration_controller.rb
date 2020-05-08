@@ -13,7 +13,9 @@ class CalibrationController < ApplicationController
   end
 
   def adjust
-    params[:correction_left].nil? ? Config.correction_right = params[:correction_right] : Config.correction_left = params[:correction_left]
+    state = helpers.get_state
+    point = Point.new(state[:left_deg], state[:right_deg]).get_belts_length(correction_left: 0, correction_right: 0)
+    params[:correction_left].present? ? Config.correction_left = Float(params[:correction_left]) - point.x : Config.correction_right = Float(params[:correction_right]) - point.y
     redirect_to calibrate_path
   end
 end

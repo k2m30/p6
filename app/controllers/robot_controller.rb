@@ -14,10 +14,7 @@ class RobotController < ApplicationController
   end
 
   def state
-    redis = Redis.new
-    state = JSON[redis.get(:state) || {left: 0, right: 0}.to_json, symbolize_names: true]
-    point = Point.new(state[:left], state[:right]).get_belts_length.to_decart rescue Point.new(0,0)
-    render json: state.merge(x: point&.x, y: point&.y, running: redis.get('running') || false, current_trajectory: Config.start_from.to_i)
+    render json: helpers.get_state
   end
 
   def run

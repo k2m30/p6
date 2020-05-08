@@ -8,8 +8,8 @@ class RRServoMotorDummy
   def initialize(interface, servo_id = 123, name)
     @interface = interface
     @id = servo_id
-    @position = 0
-    @queue_size = 0
+    @position = 0.0
+    @queue_size = 0.0
     @trajectory_n = 0
     @name = name
     @queue = []

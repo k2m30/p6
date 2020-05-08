@@ -32,7 +32,7 @@ class CorrectionTest < Minitest::Test
     correction_right = Config.correction_right
     initial_point = Config.start_point
     belts_with_correction = initial_point.get_belts_length
-    belts_without_correction = initial_point.get_belts_length(Config.motor_pulley_diameter, 0, 0)
+    belts_without_correction = initial_point.get_belts_length(diameter: Config.motor_pulley_diameter, correction_left: 0, correction_right: 0)
 
     assert((belts_with_correction.x - belts_without_correction.x).round(4) == correction_left, "Wrong belt correction calculation")
     assert((belts_with_correction.y - belts_without_correction.y).round(4) == correction_right, "Wrong belt correction calculation")

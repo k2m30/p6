@@ -61,11 +61,8 @@ end
 
 def set_state
   left_position = @left_motor.position
-  right_position = - @right_motor.position
-  return if left_position.zero? or right_position.zero?
-
-  point = Point.new(left_position, right_position).get_belts_length.to_decart
-  @redis.set('state', {left: left_position, right: right_position}.to_json, x: point.x, y: point.y) rescue puts 'Unable to set status'
+  right_position = -@right_motor.position
+  @redis.set('state', {left_deg: left_position, right_deg: right_position, running: @redis.get('running') || false}.to_json) rescue puts 'Unable to set status'
 end
 
 def motors_queue_size
@@ -182,7 +179,7 @@ begin
         paint
       when 'move'
         @zero_time = Time.now
-        @redis.set('running', 'true')
+        @redis.set('running', true)
         to = JSON[message, symbolize_names: true] # @redis.publish('move', {x: 300.0, y: 1400.0}.to_json)
 
         move(to: Point.new(to[:x], to[:y]))
