@@ -4,8 +4,13 @@ class IntegrationTest < ActionDispatch::IntegrationTest
   test "can see the main page" do
     Redis.new.flushall
     Config.push
-    image_name = 'risovaka007_003.svg'
-    @image = build_image image_name
+    Config.canvas_size_x = 6000.0
+    Config.initial_x = 3500.0
+    Config.initial_y = 3500.0
+    Config.max_segment_length = 30.0
+    Config.image_name = 'risovaka007_003.svg'
+
+    @image = build_image
     layer_name = 'grey_('
     @image.get_layer(layer_name)
     Layer.build(layer_name)

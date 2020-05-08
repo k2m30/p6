@@ -36,7 +36,7 @@ class Layer
 
     @color = @xml.at_css('path')&.attributes&.dig('stroke')&.value || @xml.attributes['color']&.value
     @width = @xml.at_css('path')&.attributes&.dig('stroke-width')&.value || @xml.attributes['width']&.value
-    p [@name, @paths.size]
+    # p [@name, @paths.size]
     new(@name, @paths, @splitted_paths, @tpaths, @trajectories, @color, @width)
   end
 

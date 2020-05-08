@@ -6,13 +6,14 @@ class TestLayerBuild < Minitest::Benchmark
     puts '____________________________________________________________________________'
     Redis.new.flushall
     Config.push
-    file_name = 'risovaka007_003.svg'
-    layer_name = 'yellow_('
     Config.canvas_size_x = 6000.0
     Config.initial_x = 3500.0
     Config.initial_y = 3500.0
     Config.max_segment_length = 30.0
-    @image = build_image file_name
+    Config.image_name = 'risovaka007_003.svg'
+
+    @image = build_image
+    layer_name = 'yellow_('
     @image.get_layer(layer_name)
     @proc = Proc.new do |max_segment_length|
       Config.max_segment_length = max_segment_length

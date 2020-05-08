@@ -21,10 +21,10 @@ motor_pulley_diameter:
   value: 128.92
   description: диаметр шкива
 initial_x:
-  value: 6000.0
+  value: 3500.0
   description: начальная длина левого ремня, мм
 initial_y:
-  value: 6000.0
+  value: 3500.0
   description: начальная длина правого ремня, мм
 start_from:
   value: 0.0
@@ -52,7 +52,7 @@ max_spray_length:
   description: длина окраски одним баллончиком краски, мм
   hidden: true
 canvas_size_x:
-  value: 1200.0
+  value: 6000.0
   description: ширина холста (между креплениями моторов)
 canvas_size_y:
   value: 1500.0
@@ -67,7 +67,7 @@ simulation_velocity:
   value: 1500.1
   description: скорость симуляции, mm/sec
 image_name:
-  value: test.svg
+  value: risovaka007_003.svg
   description: имя файла
 version:
   value: 1.0

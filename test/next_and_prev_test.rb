@@ -10,7 +10,9 @@ class PrevNextTest < Minitest::Test
     Config.initial_x = 3500.0
     Config.initial_y = 3500.0
     Config.max_segment_length = 30.0
-    @image = build_image 'risovaka007_003.svg'
+    Config.image_name = 'risovaka007_003.svg'
+
+    @image = build_image
     name = @image.layers.keys[rand(1..@image.layers.keys.size-1)]
     @layer = build_layer(name)
   end

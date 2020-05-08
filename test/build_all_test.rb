@@ -12,7 +12,8 @@ class BuildTest < Minitest::Test
     Config.initial_x = 3500.0
     Config.initial_y = 3500.0
     Config.max_segment_length = 30.0
-    @image = build_image 'risovaka007_003.svg'
+    Config.image_name = 'risovaka007_003.svg'
+    @image = build_image
     build_all_layers
   end
 
@@ -21,7 +22,8 @@ class BuildTest < Minitest::Test
     Config.initial_x = 750.0
     Config.initial_y = 750.0
     Config.max_segment_length = 30.0
-    @image = build_image 'hare_1310.svg'
+    Config.image_name = 'hare_1310.svg'
+    @image = build_image
     build_all_layers
   end
 
@@ -30,7 +32,8 @@ class BuildTest < Minitest::Test
     Config.initial_x = 6000.0
     Config.initial_y = 6000.0
     Config.max_segment_length = 30.0
-    @image = build_image 'flying.svg'
+    Config.image_name = 'flying.svg'
+    @image = build_image
     build_all_layers
   end
 
