@@ -27,6 +27,7 @@ def init_system
   @servo_interface = Config.rpi? ? RRInterface.new : RRInterfaceDummy.new
   @left_motor = Config.rpi? ? RRServoMotor.new(@servo_interface, LEFT_MOTOR_ID) : RRServoMotorDummy.new(@servo_interface, LEFT_MOTOR_ID, :left)
   @right_motor = Config.rpi? ? RRServoMotor.new(@servo_interface, RIGHT_MOTOR_ID) : RRServoMotorDummy.new(@servo_interface, RIGHT_MOTOR_ID, :right)
+  set_state
 end
 
 
