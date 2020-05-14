@@ -30,19 +30,20 @@ def init_system
   set_state
 end
 
+def wait(time_to_wait, dt = 0.2)
+  time_start = Time.now
+  begin
+    sleep dt
+    set_state
+  end while Time.now - time_start < time_to_wait
+end
 
 def move(from: nil, to:)
   tl = @left_motor.move(to: to.x, max_velocity: @idling_speed, acceleration: @acceleration)
   tr = @right_motor.move(to: to.y, max_velocity: @idling_speed, acceleration: @acceleration)
   @servo_interface.start_motion
-  t = ([tl, tr].max || 0) / 1000.0 + 0.5
-  time_start = Time.now
-
-  begin
-    sleep 0.2
-    set_state
-  end while Time.now - time_start < t
-
+  time_to_wait = ([tl, tr].max || 0) / 1000.0 + 0.5
+  wait time_to_wait
 end
 
 def soft_stop
@@ -168,24 +169,33 @@ redis = Redis.new
 init_system
 
 begin
-  redis.subscribe(:paint, :move) do |on|
+  redis.subscribe(:commands) do |on|
     on.subscribe do |channel, subscriptions|
       puts "Subscribed to ##{channel} (#{subscriptions} subscriptions)"
     end
 
     on.message do |channel, message|
-      case channel
+      message = JSON[message, symbolize_names: true]
+      case message[:command]
       when 'paint'
         paint
       when 'move'
         @zero_time = Time.now
         @redis.set('running', true)
-        to = JSON[message, symbolize_names: true] # @redis.publish('move', {x: 300.0, y: 1400.0}.to_json)
+        # @redis.publish('commands', {command: 'move', x: 300.0, y: 1400.0}.to_json)
 
-        move(to: Point.new(to[:x], to[:y]))
+        move(to: Point.new(message[:x], message[:y]))
         set_state
         @redis.del 'running'
         puts "Moved to #{to}. It took #{(Time.now - @zero_time).round(1)} secs"
+      when 'manual'
+        # @redis.publish('commands', {command: 'manual', motor: :left, direction: :down, distance: 1400.0}.to_json)
+        motor = message[:motor] == 'left' ? @left_motor : @right_motor
+        direction = message[:direction] == 'up' ? 1 : -1
+        distance = Point.new(message[:distance].to_f, 0).get_motors_deg.x
+
+        t = motor.move(to: motor.position + distance * direction, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: true)
+        wait t
       else
         puts "##{channel}: #{message}"
       end

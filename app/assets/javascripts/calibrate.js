@@ -16,4 +16,25 @@ let updateState = () => {
     });
 };
 
+let manualControl = (motor, direction, distance) => {
+    fetch(`/manual?motor=${motor}&direction=${direction}&distance=${distance}`, {
+        method: 'POST'
+    });
+};
+
 setInterval(updateState, 1000);
+
+$(() => {
+    $("#down-left").click(() => {
+        manualControl('left', 'down', $("#value-left")[0].value)
+    });
+    $("#up-left").click(() => {
+        manualControl('left', 'up', $("#value-left")[0].value)
+    });
+    $("#down-right").click(() => {
+        manualControl('right', 'down', $("#value-right")[0].value)
+    });
+    $("#up-right").click(() => {
+        manualControl('right', 'up', $("#value-right")[0].value)
+    });
+});

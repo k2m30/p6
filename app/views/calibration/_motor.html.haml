@@ -2,17 +2,17 @@
   = motor
 .row
   .col-6
-    %h5 Manual control
+    %h5 Manual control, mm
     .form-group
       .row
         .col-12
-          =link_to 'up', nil, class: 'btn btn-secondary'
+          =link_to 'up', 'javascript:;', class: "btn btn-secondary", id: "up-#{motor}"
       .row
         .col-12
-          =text_field_tag "value_#{motor}", '0.0', class: 'form-control'
+          =text_field_tag "value_#{motor}", '10.0', class: 'form-control', id: "value-#{motor}"
       .row
         .col-12
-          =link_to 'down', manual_path(direction: :down), class: 'btn btn-secondary', method: :post
+          =link_to 'down', 'javascript:;', class: "btn btn-secondary", id: "down-#{motor}"
 
 %hr
 .row
@@ -22,12 +22,3 @@
       .form-group.mb-2
         =text_field_tag "correction_#{motor}", correction, class: 'form-control'
       =submit_tag 'adjust', class: 'btn btn-secondary mb-2', method: :post
-%hr
-.row
-  .col-12
-    %h5 Move to, mm
-    %form.form-inline
-      .form-group.mb-2
-        =text_field_tag "value_#{motor}", '110.0', class: 'form-control'
-      =link_to 'move to', nil, class: 'btn btn-secondary mb-2'
-%hr

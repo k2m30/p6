@@ -18,3 +18,17 @@
     = render partial:'motor', locals: {motor: :left, correction: @correction_left}
   .col-6
     = render partial:'motor', locals: {motor: :right, correction: @correction_right}
+
+%hr
+.row
+  .col-3
+    %h5 Move to, mm, decart
+    = form_tag move_path, class: 'mb-2' do
+      .form-group
+        =label_tag "X"
+        =text_field_tag "x", '110.0', class: 'form-control'
+      .form-group
+        =label_tag "Y"
+        =text_field_tag "y", '110.0', class: 'form-control'
+      =submit_tag 'move to', class: 'btn btn-secondary mb-2'
+%hr
