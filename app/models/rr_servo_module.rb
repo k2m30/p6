@@ -3,7 +3,7 @@ require 'fiddle/import'
 
 module RRServoModule
   extend Fiddle::Importer
-  dlload './rr_servo_library.so' rescue dlload Rails.root.join('app', 'models', 'rr_servo_library.so').to_s
+  dlload './rr_servo_library.so' rescue ENV['RR_LIB_PATH'] rescue dlload Rails.root.join('app', 'models', 'rr_servo_library.so').to_s
   typealias 'rr_ret_status_t', 'int'
   typealias 'rr_servo_param_t', 'int'
   typealias 'rr_nmt_state_t', 'int'
