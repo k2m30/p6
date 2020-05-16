@@ -24,9 +24,18 @@ def init_system
 
   fail 'Already running' unless @redis.get('running').nil?
 
-  @servo_interface = Config.rpi? ? RRInterface.new : RRInterfaceDummy.new
-  @left_motor = Config.rpi? ? RRServoMotor.new(@servo_interface, LEFT_MOTOR_ID) : RRServoMotorDummy.new(@servo_interface, LEFT_MOTOR_ID, :left)
-  @right_motor = Config.rpi? ? RRServoMotor.new(@servo_interface, RIGHT_MOTOR_ID) : RRServoMotorDummy.new(@servo_interface, RIGHT_MOTOR_ID, :right)
+  if Config.rpi?
+    @servo_interface = RRInterface.new
+    @left_motor = RRServoMotor.new(@servo_interface, LEFT_MOTOR_ID)
+    @right_motor = RRServoMotor.new(@servo_interface, RIGHT_MOTOR_ID)
+  else
+    @servo_interface = RRInterfaceDummy.new
+    @left_motor = RRServoMotorDummy.new(@servo_interface, LEFT_MOTOR_ID, :left)
+    @right_motor = RRServoMotorDummy.new(@servo_interface, RIGHT_MOTOR_ID, :right)
+    start_point = Config.start_point.get_motors_deg
+    start_point.y *= -1
+    move(to: start_point)
+  end
   set_state
 end
 
@@ -43,7 +52,7 @@ def move(from: nil, to:)
   tr = @right_motor.move(to: to.y, max_velocity: @idling_speed, acceleration: @acceleration)
   @servo_interface.start_motion
   time_to_wait = ([tl, tr].max || 0) / 1000.0 + 0.1
-  wait time_to_wait
+  wait time_to_wait if Config.rpi?
 end
 
 def soft_stop
@@ -63,7 +72,7 @@ end
 def set_state
   left_position = @left_motor.position
   right_position = -@right_motor.position
-  @redis.set('state', {left_deg: left_position, right_deg: right_position, running: @redis.get('running') || false}.to_json) rescue puts 'Unable to set status'
+  @redis.set('state', {left_deg: left_position.round(1), right_deg: right_position.round(1), running: @redis.get('running') || false}.to_json) rescue puts 'Unable to set status'
 end
 
 def motors_queue_size

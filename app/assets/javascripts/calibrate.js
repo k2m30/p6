@@ -1,7 +1,10 @@
 let updateState = () => {
     fetch('/state').then(r => r.json()).then(r => {
-        $('#left').text(r.left);
-        $('#right').text(r.right);
+        //{"left_deg":2933,"right_deg":3333,"running":false,"left_mm":30.0,"right_mm":40.0,"x":26.4,"y":24.6,"current_trajectory":0}
+        $('#left-deg').text(r.left_deg);
+        $('#right-deg').text(r.right_deg);
+        $('#left-mm').text(r.left_mm);
+        $('#right-mm').text(r.right_mm);
         $('#x').text(r.x);
         $('#y').text(r.y);
         $('#running').text(r.running);
