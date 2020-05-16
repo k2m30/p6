@@ -198,7 +198,8 @@ begin
         when 'manual' # @redis.publish('commands', {command: 'manual', motor: :left, direction: :down, distance: 1400.0}.to_json)
           motor = message[:motor] == 'left' ? @left_motor : @right_motor
           direction = message[:direction] == 'up' ? 1 : -1
-          distance = Point.new(message[:distance].to_f, 0).get_motors_deg.x
+          direction *= -1 if motor == @right_motor
+          distance = Point.new(message[:distance].to_f, 0).get_motors_deg(correction_right: 0, correction_left: 0).x
 
           @redis.set('running', true)
           t = motor.move(to: motor.position + distance * direction, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: true) / 1000.0
