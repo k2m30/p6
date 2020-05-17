@@ -207,7 +207,6 @@ class RRServoMotor
 
   def add_motion_point(point, velocity, acceleration, time)
     ret_code = RRServoModule.rr_add_motion_point(@servo_handle, point, velocity, time)
-    p 'pvt'
     # ret_code = RRServoModule.rr_add_motion_point_pvat(@servo_handle, point, velocity, acceleration, time)
     check_errors(ret_code)
   end
