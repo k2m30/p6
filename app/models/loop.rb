@@ -51,7 +51,7 @@ def move(from: nil, to:)
   tl = @left_motor.move(to: to.x, max_velocity: @idling_speed, acceleration: @acceleration)
   tr = @right_motor.move(to: to.y, max_velocity: @idling_speed, acceleration: @acceleration)
   @servo_interface.start_motion
-  time_to_wait = ([tl, tr].max || 0) / 1000.0 + 0.1
+  time_to_wait = ([tl, tr].max || 0) / 1000.0 + 0.5
   wait time_to_wait if Config.rpi?
 end
 
@@ -128,6 +128,7 @@ def paint
     Config.start_from = @trajectory_index
     unless @trajectory.empty?
       @trajectory.right_motor_points.map(&:inverse!)
+      move(to: Point.new(@trajectory.left_motor_points.first.p, @trajectory.right_motor_points.first.p))
       move(to: Point.new(@trajectory.left_motor_points.first.p, @trajectory.right_motor_points.first.p))
       p @redis.get 'state'
       sleep 2.0
