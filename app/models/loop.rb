@@ -130,9 +130,11 @@ def paint
       @trajectory.right_motor_points.map(&:inverse!)
       move(to: Point.new(@trajectory.left_motor_points.first.p, @trajectory.right_motor_points.first.p))
       p @redis.get 'state'
-      turn_painting_on
+      p [@trajectory.left_motor_points[0], @trajectory.right_motor_points[0]]
+      p [@trajectory.left_motor_points[1], @trajectory.right_motor_points[1]]
+      p [@trajectory.left_motor_points[2], @trajectory.right_motor_points[2]]
       paint_trajectory
-      turn_painting_off
+      
     end
     @trajectory_index += 1
     @point_index = 0
