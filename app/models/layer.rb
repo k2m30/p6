@@ -200,7 +200,7 @@ class Layer
         end
 
         xml.circle(cx: Config.start_point.x, cy: Config.start_point.y, r: @width, fill: 'green', opacity: 0.4)
-        xml.rect(x: Config.move_x, y: Config.move_y, width: [Config.crop_w, Config.canvas_size_x].max, height: [Config.crop_h, Config.canvas_size_y].max, 'fill-opacity': 0, 'stroke-width': @width, 'stroke-linecap': :round, opacity: 1.0, stroke: 'darkred')
+        # xml.rect(x: Config.move_x, y: Config.move_y, width: [Config.crop_w, Config.canvas_size_x].max, height: [Config.crop_h, Config.canvas_size_y].max, 'fill-opacity': 0, 'stroke-width': @width, 'stroke-linecap': :round, opacity: 1.0, stroke: 'darkred')
         # xml.rect(x: Config.crop_x + Config.move_x, y: Config.crop_y + Config.move_y, width: Config.crop_w, height: Config.crop_h, 'fill-opacity': 0, 'stroke-width': @width, 'stroke-linecap': :round, opacity: 1.0, stroke: 'darkred')
 
         xml.style do

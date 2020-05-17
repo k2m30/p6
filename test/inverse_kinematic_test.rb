@@ -10,7 +10,7 @@ class InverseKinematicTest < Minitest::Test
 
   def test_kinematic
     width = Config.canvas_size_x
-    height = Config.canvas_size_x
+    height = Config.canvas_size_y
     dm = Config.dm
     dy = Config.dy
 
