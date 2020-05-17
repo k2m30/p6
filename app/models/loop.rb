@@ -189,7 +189,7 @@ begin
         message = JSON[message, symbolize_names: true]
 
         case message[:command]
-        when 'paint'
+        when 'paint' # @redis.publish('commands', {command: 'paint'}.to_json)
           paint
 
         when 'status'
