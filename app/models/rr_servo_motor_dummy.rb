@@ -1,6 +1,6 @@
-require_relative 'rr_servo_motor'
 require 'numo/gnuplot'
 require_relative 'plot'
+require_relative 'velocity_spline'
 
 class RRServoMotorDummy
   attr_accessor :position
@@ -41,6 +41,23 @@ class RRServoMotorDummy
   end
 
   def self.get_move_to_points(from:, to:, max_velocity: 180.0, acceleration: 250.0)
+    l = to - from
+    sign = l <=> 0
+    return [] if to == from
+
+    velocity_spline = VelocitySpline.new(length: (to - from).abs, max_linear_velocity: max_velocity, linear_acceleration: acceleration)
+    dt = VelocitySpline::STEP
+    begin
+      points = velocity_spline.pvat_points(dt: dt)
+      dt = dt *1.5
+    end while points.size > 200
+
+    points.each do |point|
+      point.p = from + sign * point.p
+      point.v *= sign
+      point.a *= sign
+    end
+    points
   end
 
   def move(from: nil, to:, max_velocity: 180.0, acceleration: 250.0, start_immediately: false)

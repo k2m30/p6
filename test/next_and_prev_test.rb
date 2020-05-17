@@ -13,8 +13,7 @@ class PrevNextTest < Minitest::Test
     Config.image_name = 'risovaka007_003.svg'
 
     @image = build_image
-    name = @image.layers.keys[rand(1..@image.layers.keys.size-1)]
-    @layer = build_layer(name)
+    @layer = build_layer('black_up')
   end
 
   def build_layer(name = @layer.name)
