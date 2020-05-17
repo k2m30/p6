@@ -130,6 +130,9 @@ def paint
       @trajectory.right_motor_points.map(&:inverse!)
       move(to: Point.new(@trajectory.left_motor_points.first.p, @trajectory.right_motor_points.first.p))
       p @redis.get 'state'
+      sleep 2.0
+      p @redis.get 'state'
+
       p [@trajectory.left_motor_points[0], @trajectory.right_motor_points[0]]
       p [@trajectory.left_motor_points[1], @trajectory.right_motor_points[1]]
       p [@trajectory.left_motor_points[2], @trajectory.right_motor_points[2]]
@@ -173,69 +176,66 @@ end
 ################################################
 # Main loop
 ################################################
-if Config.rpi?
 
-  trap(:INT) { puts "\nInterrupted"; exit }
+trap(:INT) { puts "\nInterrupted"; exit }
 
-  redis = Redis.new
-  init_system
+redis = Redis.new
+init_system
 
-  begin
-    redis.subscribe(:commands) do |on|
-      on.subscribe do |channel, subscriptions|
-        puts "Subscribed to ##{channel} (#{subscriptions} subscriptions)"
-      end
+begin
+  redis.subscribe(:commands) do |on|
+    on.subscribe do |channel, subscriptions|
+      puts "Subscribed to ##{channel} (#{subscriptions} subscriptions)"
+    end
 
-      on.message do |channel, message|
-        begin
+    on.message do |channel, message|
+      begin
+        puts "##{channel}: #{message}"
+        message = JSON[message, symbolize_names: true]
+
+        case message[:command]
+        when 'paint' # @redis.publish('commands', {command: 'paint'}.to_json)
+          paint
+
+        when 'status'
+          p "left: #{@left_motor.position}, right: #{@right_motor.position}"
+
+        when 'move' # @redis.publish('commands', {command: 'move', x: 300.0, y: 1400.0}.to_json)
+          @zero_time = Time.now
+          @redis.set('running', true)
+
+          move(to: Point.new(message[:x], message[:y]))
+          @redis.del 'running'
+          set_state
+          puts "Moved to left: #{@left_motor.position}, right: #{@right_motor.position}. It took #{(Time.now - @zero_time).round(1)} secs"
+
+        when 'manual' # @redis.publish('commands', {command: 'manual', motor: :left, direction: :down, distance: 1400.0}.to_json)
+          motor = message[:motor] == 'left' ? @left_motor : @right_motor
+          direction = message[:direction] == 'up' ? -1 : 1
+          direction *= -1 if motor == @right_motor
+          distance = Point.new(message[:distance].to_f, 0).get_motors_deg(correction_right: 0, correction_left: 0).x
+
+          @redis.set('running', true)
+          t = motor.move(to: motor.position + distance * direction, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: true) / 1000.0
+          p t
+          wait t
+          @redis.del 'running'
+          set_state
+
+        else
           puts "##{channel}: #{message}"
-          message = JSON[message, symbolize_names: true]
-
-          case message[:command]
-          when 'paint' # @redis.publish('commands', {command: 'paint'}.to_json)
-            paint
-
-          when 'status'
-            p "left: #{@left_motor.position}, right: #{@right_motor.position}"
-
-          when 'move' # @redis.publish('commands', {command: 'move', x: 300.0, y: 1400.0}.to_json)
-            @zero_time = Time.now
-            @redis.set('running', true)
-
-            move(to: Point.new(message[:x], message[:y]))
-            @redis.del 'running'
-            set_state
-            puts "Moved to left: #{@left_motor.position}, right: #{@right_motor.position}. It took #{(Time.now - @zero_time).round(1)} secs"
-
-          when 'manual' # @redis.publish('commands', {command: 'manual', motor: :left, direction: :down, distance: 1400.0}.to_json)
-            motor = message[:motor] == 'left' ? @left_motor : @right_motor
-            direction = message[:direction] == 'up' ? -1 : 1
-            direction *= -1 if motor == @right_motor
-            distance = Point.new(message[:distance].to_f, 0).get_motors_deg(correction_right: 0, correction_left: 0).x
-
-            @redis.set('running', true)
-            t = motor.move(to: motor.position + distance * direction, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: true) / 1000.0
-            p t
-            wait t
-            @redis.del 'running'
-            set_state
-
-          else
-            puts "##{channel}: #{message}"
-          end
-        rescue => error
-          puts "\e[0;31m#{error.message} \e[0m\n\n"
-          puts "\e[0;31m#{error.backtrace.first} \e[0m\n"
-          puts "#{error.backtrace[1..4].join("\n")}, retrying in 5s"
-          sleep 5
-          retry
         end
-      rescue Redis::BaseConnectionError => error
-        puts "#{error}, retrying in 1s"
-        sleep 1
+      rescue => error
+        puts "\e[0;31m#{error.message} \e[0m\n\n"
+        puts "\e[0;31m#{error.backtrace.first} \e[0m\n"
+        puts "#{error.backtrace[1..4].join("\n")}, retrying in 5s"
+        sleep 5
         retry
       end
+    rescue Redis::BaseConnectionError => error
+      puts "#{error}, retrying in 1s"
+      sleep 1
+      retry
     end
   end
-
 end
