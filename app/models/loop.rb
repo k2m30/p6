@@ -106,8 +106,9 @@ def add_points(queue_size)
     left_point = @trajectory.left_motor_points[@point_index]
     right_point = @trajectory.right_motor_points[@point_index]
     break if right_point.nil? or left_point.nil?
-    p [@trajectory.id, @point_index, left_current_point: @left_motor.position, left_desired_point: left_point, right_current_point: @right_motor.position, right_desired_point: right_point]
+    p [@trajectory.id, @point_index, left_current_point: @left_motor.position, left_desired_point: left_point]
     @left_motor.add_point(left_point)
+    p [@trajectory.id, @point_index, right_current_point: @right_motor.position, right_desired_point: right_point]
     @right_motor.add_point(right_point)
     @point_index += 1
   end
@@ -129,14 +130,7 @@ def paint
     unless @trajectory.empty?
       @trajectory.right_motor_points.map(&:inverse!)
       move(to: Point.new(@trajectory.left_motor_points.first.p, @trajectory.right_motor_points.first.p))
-      move(to: Point.new(@trajectory.left_motor_points.first.p, @trajectory.right_motor_points.first.p))
       p @redis.get 'state'
-      sleep 2.0
-      p @redis.get 'state'
-
-      p [@trajectory.left_motor_points[0], @trajectory.right_motor_points[0]]
-      p [@trajectory.left_motor_points[1], @trajectory.right_motor_points[1]]
-      p [@trajectory.left_motor_points[2], @trajectory.right_motor_points[2]]
       paint_trajectory
 
     end
