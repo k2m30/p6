@@ -118,7 +118,7 @@ def paint
   @zero_time = Time.now
   @redis.set('running', 'true')
   @trajectory_index = Config.start_from.to_i
-  @point_index = 0
+  @point_index = 1
   start_point = Config.start_point
   start_point.y *= -1
   move(to: start_point.get_motors_deg)
@@ -141,7 +141,7 @@ def paint
 
     end
     @trajectory_index += 1
-    @point_index = 0
+    @point_index = 1
   end
   start_point = Config.start_point
   start_point.y *= -1
@@ -168,7 +168,7 @@ def finalize
 
   puts "Done. Stopped. It took #{(Time.now - @zero_time).round(1)} secs"
   @trajectory = nil
-  @point_index = 0
+  @point_index = 1
   @redis.del 'running'
   puts 'Waiting for next paint task'
 end
