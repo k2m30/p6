@@ -24,7 +24,7 @@ class Plot
       set terminal: ['svg', 'size 1200,2000']
       set output: file_name
       set multiplot: 'layout 3,3'
-
+      next if trajectory.left_motor_points.empty? or trajectory.right_motor_points.empty?
       set grid: 'ytics mytics' # draw lines for each ytics and mytics
       set grid: 'xtics mytics' # draw lines for each ytics and mytics
       set mytics: 2
