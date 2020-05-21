@@ -10,7 +10,10 @@ class RRInterface
              when 'armv7l-linux-eabihf'
                '/dev/serial/by-id/usb-Rozum_Robotics_USB-CAN_Interface_301-if00'
              else
-               'unknown_os'
+               # nc -u 192.168.0.56 2000
+               # cex 0 me
+               # '/dev/cu.usbmodem3011'
+               '/dev/cu.usbmodemInterface_3011'
              end
     @handle = RRServoModule.rr_init_interface(device)
     raise "Error initializing USB-CAN interface \"#{device}\"" if @handle.null?

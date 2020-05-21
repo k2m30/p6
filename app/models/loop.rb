@@ -14,7 +14,7 @@ require_relative 'trajectory'
 
 MIN_QUEUE_SIZE = 15
 QUEUE_SIZE = 33
-LEFT_MOTOR_ID = Config.rpi? ? 32 : 32 # CCW – down, positive, jet looking towards the wall
+LEFT_MOTOR_ID = Config.rpi? ? 32 : 1 # CCW – down, positive, jet looking towards the wall
 RIGHT_MOTOR_ID = Config.rpi? ? 19 : 36 # CCW – up, positive, jet looking towards the wall, to inverse
 
 def init_system
@@ -29,9 +29,16 @@ def init_system
     @left_motor = RRServoMotor.new(@servo_interface, LEFT_MOTOR_ID)
     @right_motor = RRServoMotor.new(@servo_interface, RIGHT_MOTOR_ID)
   else
-    @servo_interface = RRInterfaceDummy.new
-    @left_motor = RRServoMotorDummy.new(@servo_interface, LEFT_MOTOR_ID, :left)
+    @servo_interface = RRInterface.new
+    @left_motor = RRServoMotor.new(@servo_interface, LEFT_MOTOR_ID)
     @right_motor = RRServoMotorDummy.new(@servo_interface, RIGHT_MOTOR_ID, :right)
+
+    # @servo_interface = RRInterfaceDummy.new
+    # @left_motor = RRServoMotorDummy.new(@servo_interface, LEFT_MOTOR_ID, :left)
+    # @right_motor = RRServoMotorDummy.new(@servo_interface, RIGHT_MOTOR_ID, :right)
+    @left_motor.clear_points_queue
+    @right_motor.clear_points_queue
+
     start_point = Config.start_point.get_motors_deg
     start_point.y *= -1
     move(to: start_point)
@@ -81,7 +88,7 @@ def motors_queue_size
 end
 
 def paint_trajectory
-  @servo_interface.start_motion(100)
+  @servo_interface.start_motion
   turn_painting_on
 
   begin

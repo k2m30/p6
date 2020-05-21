@@ -134,15 +134,16 @@ typedef enum
     APP_PARAM_FOC_PWM3,                     ///< Internal use only
     APP_PARAM_FOC_TIMER_TOP,                ///< Internal use only
     APP_PARAM_DUTY,                         ///< Internal use only
-    APP_PARAM_SIZE,                         ///< Use to define the total parameter array size
+    APP_PARAM_BRAKE_TEMPERATURE = 75,       ///< Brake coil temperature
+    APP_PARAM_SIZE = 80,                    ///< Use to define the total parameter array size
 } rr_servo_param_t;
 
 /**
  * @brief Network management (NMT) states
- * 
- * @image html "nmt_states.png" 
- * @image latex "nmt_states.png" 
- * 
+ *
+ * @image html "nmt_states.png"
+ * @image latex "nmt_states.png"
+ *
  */
 typedef enum
 {
@@ -156,13 +157,19 @@ typedef enum
 
 /**
  * @brief Device information source instance
- * 
  */
 typedef struct
 {
-    float value;       ///< Source value
-    uint8_t activated; ///< Source activation flag
+    float value;            ///< Source value
+	uint32_t timestamp;		///< Timestamp 0 - 599999999 us (value outside this range is invalid)
+    bool activated;         ///< Source activation flag
 } param_cache_entry_t;
+
+/**
+ * @brief Invalid timestamp value
+ */
+#define RR_TIMESTAMP_INVALID	0xffffffffu
+
 
 /**
  * @brief Emergency (EMCY) log entry structure
@@ -173,12 +180,12 @@ typedef struct
 	uint16_t err_code;
 	uint8_t err_reg;
 	uint8_t err_bits;
-       	int32_t err_info;
+    int32_t err_info;
 } emcy_log_entry_t;
 
 /**
  * @brief Device instance structure
- * 
+ *
  */
 typedef struct
 {
@@ -188,7 +195,7 @@ typedef struct
 
 /**
  * @brief Interface instance structure
- * 
+ *
  */
 typedef struct
 {
@@ -209,7 +216,7 @@ typedef struct
  * @param interface Descriptor of the interface (see ::rr_init_interface) where the NMT event occured
  * @param servo_id Descriptor of the servo (see ::rr_init_servo) where the NMT event occured
  * @param nmt_state Network management state (::rr_nmt_state_t) that the servo entered
- * 
+ *
  */
 typedef void (*rr_nmt_cb_t)(rr_can_interface_t *interface, int servo_id, rr_nmt_state_t nmt_state);
 
@@ -277,6 +284,8 @@ rr_ret_status_t rr_brake_engage(const rr_servo_t *servo, const bool en);
 rr_ret_status_t rr_set_current(const rr_servo_t *servo, const float current_a);
 rr_ret_status_t rr_set_velocity(const rr_servo_t *servo, const float velocity_deg_per_sec);
 rr_ret_status_t rr_set_velocity_motor(const rr_servo_t *servo, const float velocity_rpm);
+rr_ret_status_t rr_set_velocity_rate(const rr_servo_t *servo, const float velocity_rate_rpm_per_sec);
+rr_ret_status_t rr_get_velocity_rate(const rr_servo_t *servo, float *const velocity_rate_rpm_per_sec);
 rr_ret_status_t rr_set_position(const rr_servo_t *servo, const float position_deg);
 rr_ret_status_t rr_set_velocity_with_limits(const rr_servo_t *servo, const float velocity_deg_per_sec, const float current_a);
 rr_ret_status_t rr_set_position_with_limits(rr_servo_t *servo, const float position_deg, const float velocity_deg_per_sec, const float accel_deg_per_sec_sq, uint32_t *time_ms);
@@ -284,21 +293,24 @@ rr_ret_status_t rr_set_duty(const rr_servo_t *servo, float duty_percent);
 
 rr_ret_status_t rr_add_motion_point(const rr_servo_t *servo, const float position_deg, const float velocity_deg, const uint32_t time_ms);
 rr_ret_status_t rr_add_motion_point_pvat(
-    const rr_servo_t *servo, 
-    const float position_deg, 
-    const float velocity_deg_per_sec, 
-    const float accel_deg_per_sec2, 
+    const rr_servo_t *servo,
+    const float position_deg,
+    const float velocity_deg_per_sec,
+    const float accel_deg_per_sec2,
     const uint32_t time_ms);
-    
+
 rr_ret_status_t rr_start_motion(rr_can_interface_t *interface, uint32_t timestamp_ms);
 
 rr_ret_status_t rr_read_error_status(const rr_servo_t *servo, uint32_t *const error_count, uint8_t *const error_array);
 
 rr_ret_status_t rr_param_cache_update(rr_servo_t *servo);
+rr_ret_status_t rr_param_cache_update_with_timestamp(rr_servo_t *servo);
 rr_ret_status_t rr_param_cache_setup_entry(rr_servo_t *servo, const rr_servo_param_t param, bool enabled);
 
 rr_ret_status_t rr_read_parameter(rr_servo_t *servo, const rr_servo_param_t param, float *value);
+rr_ret_status_t rr_read_parameter_with_timestamp(rr_servo_t *servo, const rr_servo_param_t param, float *value, uint32_t *timestamp);
 rr_ret_status_t rr_read_cached_parameter(rr_servo_t *servo, const rr_servo_param_t param, float *value);
+rr_ret_status_t rr_read_cached_parameter_with_timestamp(rr_servo_t *servo, const rr_servo_param_t param, float *value, uint32_t *timestamp);
 
 rr_ret_status_t rr_clear_points_all(const rr_servo_t *servo);
 rr_ret_status_t rr_clear_points(const rr_servo_t *servo, const uint32_t num_to_clear);

@@ -3,7 +3,15 @@ require 'fiddle/import'
 
 module RRServoModule
   extend Fiddle::Importer
-  dlload './rr_servo_library.so' rescue ENV['RR_LIB_PATH'] rescue dlload Rails.root.join('app', 'models', 'rr_servo_library.so').to_s
+  rr_library = if File.exist? './rr_servo_library.so'
+                 './rr_servo_library.so'
+               elsif File.exist? ENV['RR_LIB_PATH'] || ''
+                 ENV['RR_LIB_PATH']
+               else
+                 Rails.root.join('app', 'models', 'rr_servo_library.so').to_s
+               end
+
+  dlload rr_library
   typealias 'rr_ret_status_t', 'int'
   typealias 'rr_servo_param_t', 'int'
   typealias 'rr_nmt_state_t', 'int'
@@ -13,10 +21,6 @@ module RRServoModule
   typealias 'uint16_t', 'int'
   typealias 'uint32_t', 'int'
   typealias 'bool', 'int'
-
-  ARRAY_ERROR_BITS_SIZE = 64
-  EMCY_LOG_DEPTH = 1024
-  MAX_CO_DEV = 128
 
   RET_OK = 0
   RET_ERROR = 1
@@ -88,7 +92,8 @@ module RRServoModule
   APP_PARAM_FOC_PWM3 = 55
   APP_PARAM_FOC_TIMER_TOP = 56
   APP_PARAM_DUTY = 57
-  APP_PARAM_SIZE = 58
+  APP_PARAM_BRAKE_TEMPERATURE = 75
+  APP_PARAM_SIZE = 80
 #
   RR_NMT_INITIALIZING = 0
   RR_NMT_BOOT = 2
@@ -134,6 +139,8 @@ module RRServoModule
   extern 'rr_ret_status_t rr_set_current(rr_servo_t *servo, float current_a)'
   extern 'rr_ret_status_t rr_set_velocity(rr_servo_t *servo, float velocity_deg_per_sec)'
   extern 'rr_ret_status_t rr_set_velocity_motor(rr_servo_t *servo, float velocity_rpm)'
+  extern 'rr_ret_status_t rr_set_velocity_rate(rr_servo_t *servo, float velocity_rate_rpm_per_sec)'
+  extern 'rr_ret_status_t rr_get_velocity_rate(rr_servo_t *servo, float *velocity_rate_rpm_per_sec)'
   extern 'rr_ret_status_t rr_set_position(rr_servo_t *servo, float position_deg)'
   extern 'rr_ret_status_t rr_set_velocity_with_limits(rr_servo_t *servo, float velocity_deg_per_sec, float current_a)'
   extern 'rr_ret_status_t rr_set_position_with_limits(rr_servo_t *servo, float position_deg, float velocity_deg_per_sec, float accel_deg_per_sec_sq, uint32_t *time_ms)'
@@ -143,9 +150,12 @@ module RRServoModule
   extern 'rr_ret_status_t rr_start_motion(rr_can_interface_t *interface, uint32_t timestamp_ms)'
   extern 'rr_ret_status_t rr_read_error_status(rr_servo_t *servo, uint32_t *error_count, uint8_t *error_array)'
   extern 'rr_ret_status_t rr_param_cache_update(rr_servo_t *servo)'
+  extern 'rr_ret_status_t rr_param_cache_update_with_timestamp(rr_servo_t *servo)'
   extern 'rr_ret_status_t rr_param_cache_setup_entry(rr_servo_t *servo, rr_servo_param_t param, bool enabled)'
   extern 'rr_ret_status_t rr_read_parameter(rr_servo_t *servo, rr_servo_param_t param, float *value)'
+  extern 'rr_ret_status_t rr_read_parameter_with_timestamp(rr_servo_t *servo, rr_servo_param_t param, float *value, uint32_t *timestamp)'
   extern 'rr_ret_status_t rr_read_cached_parameter(rr_servo_t *servo, rr_servo_param_t param, float *value)'
+  extern 'rr_ret_status_t rr_read_cached_parameter_with_timestamp(rr_servo_t *servo, rr_servo_param_t param, float *value, uint32_t *timestamp)'
   extern 'rr_ret_status_t rr_clear_points_all(rr_servo_t *servo)'
   extern 'rr_ret_status_t rr_clear_points(rr_servo_t *servo, uint32_t num_to_clear)'
   extern 'rr_ret_status_t rr_get_points_size(rr_servo_t *servo, uint32_t *num)'
@@ -156,6 +166,7 @@ module RRServoModule
   extern 'rr_ret_status_t rr_get_max_velocity(rr_servo_t *servo, float *velocity_deg_per_sec)'
   extern 'rr_ret_status_t rr_set_max_velocity(rr_servo_t *servo, float max_velocity_deg_per_sec)'
   extern 'rr_ret_status_t rr_change_id_and_save(rr_can_interface_t *interface, rr_servo_t **servo, uint8_t new_can_id)'
+  extern 'rr_ret_status_t rr_clear_errors(rr_servo_t *servo)'
   extern 'rr_ret_status_t rr_get_hardware_version(rr_servo_t *servo, char *version_string, int *version_string_size)'
   extern 'rr_ret_status_t rr_get_software_version(rr_servo_t *servo, char *version_string, int *version_string_size)'
   extern 'bool rr_check_point(float velocity_limit_deg_per_sec, float *velocity_max_calc_deg_per_sec, float position_deg_start, float velocity_deg_per_sec_start, float position_deg_end, float velocity_deg_per_sec_end, uint32_t time_ms)'
@@ -167,7 +178,7 @@ module RRServoModule
     text.each_with_index do |l, i|
       next if l[/^\w+/].nil?
 
-      next if blacklist.any? {|word| l.include? word}
+      next if blacklist.any? { |word| l.include? word }
 
       until l.include? ';'
         next_line = text[i + 1]

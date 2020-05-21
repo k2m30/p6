@@ -113,6 +113,8 @@ class RRServoMotorDummy
   end
 
   def clear_points_queue
+    @queue_size = 0.0
+    @queue = []
   end
 
   def add_motion_point(point, velocity, acceleration, time)
