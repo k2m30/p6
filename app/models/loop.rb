@@ -14,8 +14,8 @@ require_relative 'trajectory'
 
 MIN_QUEUE_SIZE = 15
 QUEUE_SIZE = 33
-LEFT_MOTOR_ID = Config.rpi? ? 19 : 19 # CW – up, positive, looking to jet
-RIGHT_MOTOR_ID = Config.rpi? ? 32 : 32 # CW – down, positive, looking to jet
+LEFT_MOTOR_ID = Config.rpi? ? 32 : 19 # CCW – down, positive, jet looking towards the wall
+RIGHT_MOTOR_ID = Config.rpi? ? 19 : 32 # CCW – up, positive, jet looking towards the wall, to inverse
 
 def init_system
   @redis = Redis.new
@@ -41,7 +41,7 @@ def init_system
     @right_motor.clear_points_queue
 
     start_point = Config.start_point.get_motors_deg
-    start_point.x *= -1
+    start_point.y *= -1
     move(to: start_point)
   end
   set_state
@@ -78,8 +78,8 @@ def turn_painting_on
 end
 
 def set_state
-  left_position = -@left_motor.position
-  right_position = @right_motor.position
+  left_position = @left_motor.position
+  right_position = -@right_motor.position
   @redis.set('state', {left_deg: left_position.round(1), right_deg: right_position.round(1), running: @redis.get('running') || false}.to_json) rescue puts 'Unable to set status'
 end
 
@@ -131,14 +131,14 @@ def paint
   @trajectory_index = Config.start_from.to_i
   @point_index = 1
   start_point = Config.start_point
-  start_point.x *= -1
+  start_point.y *= -1
   move(to: start_point.get_motors_deg)
 
   until (@trajectory = Trajectory.get @trajectory_index).nil? # go through trajectories
     @redis.set('current_trajectory', @trajectory_index.to_s)
     Config.start_from = @trajectory_index
     unless @trajectory.empty?
-      @trajectory.left_motor_points.map(&:inverse!)
+      @trajectory.right_motor_points.map(&:inverse!)
       move(to: Point.new(@trajectory.left_motor_points.first.p, @trajectory.right_motor_points.first.p))
       p @redis.get 'state'
       paint_trajectory
@@ -148,7 +148,7 @@ def paint
     @point_index = 1
   end
   start_point = Config.start_point
-  start_point.x *= -1
+  start_point.y *= -1
   move(to: start_point.get_motors_deg)
 
   Config.start_from = 0
@@ -167,7 +167,7 @@ def finalize
   puts 'Finalizing'
   turn_painting_off
   start_point = Config.start_point
-  start_point.x *= -1
+  start_point.y *= -1
   move(to: start_point.get_motors_deg)
 
   puts "Done. Stopped. It took #{(Time.now - @zero_time).round(1)} secs"
@@ -210,7 +210,7 @@ begin
           @redis.set('running', true)
 
           to = Point.new(message[:x], message[:y]).inverse.get_motors_deg
-          to.x = to.x * -1
+          to.y = to.y * -1
           move(to: to)
           @redis.del 'running'
           set_state
@@ -218,7 +218,7 @@ begin
 
         when 'manual' # @redis.publish('commands', {command: 'manual', motor: :left, direction: :down, distance: 1400.0}.to_json)
           motor = message[:motor] == 'left' ? @left_motor : @right_motor
-          direction = message[:direction] == 'up' ? 1 : -1
+          direction = message[:direction] == 'up' ? -1 : 1
           direction *= -1 if motor == @right_motor
           distance = Point.new(message[:distance].to_f, 0).get_motors_deg.x
 
@@ -231,7 +231,7 @@ begin
 
         when 'correct' # @redis.publish('commands', {command: 'correct', motor: 'left', actual_position: 1400.0}.to_json) – degrees
           motor = message[:motor] == 'left' ? @left_motor : @right_motor
-          direction = motor == @left_motor ? -1 : 1
+          direction = motor == @left_motor ? 1 : -1
           motor.assign_current_position_to(actual_position: message[:actual_position] * direction)
           set_state
         else
