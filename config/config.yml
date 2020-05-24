@@ -73,9 +73,3 @@ version:
   value: 1.0
   description: версия данных в кэше
   hidden: true
-correction_left:
-  value: 200.0
-  description: корректировка левого ремня
-correction_right:
-  value: 250.0
-  description: корректировка правого ремня
