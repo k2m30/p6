@@ -20,5 +20,5 @@
     %h5 This position corresponds to, mm
     = form_tag adjust_path, class: 'form-inline' do
       .form-group.mb-2
-        =text_field_tag "correction_#{motor}", correction, class: 'form-control'
+        =text_field_tag motor, belt_length, class: 'form-control'
       =submit_tag 'adjust', class: 'btn btn-secondary mb-2', method: :post

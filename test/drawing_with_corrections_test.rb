@@ -14,8 +14,6 @@ class DrawingCorrectionsTest < Minitest::Test
     Config.max_segment_length = 20
     Config.initial_x = Math.sqrt(300 ** 2 + 200 ** 2)
     Config.initial_y = Math.sqrt(700 ** 2 + 200 ** 2)
-    Config.correction_left = 200.0
-    Config.correction_right = 250.0
 
 
     @image = build_image

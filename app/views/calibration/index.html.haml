@@ -1,27 +1,27 @@
 = javascript_include_tag 'calibrate'
+State:
 .row
-  .col-12
-    State:
-    Left_deg:
-    %span#left-mm
-    Right_deg
-    %span#right-mm
-    Left_deg:
-    %span#left-deg
-    Right_deg
-    %span#right-deg
-    x:
-    %span#x
-    y:
-    %span#y
-    Running:
-    %span#running
+%dl.row
+  %dt.col-sm-1 Left_mm:
+  %dd.col-sm-11#left-mm
+  %dt.col-sm-1 Right_mm
+  %dd.col-sm-11#right-mm
+  %dt.col-sm-1 Left_deg
+  %dd.col-sm-11#left-deg
+  %dt.col-sm-1 Right_deg
+  %dd.col-sm-11#right-deg
+  %dt.col-sm-1 x
+  %dd.col-sm-11#x
+  %dt.col-sm-1 y
+  %dd.col-sm-11#y
+  %dt.col-sm-1 Running:
+  %dd.col-sm-11#running
 %hr
 .row
   .col-6
-    = render partial:'motor', locals: {motor: :left, correction: @correction_left}
+    = render partial:'motor', locals: {motor: :left, belt_length: @left_mm}
   .col-6
-    = render partial:'motor', locals: {motor: :right, correction: @correction_right}
+    = render partial:'motor', locals: {motor: :right, belt_length: @right_mm}
 
 %hr
 .row

@@ -218,7 +218,7 @@ begin
           motor = message[:motor] == 'left' ? @left_motor : @right_motor
           direction = message[:direction] == 'up' ? -1 : 1
           direction *= -1 if motor == @right_motor
-          distance = Point.new(message[:distance].to_f, 0).get_motors_deg(correction_right: 0, correction_left: 0).x
+          distance = Point.new(message[:distance].to_f, 0).get_motors_deg.x
 
           @redis.set('running', true)
           t = motor.move(to: motor.position + distance * direction, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: true) / 1000.0
@@ -227,13 +227,20 @@ begin
           @redis.del 'running'
           set_state
 
+        when 'correct' # @redis.publish('commands', {command: 'correct', motor: 'left', actual_position: 1400.0}.to_json) – degrees
+          motor = message[:motor] == 'left' ? @left_motor : @right_motor
+          direction = motor == @left_motor ? 1 : -1
+          motor.assign_current_position_to(actual_position: message[:actual_position] * direction)
+          set_state
         else
           puts "##{channel}: #{message}"
         end
       rescue => error
+        @redis.del 'running'
         puts "\e[0;31m#{error.message} \e[0m\n\n"
         puts "\e[0;31m#{error.backtrace.first} \e[0m\n"
         puts "#{error.backtrace[1..4].join("\n")}, retrying in 5s"
+        set_state
         sleep 5
         retry
       end

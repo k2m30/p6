@@ -25,12 +25,6 @@ class SimpleDrawingTest < Minitest::Test
     end
   end
 
-  def check_trajectories_with_corrections
-    Config.correction_left = 200.0
-    Config.correction_right = 250.0
-    check_trajectories
-  end
-
   def test_drawing
     @image.get_layer_names
     assert @image.layers.keys.size == 1
@@ -43,7 +37,6 @@ class SimpleDrawingTest < Minitest::Test
       check_splitted_paths
       check_tpaths
       check_trajectories
-      check_trajectories_with_corrections
       check_linear_velocity
     end
   end

@@ -87,8 +87,6 @@ class Trajectory
     end
 
     @data.each_cons(2) do |r, r_next|
-      # r.a_left = 0
-      # r.a_right = 0
       r.a_left = (r_next.v_left - r.v_left) / r_next.dt
       r.a_right = (r_next.v_right - r.v_right) / r_next.dt
     end
@@ -123,8 +121,8 @@ class Trajectory
 
     @data.each do |r|
       dt = (r.dt * 1000).to_i
-      @left_motor_points.push PVAT.new(r.start_left_deg, r.v_left, 1E-16, dt, true)
-      @right_motor_points.push PVAT.new(r.start_right_deg, r.v_right, 1E-16, dt, true)
+      @left_motor_points.push PVAT.new(r.start_left_deg, r.v_left, r.a_left, dt, true)
+      @right_motor_points.push PVAT.new(r.start_right_deg, r.v_right, r.a_right, dt, true)
     end
 
     Trajectory.new @left_motor_points, @right_motor_points, id, spath.d

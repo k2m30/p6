@@ -1,9 +1,11 @@
 class CalibrationController < ApplicationController
   skip_before_action :verify_authenticity_token, only: [:manual]
   before_action :set_redis
+
   def index
-    @correction_left = Config.correction_left
-    @correction_right = Config.correction_right
+    state = helpers.get_state
+    @left_mm = state[:left_mm]
+    @right_mm = state[:right_mm]
   end
 
   def manual
@@ -17,9 +19,10 @@ class CalibrationController < ApplicationController
   end
 
   def adjust
-    state = helpers.get_state
-    point = Point.new(state[:left_deg], state[:right_deg]).get_belts_length(correction_left: 0, correction_right: 0)
-    params[:correction_left].present? ? Config.correction_left = Float(params[:correction_left]) - point.x : Config.correction_right = Float(params[:correction_right]) - point.y
+    motor = params[:left].present? ? 'left' : 'right'
+    mm = params[motor].to_f
+    actual_position = Point.new(mm, mm).get_motors_deg.x
+    @redis.publish('commands', {command: 'correct', motor: motor, actual_position: actual_position}.to_json)
     redirect_to calibrate_path
   end
 

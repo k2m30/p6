@@ -2,10 +2,9 @@ require_relative 'rr_servo_module'
 require_relative 'rr_interface'
 require_relative 'velocity_spline'
 
-class RetError < StandardError;
-end
-class WrongTrajectoryError < StandardError;
-end
+class RetError < StandardError; end
+
+class WrongTrajectoryError < StandardError; end
 
 class RRServoMotor
   attr_accessor :id, :servo_handle
@@ -131,6 +130,13 @@ class RRServoMotor
   def soft_stop
     clear_points_queue
     self.velocity = 0.0
+  end
+
+  def assign_current_position_to(actual_position:)
+    value_ptr = Fiddle::Pointer.malloc(Fiddle::SIZEOF_INT)
+    ret_code = RRServoModule.rr_set_zero_position_and_save(@servo_handle, actual_position)
+    check_errors(ret_code)
+    value_ptr[0, Fiddle::SIZEOF_INT].unpack('C').first
   end
 
   def log_pvt(file_name = './data.csv', log_time)
