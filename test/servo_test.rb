@@ -1,7 +1,7 @@
 require 'test_helper'
 
 class ServoTest < Minitest::Test
-  LEFT_MOTOR_ID = 1
+  LEFT_MOTOR_ID = 19
 
   def setup
     points = [[767.1, 0, 0.0, 0, :paint], [742.0, -121.2, 0.0, 355, :paint], [716.9, -194.0, 0.0, 146, :paint], [691.9, -219.0, 0.0, 115, :paint], [666.8, -221.9, 0.0, 112, :paint], [641.7, -220.9, 0.0, 112, :paint], [616.7, -220.8, 0.0, 113, :paint], [591.6, -218.9, 0.0, 113, :paint], [566.5, -193.8, 0.0, 115, :paint], [541.5, -121.0, 0.0, 146, :paint], [516.4, 0, 0.0, 355, :paint]]
@@ -22,7 +22,7 @@ class ServoTest < Minitest::Test
     tl = @left_motor.move(to: trajectory.left_motor_points.first.p, max_velocity: 101.0, acceleration: 200)
     @servo_interface.start_motion
     sleep tl / 1000.0 + 1.0
-    assert_equal(trajectory.left_motor_points.first.p.round, @left_motor.position.round)
+    assert_equal((trajectory.left_motor_points.first.p - @left_motor.position).round, 0)
     trajectory.left_motor_points[1..-1].each do |point|
       p point
       @left_motor.add_point point
@@ -30,7 +30,7 @@ class ServoTest < Minitest::Test
     p @left_motor.queue_size
     @servo_interface.start_motion
     sleep trajectory.left_motor_points.map(&:t).reduce(&:+) / 1000.0 + 1.0
-    assert_equal(trajectory.left_motor_points.last.p.round, @left_motor.position.round)
+    assert_equal((trajectory.left_motor_points.last.p - @left_motor.position).round, 0)
   end
 
   def test_trajectory

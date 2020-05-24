@@ -1,6 +1,6 @@
 ---
 linear_velocity:
-  value: 250.0
+  value: 150.0
   description: линейная скорость окраски, мм/с, g01
 idling_velocity:
   value: 400.0
@@ -21,10 +21,10 @@ motor_pulley_diameter:
   value: 128.92
   description: диаметр шкива
 initial_x:
-  value: 3500.0
+  value: 1100.0
   description: начальная длина левого ремня, мм
 initial_y:
-  value: 3500.0
+  value: 1100.0
   description: начальная длина правого ремня, мм
 start_from:
   value: 0.0
@@ -52,7 +52,7 @@ max_spray_length:
   description: длина окраски одним баллончиком краски, мм
   hidden: true
 canvas_size_x:
-  value: 6000.0
+  value: 1500.0
   description: ширина холста (между креплениями моторов)
 canvas_size_y:
   value: 1500.0

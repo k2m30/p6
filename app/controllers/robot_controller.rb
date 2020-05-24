@@ -18,7 +18,9 @@ class RobotController < ApplicationController
   end
 
   def run
-    Redis.new.publish('commands', {command: 'paint'}.to_json)
+    @redis = Redis.new
+    # @redis.set(:running, 'true')
+    @redis.publish('commands', {command: 'paint'}.to_json)
     head(:ok)
   end
 

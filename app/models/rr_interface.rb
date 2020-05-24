@@ -12,8 +12,8 @@ class RRInterface
              else
                # nc -u 192.168.0.56 2000
                # cex 0 me
-               # '/dev/cu.usbmodem3011'
-               '/dev/cu.usbmodemInterface_3011'
+               '/dev/cu.usbmodem3011'
+               # '/dev/cu.usbmodemInterface_3011'
              end
     @handle = RRServoModule.rr_init_interface(device)
     raise "Error initializing USB-CAN interface \"#{device}\"" if @handle.null?
@@ -52,6 +52,10 @@ class RRInterface
     CSV.open(file_name + '.csv', 'wb') do |csv|
       data.each { |row| csv << row }
     end
+  end
+
+  def sleep(time_ms)
+    RRServoModule.rr_sleep_ms(time_ms)
   end
 
 end

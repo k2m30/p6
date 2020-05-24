@@ -14,8 +14,8 @@ require_relative 'trajectory'
 
 MIN_QUEUE_SIZE = 15
 QUEUE_SIZE = 33
-LEFT_MOTOR_ID = Config.rpi? ? 32 : 1 # CCW – down, positive, jet looking towards the wall
-RIGHT_MOTOR_ID = Config.rpi? ? 19 : 36 # CCW – up, positive, jet looking towards the wall, to inverse
+LEFT_MOTOR_ID = Config.rpi? ? 32 : 19 # CCW – down, positive, jet looking towards the wall
+RIGHT_MOTOR_ID = Config.rpi? ? 19 : 32 # CCW – up, positive, jet looking towards the wall, to inverse
 
 def init_system
   @redis = Redis.new
@@ -31,8 +31,9 @@ def init_system
   else
     @servo_interface = RRInterface.new
     @left_motor = RRServoMotor.new(@servo_interface, LEFT_MOTOR_ID)
-    @right_motor = RRServoMotorDummy.new(@servo_interface, RIGHT_MOTOR_ID, :right)
+    @right_motor = RRServoMotor.new(@servo_interface, RIGHT_MOTOR_ID)
 
+    # @right_motor = RRServoMotorDummy.new(@servo_interface, RIGHT_MOTOR_ID, :right)
     # @servo_interface = RRInterfaceDummy.new
     # @left_motor = RRServoMotorDummy.new(@servo_interface, LEFT_MOTOR_ID, :left)
     # @right_motor = RRServoMotorDummy.new(@servo_interface, RIGHT_MOTOR_ID, :right)
@@ -59,7 +60,7 @@ def move(from: nil, to:)
   tr = @right_motor.move(to: to.y, max_velocity: @idling_speed, acceleration: @acceleration)
   @servo_interface.start_motion
   time_to_wait = ([tl, tr].max || 0) / 1000.0 + 0.5
-  wait time_to_wait if Config.rpi?
+  wait time_to_wait #if Config.rpi?
 end
 
 def soft_stop
@@ -88,6 +89,7 @@ def motors_queue_size
 end
 
 def paint_trajectory
+  add_points(QUEUE_SIZE)
   @servo_interface.start_motion
   turn_painting_on
 
@@ -124,14 +126,15 @@ end
 
 def paint
   @zero_time = Time.now
-  @redis.set('running', 'true')
+  @redis.set(:running, 'true')
+  set_state
   @trajectory_index = Config.start_from.to_i
   @point_index = 1
   start_point = Config.start_point
   start_point.y *= -1
   move(to: start_point.get_motors_deg)
 
-  until (@trajectory = Trajectory.get @trajectory_index).nil? # got through trajectories
+  until (@trajectory = Trajectory.get @trajectory_index).nil? # go through trajectories
     @redis.set('current_trajectory', @trajectory_index.to_s)
     Config.start_from = @trajectory_index
     unless @trajectory.empty?
