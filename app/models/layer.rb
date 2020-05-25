@@ -248,10 +248,10 @@ class Layer
 
   def to_svg(header)
     x0, y0, x1, y1 = header['viewBox']&.to_s&.split&.map {|s| s.sub(',', '')}&.map(&:to_f)
-    x1 = [x1, Config.canvas_size_x].max
-    y1 = [y1, Config.canvas_size_y].max
+    # x1 = [x1, Config.canvas_size_x].max
+    # y1 = [y1, Config.canvas_size_y].max
     <<EOL
-    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="#{header['x']&.to_s}" y="#{header['y']&.to_s}" width="100%" height="100%" viewBox="#{x0}, #{y0}, #{x1}, #{y1}" preserveAspectRatio="xMinYMin meet" id="#{@name}">
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="#{header['x']&.to_s}" y="#{header['y']&.to_s}" width="#{x1}" viewBox="#{x0}, #{y0}, #{x1}, #{y1}" preserveAspectRatio="xMinYMin meet" id="#{@name}">
     #{to_xml}
     </svg>
 EOL

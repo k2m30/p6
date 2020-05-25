@@ -283,5 +283,10 @@ class Config
     def rpi?
       !local?
     end
+
+    def connected?
+      File.exist? '/dev/cu.usbmodem3011' or File.exist? '/dev/cu.usbmodemInterface_3011' or File.exist? '/dev/serial/by-id/usb-Rozum_Robotics_USB-CAN_Interface_301-if00'
+    end
+
   end
 end

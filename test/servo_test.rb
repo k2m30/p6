@@ -8,12 +8,12 @@ class ServoTest < Minitest::Test
     left_motor_points = points.map { |point| PVAT.new(point[0], point[1], point[2], point[3]) }
     @trajectory = Trajectory.new(left_motor_points, left_motor_points, 0, "M800.0,900.0 L780.0,880.0 L760.0,860.0 L740.0,840.0 L720.0,820.0 L700.0,800.0 L680.0,780.0 L660.0,760.0 L640.0,740.0 L620.0,720.0 L600.0,700.0 ")
 
-    if Config.rpi?
+    if Config.connected?
       @servo_interface = RRInterface.new
       @left_motor = RRServoMotor.new(@servo_interface, LEFT_MOTOR_ID)
     else
-      @servo_interface = RRInterface.new
-      @left_motor = RRServoMotor.new(@servo_interface, LEFT_MOTOR_ID)
+      @servo_interface = RRInterfaceDummy.new
+      @left_motor = RRServoMotorDummy.new(@servo_interface, LEFT_MOTOR_ID)
     end
     @left_motor.clear_points_queue
   end

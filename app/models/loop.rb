@@ -14,8 +14,8 @@ require_relative 'trajectory'
 
 MIN_QUEUE_SIZE = 15
 QUEUE_SIZE = 33
-LEFT_MOTOR_ID = Config.rpi? ? 32 : 19 # CCW – down, positive, jet looking towards the wall
-RIGHT_MOTOR_ID = Config.rpi? ? 19 : 32 # CCW – up, positive, jet looking towards the wall, to inverse
+LEFT_MOTOR_ID = 32 # CCW – down, positive, jet looking towards the wall
+RIGHT_MOTOR_ID = 19 # CCW – up, positive, jet looking towards the wall, to inverse
 
 def init_system
   @redis = Redis.new
@@ -24,26 +24,28 @@ def init_system
 
   fail 'Already running' unless @redis.get('running').nil?
 
-  if Config.rpi?
+  if Config.connected?
     @servo_interface = RRInterface.new
     @left_motor = RRServoMotor.new(@servo_interface, LEFT_MOTOR_ID)
     @right_motor = RRServoMotor.new(@servo_interface, RIGHT_MOTOR_ID)
   else
-    @servo_interface = RRInterface.new
-    @left_motor = RRServoMotor.new(@servo_interface, LEFT_MOTOR_ID)
-    @right_motor = RRServoMotor.new(@servo_interface, RIGHT_MOTOR_ID)
+    @servo_interface = RRInterfaceDummy.new
+    @left_motor = RRServoMotorDummy.new(@servo_interface, LEFT_MOTOR_ID)
+    @right_motor = RRServoMotorDummy.new(@servo_interface, RIGHT_MOTOR_ID)
 
-    # @right_motor = RRServoMotorDummy.new(@servo_interface, RIGHT_MOTOR_ID, :right)
-    # @servo_interface = RRInterfaceDummy.new
-    # @left_motor = RRServoMotorDummy.new(@servo_interface, LEFT_MOTOR_ID, :left)
-    # @right_motor = RRServoMotorDummy.new(@servo_interface, RIGHT_MOTOR_ID, :right)
-    @left_motor.clear_points_queue
-    @right_motor.clear_points_queue
-
-    start_point = Config.start_point.get_motors_deg
-    start_point.y *= -1
-    move(to: start_point)
+    go_home
   end
+
+  @left_motor.clear_points_queue
+  @right_motor.clear_points_queue
+
+  set_state
+end
+
+def go_home
+  start_point = Config.start_point.get_motors_deg
+  start_point.y *= -1
+  move(to: start_point)
   set_state
 end
 
@@ -58,9 +60,11 @@ end
 def move(from: nil, to:)
   tl = @left_motor.move(to: to.x, max_velocity: @idling_speed, acceleration: @acceleration)
   tr = @right_motor.move(to: to.y, max_velocity: @idling_speed, acceleration: @acceleration)
+  @redis.set 'running', 'true'
   @servo_interface.start_motion
   time_to_wait = ([tl, tr].max || 0) / 1000.0 + 0.5
-  wait time_to_wait #if Config.rpi?
+  wait time_to_wait if Config.connected?
+  @redis.del 'running'
 end
 
 def soft_stop
@@ -90,6 +94,7 @@ end
 
 def paint_trajectory
   add_points(QUEUE_SIZE)
+  @redis.set 'running', 'true'
   @servo_interface.start_motion
   turn_painting_on
 
@@ -107,6 +112,7 @@ def paint_trajectory
     set_state
   end
   turn_painting_off
+  @redis.del 'running'
 end
 
 
@@ -115,9 +121,7 @@ def add_points(queue_size)
     left_point = @trajectory.left_motor_points[@point_index]
     right_point = @trajectory.right_motor_points[@point_index]
     break if right_point.nil? or left_point.nil?
-    p [@trajectory.id, @point_index, left_current_point: @left_motor.position, left_desired_point: left_point]
     @left_motor.add_point(left_point)
-    p [@trajectory.id, @point_index, right_current_point: @right_motor.position, right_desired_point: right_point]
     @right_motor.add_point(right_point)
     @point_index += 1
   end
@@ -126,13 +130,11 @@ end
 
 def paint
   @zero_time = Time.now
-  @redis.set(:running, 'true')
+  @redis.set('running', 'true')
   set_state
   @trajectory_index = Config.start_from.to_i
   @point_index = 1
-  start_point = Config.start_point
-  start_point.y *= -1
-  move(to: start_point.get_motors_deg)
+  go_home
 
   until (@trajectory = Trajectory.get @trajectory_index).nil? # go through trajectories
     @redis.set('current_trajectory', @trajectory_index.to_s)
@@ -140,16 +142,13 @@ def paint
     unless @trajectory.empty?
       @trajectory.right_motor_points.map(&:inverse!)
       move(to: Point.new(@trajectory.left_motor_points.first.p, @trajectory.right_motor_points.first.p))
-      p @redis.get 'state'
       paint_trajectory
 
     end
     @trajectory_index += 1
     @point_index = 1
   end
-  start_point = Config.start_point
-  start_point.y *= -1
-  move(to: start_point.get_motors_deg)
+  go_home
 
   Config.start_from = 0
   puts 'Done.'
@@ -166,9 +165,7 @@ end
 def finalize
   puts 'Finalizing'
   turn_painting_off
-  start_point = Config.start_point
-  start_point.y *= -1
-  move(to: start_point.get_motors_deg)
+  go_home
 
   puts "Done. Stopped. It took #{(Time.now - @zero_time).round(1)} secs"
   @trajectory = nil
@@ -207,12 +204,9 @@ begin
 
         when 'move' # @redis.publish('commands', {command: 'move', x: 300.0, y: 1400.0}.to_json)
           @zero_time = Time.now
-          @redis.set('running', true)
-
           to = Point.new(message[:x], message[:y]).inverse.get_motors_deg
           to.y = to.y * -1
           move(to: to)
-          @redis.del 'running'
           set_state
           puts "Moved to left: #{@left_motor.position}, right: #{@right_motor.position}. It took #{(Time.now - @zero_time).round(1)} secs"
 
@@ -224,7 +218,6 @@ begin
 
           @redis.set('running', true)
           t = motor.move(to: motor.position + distance * direction, max_velocity: @idling_speed, acceleration: @acceleration, start_immediately: true) / 1000.0
-          p t
           wait t
           @redis.del 'running'
           set_state
@@ -234,6 +227,8 @@ begin
           direction = motor == @left_motor ? 1 : -1
           motor.assign_current_position_to(actual_position: message[:actual_position] * direction)
           set_state
+        when 'home' # @redis.publish('commands', {command: 'home'}.to_json)
+          go_home
         else
           puts "##{channel}: #{message}"
         end
