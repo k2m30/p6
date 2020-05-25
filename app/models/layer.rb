@@ -35,7 +35,8 @@ class Layer
     end
 
     @color = @xml.at_css('path')&.attributes&.dig('stroke')&.value || @xml.attributes['color']&.value
-    @width = @xml.at_css('path')&.attributes&.dig('stroke-width')&.value || @xml.attributes['width']&.value
+    @width = Float(@xml.at_css('path')&.attributes&.dig('stroke-width')&.value || @xml.attributes['width']&.value) rescue 8
+    @width = 8 if @width.to_f < 8
     # p [@name, @paths.size]
     new(@name, @paths, @splitted_paths, @tpaths, @trajectories, @color, @width)
   end
@@ -204,11 +205,11 @@ class Layer
         # xml.rect(x: Config.crop_x + Config.move_x, y: Config.crop_y + Config.move_y, width: Config.crop_w, height: Config.crop_h, 'fill-opacity': 0, 'stroke-width': @width, 'stroke-linecap': :round, opacity: 1.0, stroke: 'darkred')
 
         xml.style do
-          xml.text ".d {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 1.0}\n"
-          xml.text ".move_to {stroke: darkred; fill-opacity: 0; marker-end: url(#arrow-end); stroke-width: #{(@width / 5.0).to_i}}\n"
+          xml.text ".d {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width.ceil}; stroke-linecap: round; opacity: 1.0}\n"
+          xml.text ".move_to {stroke: darkred; fill-opacity: 0; marker-end: url(#arrow-end); stroke-width: #{(@width / 5.0).ceil}}\n"
           # xml.text ".s {stroke: #{@color}; fill-opacity: 0; stroke-width: #{(@width / 4.0).to_i}; stroke-linecap: round; opacity: 1.0} \n"
           # xml.text ".t {stroke: #{@color}; fill-opacity: 0; stroke-width: #{@width}; stroke-linecap: round; opacity: 1.0} \n"
-          xml.text "path.d:hover {stroke-width: #{@width * 1.5};} \n"
+          xml.text "path.d:hover {stroke-width: #{(@width * 1.5).ceil};} \n"
           xml.text ".invisible {visibility: hidden;}"
         end
         @splitted_paths ||= []
