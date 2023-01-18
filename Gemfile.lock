@@ -115,7 +115,7 @@ GEM
     numo-gnuplot (0.2.4)
     popper_js (1.16.0)
     puma (3.12.6)
-    rack (2.2.2)
+    rack (2.2.6.2)
     rack-mini-profiler (1.1.6)
       rack (>= 1.2.0)
     rack-test (1.1.0)
